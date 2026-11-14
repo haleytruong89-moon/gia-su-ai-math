@@ -59,7 +59,10 @@ export interface SaveReplyInput {
 }
 
 export interface TutorRepo {
-  /** The child's active session of `dateVn`, or a new one (an active one from an earlier day is marked abandoned). */
+  /**
+   * The child's active session of `dateVn`, or a new one. An active one from an earlier day is
+   * marked abandoned, with its open problems (DOMAIN §3.1–3.2).
+   */
   openSession(a: { actor: ChildActor; device: Device; dateVn: string; promptVersion: string; modelMain: string }): Promise<{ id: string; reused: boolean }>;
   createProblem(a: { actor: ChildActor; sessionId: string; stuckKind: StuckKind | null }): Promise<{ id: string }>;
   setProblemStatus(problemId: string, status: ProblemStatus, now: Date): Promise<void>;
@@ -71,6 +74,10 @@ export interface TutorRepo {
   insertChildMessage(a: { actor: ChildActor; problemId: string; clientMsgId: string; text: string; now: Date }): Promise<{ messageId: string } | { conflict: true }>;
   /** Frees a claimed child message when the model call failed, so the same resend can run again. */
   deleteMessage(messageId: string): Promise<void>;
-  /** Tutor message, model_call, problem counters, session last_seen_at and the monthly cost. */
-  saveReply(a: SaveReplyInput): Promise<StoredReply>;
+  /**
+   * Problem counters first, guarded by the turn count read before the model call (optimistic lock):
+   * `conflict` when another turn of this problem was saved meanwhile (two devices). Then the tutor
+   * message, the model_call and the monthly cost. The cost is recorded even on a conflict.
+   */
+  saveReply(a: SaveReplyInput): Promise<StoredReply | { conflict: true }>;
 }

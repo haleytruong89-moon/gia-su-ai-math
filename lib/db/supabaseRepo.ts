@@ -31,13 +31,18 @@ export function supabaseRepo(db: SupabaseClient = createAdminClient()): TutorRep
 
   return {
     async openSession(a) {
+      // No deleted_at filter: the unique index study_sessions_one_active_uidx ignores it too.
       const { data: active, error } = await t().from("study_sessions").select("id, date_vn")
-        .eq("child_id", a.actor.userId).eq("status", "active").is("deleted_at", null).maybeSingle();
+        .eq("child_id", a.actor.userId).eq("status", "active").maybeSingle();
       if (error) fail("openSession.read", error);
       if (active && active.date_vn === a.dateVn) return { id: active.id as string, reused: true };
       if (active) {
         // An active session left from an earlier day (DOMAIN §3.1): close it before opening today's.
-        const { error: e } = await t().from("study_sessions").update({ status: "abandoned", ended_at: new Date().toISOString() }).eq("id", active.id);
+        const at = new Date().toISOString();
+        const { error: e0 } = await t().from("problems").update({ status: "abandoned", closed_at: at, updated_at: at })
+          .eq("session_id", active.id).eq("status", "in_progress");
+        if (e0) fail("openSession.abandonProblems", e0);
+        const { error: e } = await t().from("study_sessions").update({ status: "abandoned", ended_at: at, updated_at: at }).eq("id", active.id);
         if (e) fail("openSession.abandon", e);
       }
       const { data, error: e2 } = await t().from("study_sessions").insert({
@@ -121,29 +126,34 @@ export function supabaseRepo(db: SupabaseClient = createAdminClient()): TutorRep
 
     async saveReply(a) {
       const nowIso = a.now.toISOString();
-      const { data: msg, error } = await t().from("messages").insert({
-        family_id: a.actor.familyId, child_id: a.actor.userId, problem_id: a.problem.id, role: "tutor",
-        content: a.tutorText, buttons: a.buttons, hint_level: a.problem.hintLevel, created_by: a.actor.userId,
-      }).select(MESSAGE_COLS).single<MessageDb>();
-      if (error || !msg) fail("saveReply.message", error);
+      // The model was paid for whatever happens next: count it first.
+      await addUsage(db, a.actor.familyId, a.now, a.costUsd);
 
-      const { error: e2 } = await t().from("model_calls").insert({
-        family_id: a.actor.familyId, child_id: a.actor.userId, message_id: msg.id, problem_id: a.problem.id, purpose: "tutor",
+      // Optimistic lock: only the turn that read turn_count = N may write N+1 (two devices, DOMAIN §5).
+      const { data: p, error: e1 } = await t().from("problems").update({
+        turn_count: a.turn, status: a.status, statement_confirmed: a.statementConfirmed, updated_at: nowIso,
+        closed_at: a.status === "in_progress" ? null : nowIso,
+      }).eq("id", a.problem.id).eq("turn_count", a.problem.turnCount).select("id, status, turn_count").maybeSingle();
+      if (e1) fail("saveReply.problem", e1);
+
+      const { data: msg, error: e2 } = p
+        ? await t().from("messages").insert({
+            family_id: a.actor.familyId, child_id: a.actor.userId, problem_id: a.problem.id, role: "tutor",
+            content: a.tutorText, buttons: a.buttons, hint_level: a.problem.hintLevel, created_by: a.actor.userId,
+          }).select(MESSAGE_COLS).single<MessageDb>()
+        : { data: null, error: null };
+      if (e2) fail("saveReply.message", e2);
+
+      const { error: e3 } = await t().from("model_calls").insert({
+        family_id: a.actor.familyId, child_id: a.actor.userId, message_id: msg?.id ?? null, problem_id: a.problem.id, purpose: "tutor",
         model: a.model, prompt_version: a.promptVersion, raw_output: a.rawOutput,
         tokens_in: a.tokens.in, tokens_cached: a.tokens.cached, tokens_out: a.tokens.out, cost_usd: a.costUsd,
       });
-      if (e2) fail("saveReply.model_call", e2);
-
-      const { data: p, error: e3 } = await t().from("problems").update({
-        turn_count: a.turn, status: a.status, statement_confirmed: a.statementConfirmed, updated_at: nowIso,
-        closed_at: a.status === "in_progress" ? null : nowIso,
-      }).eq("id", a.problem.id).select("id, status, turn_count").single();
-      if (e3 || !p) fail("saveReply.problem", e3);
+      if (e3) fail("saveReply.model_call", e3);
+      if (!p || !msg) return { conflict: true as const };
 
       const { error: e4 } = await t().from("study_sessions").update({ last_seen_at: nowIso, updated_at: nowIso }).eq("id", a.problem.sessionId);
       if (e4) fail("saveReply.session", e4);
-
-      await addUsage(db, a.actor.familyId, a.now, a.costUsd);
       return replyFrom(p as ProblemDb, msg);
     },
   };

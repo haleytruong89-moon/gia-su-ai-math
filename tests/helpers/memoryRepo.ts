@@ -35,7 +35,10 @@ export function memoryRepo(seed: Seed = {}) {
     async openSession(a) {
       const active = sessions.find((s) => s.childId === a.actor.userId && s.status === "active");
       if (active && active.dateVn === a.dateVn) return { id: active.id, reused: true };
-      if (active) active.status = "abandoned";
+      if (active) {
+        active.status = "abandoned";
+        for (const p of problems) if (p.sessionId === active.id && p.status === "in_progress") p.status = "abandoned";
+      }
       const s: Sess = { id: id("s"), childId: a.actor.userId, dateVn: a.dateVn, status: "active", device: a.device };
       sessions.push(s);
       return { id: s.id, reused: false };
@@ -78,6 +81,9 @@ export function memoryRepo(seed: Seed = {}) {
     async saveReply(a: SaveReplyInput) {
       const p = problems.find((x) => x.id === a.problem.id);
       if (!p) throw new Error("no problem");
+      const month = `${a.now.toISOString().slice(0, 7)}-01`;
+      usage.set(`${a.actor.familyId}|${month}`, (usage.get(`${a.actor.familyId}|${month}`) ?? 0) + a.costUsd);
+      if (p.turnCount !== a.problem.turnCount) return { conflict: true as const };
       p.turnCount = a.turn;
       p.status = a.status;
       p.statementConfirmed = a.statementConfirmed;
@@ -86,8 +92,6 @@ export function memoryRepo(seed: Seed = {}) {
         clientMsgId: null, at: a.now, reply };
       messages.push(t);
       modelCalls.push({ childMessageId: a.childMessageId, tutorMessageId: t.id, costUsd: a.costUsd, raw: a.rawOutput, promptVersion: a.promptVersion });
-      const month = `${a.now.toISOString().slice(0, 7)}-01`;
-      usage.set(`${a.actor.familyId}|${month}`, (usage.get(`${a.actor.familyId}|${month}`) ?? 0) + a.costUsd);
       return reply;
     },
   };

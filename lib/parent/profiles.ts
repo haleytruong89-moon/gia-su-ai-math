@@ -66,14 +66,17 @@ export async function saveProfile(parent: ParentActor, raw: unknown): Promise<st
   const { data: versions, error: e1 } = await t.select("version").eq("child_id", kid.id).order("version", { ascending: false }).limit(1);
   if (e1) throw new Error(`saveProfile.version: ${e1.message}`);
   const version = ((versions?.[0]?.version as number | undefined) ?? 0) + 1;
-  // One current profile per child (unique index): retire the old one, then insert the new one.
-  const { error: e2 } = await t.update({ is_current: false, updated_at: now }).eq("child_id", kid.id).eq("is_current", true);
-  if (e2) throw new Error(`saveProfile.retire: ${e2.message}`);
-  const { error: e3 } = await t.insert({
+  // One current profile per child (unique index). Insert the new version switched off first, so a
+  // failed insert (e.g. two parents saving at once) never leaves the child without a profile.
+  const { data: row, error: e2 } = await t.insert({
     family_id: parent.familyId, child_id: kid.id, child_code: v.childCode, grade: kid.grade, max_lines: v.maxLines,
-    answer_mode: v.answerMode, profile_text: v.profileText, version, is_current: true, created_by: parent.userId,
-  });
-  if (e3?.code === "23505") return "Có người vừa lưu cùng lúc. Tải lại trang rồi thử lại.";
-  if (e3) throw new Error(`saveProfile.insert: ${e3.message}`);
+    answer_mode: v.answerMode, profile_text: v.profileText, version, is_current: false, created_by: parent.userId,
+  }).select("id").single();
+  if (e2?.code === "23505") return "Có người vừa lưu cùng lúc. Tải lại trang rồi thử lại.";
+  if (e2 || !row) throw new Error(`saveProfile.insert: ${e2?.message ?? "no row"}`);
+  const { error: e3 } = await t.update({ is_current: false, updated_at: now }).eq("child_id", kid.id).eq("is_current", true);
+  if (e3) throw new Error(`saveProfile.retire: ${e3.message}`);
+  const { error: e4 } = await t.update({ is_current: true, updated_at: now }).eq("id", row.id);
+  if (e4) throw new Error(`saveProfile.switch: ${e4.message}`);
   return null;
 }

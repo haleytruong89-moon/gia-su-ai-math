@@ -68,7 +68,15 @@ export async function newProblem(d: Deps, raw: unknown): Promise<Result> {
 
   // A double tap or a resend: answer with the problem the first tap opened.
   const seen = await d.repo.findByClientMsg(actor.userId, clientMsgId);
-  if (seen) return seen.reply ? { status: 200, json: { problemId: seen.problemId, reply: seen.reply } } : pending;
+  if (seen) {
+    if (seen.reply) return { status: 200, json: { problemId: seen.problemId, reply: seen.reply } };
+    if (!isStale({ messageId: seen.messageId, clientMsgId, text: seen.text, at: seen.at }, d.now)) return pending;
+    // The first call died before replying: run the first turn again on that problem.
+    const stuck = await d.repo.getProblemForChild(seen.problemId, actor.userId);
+    if (!stuck || stuck.status !== "in_progress") return closed(stuck?.status ?? "abandoned");
+    const again = await runClaimed(d, actor, stuck, seen.messageId, seen.text);
+    return again.status === 200 ? { status: 200, json: { problemId: stuck.id, reply: again.json } } : again;
+  }
 
   const session = await d.repo.openSession({ actor, device: parsed.data.device ?? "laptop", dateVn: dateVn(d.now),
     promptVersion: d.promptVersion, modelMain: d.modelMain });
@@ -76,7 +84,8 @@ export async function newProblem(d: Deps, raw: unknown): Promise<Result> {
   const problem = await d.repo.getProblemForChild(id, actor.userId);
   if (!problem) throw new Error("problem vanished after insert");
   const r = await runTurn(d, actor, problem, clientMsgId, statement);
-  if (r.status === 503) await d.repo.setProblemStatus(id, "abandoned", d.now);
+  // Model down, or a parallel double tap won the clientMsgId: this problem stays empty.
+  if (r.status !== 200) await d.repo.setProblemStatus(id, "abandoned", d.now);
   return r.status === 200 ? { status: 200, json: { problemId: id, reply: r.json } } : r;
 }
 
@@ -140,7 +149,7 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
   }
 
   const out = result.output;
-  const reply = await d.repo.saveReply({
+  const saved = await d.repo.saveReply({
     actor, problem, childMessageId: messageId, turn,
     status: turn >= MAX_TURNS ? "timed_out" : "in_progress",
     statementConfirmed: problem.statementConfirmed || out?.de_da_xac_nhan === true,
@@ -153,5 +162,11 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
     tokens: result.tokens,
     now: d.now,
   });
-  return { status: 200, json: reply };
+  if ("conflict" in saved) {
+    // Another device saved a turn of this problem meanwhile: drop this message; the client's
+    // retry of the same clientMsgId runs it again on top of the newer turn.
+    await d.repo.deleteMessage(messageId);
+    return pending;
+  }
+  return { status: 200, json: saved };
 }

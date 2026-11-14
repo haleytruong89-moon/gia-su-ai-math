@@ -46,11 +46,14 @@ describe("startSession", () => {
     const r = await startSession(late, { device: "ipad" });
     expect(r.json).toEqual({ sessionId: repo.sessions[0]?.id, reused: true });
   });
-  it("an active session from an earlier day is abandoned and a new one opens", async () => {
+  it("an active session from an earlier day is abandoned, with its open problems, and a new one opens", async () => {
     const { d, repo } = deps({ sessions: [{ childId: "c1", dateVn: "2026-11-13" }] });
+    repo.problems.push({ id: "old", childId: "c1", familyId: "f1", sessionId: repo.sessions[0]!.id, status: "in_progress",
+      turnCount: 3, hintLevel: 0, wrongCount: 0, stuckKind: null, statementConfirmed: true });
     const r = await startSession(d, { device: "laptop" });
     expect((r.json as { reused: boolean }).reused).toBe(false);
     expect(repo.sessions.map((s) => s.status)).toEqual(["abandoned", "active"]);
+    expect(repo.problems[0]?.status).toBe("abandoned");
   });
 });
 
@@ -73,6 +76,28 @@ describe("newProblem", () => {
     const b = await newProblem(d, body);
     expect([repo.problems.length, c.calls]).toEqual([1, 1]);
     expect(b.json).toEqual(a.json);
+  });
+  it("a resend after the first call died (> 2 min, no reply) runs the first turn again on the same problem", async () => {
+    const at = new Date(NOW.getTime() - STALE_PENDING_MS - 1);
+    const seed: Seed = { problems: [{ id: "p1", childId: "c1" }],
+      messages: [{ problemId: "p1", role: "child", text: "Hai người thợ…", clientMsgId: body.clientMsgId, at }] };
+    const { d, repo } = deps(seed);
+    const r = await newProblem(d, body);
+    expect(r.status).toBe(200);
+    expect((r.json as { problemId: string }).problemId).toBe("p1");
+    expect(repo.problems).toHaveLength(1);
+  });
+  it("the same resend within 2 minutes waits (409 pending)", async () => {
+    const seed: Seed = { problems: [{ id: "p1", childId: "c1" }],
+      messages: [{ problemId: "p1", role: "child", text: "x", clientMsgId: body.clientMsgId, at: new Date(NOW.getTime() - 10_000) }] };
+    expect((await newProblem(deps(seed).d, body)).json).toEqual({ error: "pending" });
+  });
+  it("a parallel double tap: the loser's empty problem is abandoned", async () => {
+    const { d, repo } = deps();
+    await newProblem(d, body); // the winner
+    repo.findByClientMsg = async () => null; // the loser checked before the winner inserted
+    expect((await newProblem(d, body)).json).toEqual({ error: "pending" });
+    expect(repo.problems.map((p) => p.status)).toEqual(["in_progress", "abandoned"]);
   });
   it("rejects an empty statement and an unknown stuck kind", async () => {
     const { d } = deps();
@@ -144,6 +169,19 @@ describe("handleTurn", () => {
     const r = await handleTurn(d, body(1));
     expect((r.json as { status: string; turnCount: number })).toMatchObject({ status: "timed_out", turnCount: 20 });
     expect(await handleTurn(d, body(2))).toEqual({ status: 409, json: { error: "problem_closed", status: "timed_out" } });
+  });
+  it("two devices send at once: the later save loses (409 pending), one turn is counted, both calls are paid", async () => {
+    const { d, repo } = deps(inProgress, client([confirmed]));
+    // While this turn waits for the model, the other device saves turn 1 of the same problem.
+    const racing = { create: async (req: object) => {
+      repo.problems[0]!.turnCount = 1;
+      return client([confirmed]).create(req);
+    } };
+    const r = await handleTurn({ ...d, client: racing }, body(1));
+    expect(r).toEqual({ status: 409, json: { error: "pending" } });
+    expect(repo.problems[0]?.turnCount).toBe(1);
+    expect(repo.messages).toEqual([]); // this device's message was released for its retry
+    expect(repo.usage.get("f1|2026-11-01")).toBeGreaterThan(0);
   });
   it("model down → 503, the child's message is released so the same resend works later", async () => {
     let fail = true;
