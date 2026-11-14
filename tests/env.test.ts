@@ -17,4 +17,11 @@ describe("server env", () => {
     const { ANTHROPIC_API_KEY: _drop, ...rest } = base;
     expect(() => parseServerEnv(rest)).toThrow(/ANTHROPIC_API_KEY/);
   });
+  it("G1 runs without the CAS / notify / cron secrets (needed from G4, G7)", () => {
+    const { CAS_URL: _a, CAS_SECRET: _b, LAUNCHER_URL: _c, TUTOR_NOTIFY_SECRET: _d, CRON_SECRET: _e, ...g1 } = base;
+    expect(parseServerEnv(g1).ANTHROPIC_API_KEY).toBe("sk-ant-x");
+  });
+  it("still checks an optional URL when it is set", () => {
+    expect(() => parseServerEnv({ ...base, CAS_URL: "not a url" })).toThrow(/CAS_URL/);
+  });
 });
