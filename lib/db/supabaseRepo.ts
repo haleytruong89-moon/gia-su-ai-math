@@ -166,3 +166,23 @@ async function addUsage(db: SupabaseClient, familyId: string, now: Date, cost: n
   );
   if (e2) fail("usage.write", e2);
 }
+
+export interface ThreadMessage { id: string; role: "child" | "tutor"; text: string; buttons: string[] }
+export interface Thread { problemId: string; status: ProblemStatus; turnCount: number; messages: ThreadMessage[] }
+
+/** The chat of one problem for the child's screen; null when it is not this child's. */
+export async function problemThread(problemId: string, childId: string, db: SupabaseClient = createAdminClient()): Promise<Thread | null> {
+  if (!/^[0-9a-f-]{36}$/i.test(problemId)) return null;
+  const t = db.schema("tutor");
+  const { data: p, error } = await t.from("problems").select("id, status, turn_count")
+    .eq("id", problemId).eq("child_id", childId).is("deleted_at", null).maybeSingle();
+  if (error) fail("problemThread", error);
+  if (!p) return null;
+  const { data: rows, error: e2 } = await t.from("messages").select(MESSAGE_COLS)
+    .eq("problem_id", problemId).is("deleted_at", null).neq("role", "system").order("created_at", { ascending: true }).returns<MessageDb[]>();
+  if (e2) fail("problemThread.messages", e2);
+  return {
+    problemId, status: p.status as ProblemStatus, turnCount: p.turn_count as number,
+    messages: (rows ?? []).map((m) => ({ id: m.id, role: m.role === "child" ? "child" : "tutor", text: m.content, buttons: m.buttons ?? [] })),
+  };
+}
