@@ -1,6 +1,6 @@
 # Gia sư AI Toán (`gia-su-ai`)
 
-> Repo GitHub: `haleytruong89-moon/gia-su-ai-math` (private). Trong tài liệu gọi tắt là `gia-su-ai`.
+> Repo GitHub: `haleytruong89-moon/gia-su-ai-math` — **PUBLIC** (từ 14/11/2026). Trong tài liệu gọi tắt là `gia-su-ai`.
 
 Web app cho 2 con tự học Toán buổi chiều với một "cô" gia sư AI: con chụp/gõ bài đang kẹt → cô xác nhận đề → hỏi gợi mở theo thang H0–H5, **không đưa lời giải bài gốc** → con tự làm xong, hoặc để dành hỏi thầy. Tối bố mẹ đọc báo cáo 5 phút. Con: HS-9A (lớp 9), HS-6A (lớp 6), SGK Kết nối tri thức.
 
@@ -41,7 +41,7 @@ Chủ dự án là phụ huynh, **không phải dev**. Giải thích bằng ti�
 
 ## Warnings — KHÔNG được làm
 - Không đưa `ANTHROPIC_API_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `CAS_SECRET`, `TUTOR_NOTIFY_SECRET` ra trình duyệt (không tiền tố `NEXT_PUBLIC_`). Không log nội dung tin nhắn/ảnh của con ra console.
-- Không ghi họ tên thật, trường, ảnh có tên của con vào code, prompt, test, docs, fixture (D9). Dùng HS-9A, HS-6A.
+- **Repo công khai:** không đưa lên họ tên thật, trường, lớp cụ thể, điểm số, ảnh bài làm thật, nhận xét của thầy cô, email, URL/khóa thật vào code, prompt, test, docs, fixture, commit message (D9). Dùng HS-9A, HS-6A và dữ liệu giả. Tài liệu có thông tin thật ở lại hub Study BB (riêng tư).
 - Không tạo migration trong repo này. Cần đổi DB → PR riêng bên `study-launcher` theo luật của repo đó (additive, idempotent, grant + RLS cùng file, test trong `supabase/tests/`); phụ huynh merge = duyệt SQL.
 - Không lấy `child_id` từ body request — chỉ từ phiên (`auth.uid()`), rồi kiểm `session_id`/`problem_id` thuộc con đó.
 - Không để model tự đổi mức gợi ý, tự đếm lượt, tự quyết `self_solved` mà bỏ qua kiểm tra máy chủ.
