@@ -1,0 +1,72 @@
+# Gia sư AI Toán (`gia-su-ai`)
+
+> Repo GitHub: `haleytruong89-moon/gia-su-ai-math` (private). Trong tài liệu gọi tắt là `gia-su-ai`.
+
+Web app cho 2 con tự học Toán buổi chiều với một "cô" gia sư AI: con chụp/gõ bài đang kẹt → cô xác nhận đề → hỏi gợi mở theo thang H0–H5, **không đưa lời giải bài gốc** → con tự làm xong, hoặc để dành hỏi thầy. Tối bố mẹ đọc báo cáo 5 phút. Con: HS-9A (lớp 9), HS-6A (lớp 6), SGK Kết nối tri thức.
+
+Chủ dự án là phụ huynh, **không phải dev**. Giải thích bằng tiếng Việt đơn giản; mỗi PR có hướng dẫn thử trên link preview.
+
+## Đọc trước khi làm bất cứ việc gì
+1. `docs/DOMAIN.md` — **nguồn đúng duy nhất cho quy tắc** (data model, quyền, trạng thái, quy tắc tính + ví dụ chuẩn). Mục ghi *Đề xuất* chưa được phụ huynh chốt: code được nhưng đánh dấu `TODO(rule-unconfirmed)` và ghi trong PR.
+2. `docs/SPEC.md` — user stories + tiêu chí nghiệm thu.
+3. `docs/DESIGN.md` — kiến trúc, luồng một lượt, công cụ, các lát build (§9).
+4. `docs/PROGRESS.md` — lát nào xong, đang dở gì.
+5. `prompts/` + `docs/BO_TEST.md` — system prompt và bộ test sư phạm.
+
+## Tech stack
+- Next.js 16 (App Router) + React 19 + TypeScript strict + Tailwind 4 — **cùng stack với Study Launcher**
+- Chạy dưới địa chỉ Launcher: `basePath: "/gia-su"`; Launcher chuyển tiếp `/gia-su/*` sang deploy này (D20) → dùng chung phiên đăng nhập Supabase và PIN
+- Supabase project **`study-launcher`** (dùng chung), schema **`tutor`**. **SQL nằm trong repo `study-launcher`**, không nằm ở đây (D21)
+- Claude API (`@anthropic-ai/sdk`): Sonnet 5.5 chính, Haiku 5.5 kiểm tra + phân loại + chế độ tiết kiệm
+- Máy tính đại số `cas/`: Python + SymPy + FastAPI, chạy riêng tư cùng project Vercel (Vercel Services) — D24
+- Test: Vitest (logic máy chủ), pytest (`cas/`), Playwright (luồng chính), bộ test sư phạm `spike/`
+- Vercel region `sin1`; múi giờ nghiệp vụ `Asia/Ho_Chi_Minh`
+
+## Conventions
+- Code, comment, tên file, commit: **tiếng Anh**. Chữ trên giao diện và lời của "cô": **tiếng Việt có dấu**.
+- camelCase TS; snake_case cột DB. Conventional commits.
+- Mỗi lát = 1 nhánh `feature/gN-<ten-ngan>` = 1 PR thẳng vào `main`.
+- Mô tả PR (tiếng Việt): làm gì · cách thử trên preview · **có cần SQL bên repo Launcher không** · tiêu chí nghiệm thu nào đạt.
+- Giao diện bám canvas: https://claude.ai/artifact/T8ySbzJ29YWFA6Q7D56HVm (màn "con hỏi bài", "bài hình", "ôn đầu buổi", "Boox", "báo cáo"). Nút ≥ 44px (Boox ≥ 48px). Font Be Vietnam Pro + Lexend.
+
+## Key decisions (đã chốt — chi tiết `docs/DOMAIN.md` §0)
+- **T1** Gửi ảnh/bài làm/câu trả lời của con sang Anthropic API; **không gửi họ tên, trường**; chỉ dùng mã con.
+- **T2/T3** Chung Supabase `study-launcher`, schema `tutor`; repo riêng, deploy riêng.
+- **Máy chủ giữ trạng thái.** Mức gợi ý, số lượt, nản, trạng thái bài, mức U do **máy chủ** tính; model chỉ trả nhận định (`danh_gia_luot_em`). Con chỉ SELECT qua RLS; mọi ghi qua route máy chủ (service role).
+- **Không lộ lời giải bài gốc** trước khi con nộp; bộ kiểm tra Haiku chấm mọi câu trả lời; lời giải tham khảo chỉ gửi sau `self_solved`.
+- **Mọi khẳng định đúng/sai về phép tính đi qua `math_check`** (DOMAIN §4.12).
+- Trần **50 USD/tháng** (Console). ~45 USD → báo bố mẹ + tự chuyển Haiku. Tối đa 20 lượt/bài.
+- Không giới hạn giờ/buổi/ngày. Buổi 30–45 phút, nhiều bài; mỗi bài một ngữ cảnh AI mới.
+- Kho kiến thức `knowledge/*.json` sinh từ md đã duyệt trong hub (D25); **không sửa tay JSON**.
+
+## Warnings — KHÔNG được làm
+- Không đưa `ANTHROPIC_API_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `CAS_SECRET`, `TUTOR_NOTIFY_SECRET` ra trình duyệt (không tiền tố `NEXT_PUBLIC_`). Không log nội dung tin nhắn/ảnh của con ra console.
+- Không ghi họ tên thật, trường, ảnh có tên của con vào code, prompt, test, docs, fixture (D9). Dùng HS-9A, HS-6A.
+- Không tạo migration trong repo này. Cần đổi DB → PR riêng bên `study-launcher` theo luật của repo đó (additive, idempotent, grant + RLS cùng file, test trong `supabase/tests/`); phụ huynh merge = duyệt SQL.
+- Không lấy `child_id` từ body request — chỉ từ phiên (`auth.uid()`), rồi kiểm `session_id`/`problem_id` thuộc con đó.
+- Không để model tự đổi mức gợi ý, tự đếm lượt, tự quyết `self_solved` mà bỏ qua kiểm tra máy chủ.
+- Không thêm streak, bảng xếp hạng, điểm thưởng. Không thêm dịch vụ bên thứ ba nhận dữ liệu của con (ngoài Anthropic theo T1).
+- Không đổi luật khóa/mở của Launcher. Thấy spec thiếu hoặc mâu thuẫn → **dừng, ghi vào PR / PROGRESS.md, hỏi phụ huynh**.
+
+## Quy trình mỗi lát
+1. Đọc DESIGN §9 cho lát đó + mục DOMAIN liên quan → kế hoạch ngắn ở đầu PR.
+2. TDD: viết test từ **ví dụ chuẩn trong DOMAIN** trước (không khóa theo số code chạy ra).
+3. `npm run typecheck && npm run lint && npm test` xanh; `cas/`: `pytest`; đụng prompt → chạy `npm run eval` (bộ test sư phạm) và ghi kết quả.
+4. PR → preview → cập nhật `docs/PROGRESS.md`. Không merge.
+
+## Lệnh thường dùng
+```bash
+npm run dev          # http://localhost:3000/gia-su
+npm run typecheck && npm run lint && npm test
+npm run eval         # bộ test sư phạm (gọi API thật, tốn tiền — hỏi trước khi chạy cả bộ)
+npm run knowledge    # sinh knowledge/*.json từ hub md + kiểm schema
+cd cas && pip install -r requirements.txt && pytest
+```
+
+## Biến môi trường (`.env.example`)
+`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `ANTHROPIC_API_KEY` (workspace riêng, D19), `TUTOR_MODEL_MAIN`, `TUTOR_MODEL_LIGHT`, `CAS_URL`, `CAS_SECRET`, `LAUNCHER_URL`, `TUTOR_NOTIFY_SECRET`, `CRON_SECRET`
+
+## Current status
+- Phase: 2 → 3. Chưa có code. Kế hoạch: hub `deliverables/gia-su-ai/PLAN_CODE_v0.1.md`.
+- Có sẵn (đã kiểm 14/11): `cas/` (math_check, 14 test pytest xanh); `lib/rules`, `lib/tutor`, `lib/{env,actor,anthropic,time}.ts` (48 test Vitest xanh, tsc sạch); SQL `0017_tutor_schema.sql` + `rls_tutor_test.sql` cho repo Launcher (chạy xanh trên Postgres tạm 14/11).
+- Chờ phụ huynh: D20–D27; API key + workspace riêng (D19).

@@ -1,0 +1,97 @@
+[
+ {
+  "message": "Cô đọc đề là: hai người cùng làm 16 giờ thì xong; người I làm 3 giờ, người II làm 6 giờ thì được 25% công việc. Hỏi mỗi người làm riêng mất bao lâu? Em kiểm tra giúp cô đúng chưa?",
+  "buttons": [
+   "Đúng rồi",
+   "Sai chỗ…"
+  ],
+  "de_da_xac_nhan": false,
+  "ku_code_de_xuat": "T9.3",
+  "goc_loi_du_doan": null,
+  "goc_loi_da_kiem_tra": false,
+  "prereq_gap": null,
+  "danh_gia_luot_em": "khong_ap_dung",
+  "u_level_hien_tai": "U0",
+  "ky_thuat": "thuong",
+  "checklist_da_hoi": [],
+  "ket_qua_bai": "in_progress",
+  "flags": []
+ },
+ {
+  "message": "Em nhận ra đúng là có 3, 5, 7 rồi đấy!\nBó 3 bông vừa hết nghĩa là số bông **chia hết** cho 3.\nVậy số bông chia hết cho cả 3, 5 và 7. Số như thế gọi là gì?",
+  "buttons": [
+   "Ước chung",
+   "Bội chung",
+   "Em chưa biết"
+  ],
+  "de_da_xac_nhan": true,
+  "ku_code_de_xuat": "T6.12",
+  "goc_loi_du_doan": "concept",
+  "goc_loi_da_kiem_tra": false,
+  "prereq_gap": null,
+  "danh_gia_luot_em": "sai",
+  "u_level_hien_tai": "U0",
+  "ky_thuat": "thuong",
+  "checklist_da_hoi": [],
+  "ket_qua_bai": "in_progress",
+  "flags": []
+ },
+ {
+  "message": "Cô không đưa đáp án vì em sẽ không nhớ được cách làm. Mình làm bước nhỏ này nhé.\nGọi thời gian người I làm riêng là x giờ. Vậy mỗi giờ người I làm được bao nhiêu phần công việc?",
+  "buttons": [
+   "x",
+   "1/x",
+   "16/x"
+  ],
+  "de_da_xac_nhan": true,
+  "ku_code_de_xuat": "T9.3",
+  "goc_loi_du_doan": "strategy",
+  "goc_loi_da_kiem_tra": false,
+  "prereq_gap": null,
+  "danh_gia_luot_em": "xin_dap_an",
+  "u_level_hien_tai": "U1",
+  "ky_thuat": "thuong",
+  "checklist_da_hoi": [],
+  "ket_qua_bai": "in_progress",
+  "flags": []
+ },
+ {
+  "message": "Em quy đồng và thu gọn tử đúng rồi, giỏi lắm!\nCô hỏi một mục trong checklist: **tử còn phân tích tiếp được không?**\nEm thử đặt nhân tử chung cho −3√x − 9 xem.",
+  "buttons": [],
+  "de_da_xac_nhan": true,
+  "ku_code_de_xuat": "T9.9",
+  "goc_loi_du_doan": "careful",
+  "goc_loi_da_kiem_tra": true,
+  "prereq_gap": null,
+  "danh_gia_luot_em": "dung",
+  "u_level_hien_tai": "U2",
+  "ky_thuat": "thuong",
+  "checklist_da_hoi": [
+   7
+  ],
+  "ket_qua_bai": "in_progress",
+  "flags": []
+ },
+ {
+  "message": "Mình làm ngược từ điều cần chứng minh nhé.\nAE·AC = AF·AB là một **đẳng thức tích**.\nMuốn chứng minh đẳng thức tích, em biết những cách nào?",
+  "buttons": [
+   "Tam giác đồng dạng",
+   "Hệ thức lượng",
+   "Đại lượng trung gian",
+   "Em chưa biết"
+  ],
+  "de_da_xac_nhan": true,
+  "ku_code_de_xuat": "N8.10",
+  "goc_loi_du_doan": "strategy",
+  "goc_loi_da_kiem_tra": false,
+  "prereq_gap": null,
+  "danh_gia_luot_em": "khong_biet",
+  "u_level_hien_tai": "U0",
+  "ky_thuat": "phan_tich_nguoc",
+  "checklist_da_hoi": [],
+  "ket_qua_bai": "in_progress",
+  "flags": [
+   "geometry_proof"
+  ]
+ }
+]
