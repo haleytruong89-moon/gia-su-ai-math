@@ -3,7 +3,9 @@ export type SystemBlock = { type: "text"; text: string; cache_control?: { type: 
 export type ImageData = { mediaType: "image/jpeg"; data: string }; // base64
 export type ContentBlock =
   | { type: "text"; text: string; cache_control?: { type: "ephemeral" } }
-  | { type: "image"; source: { type: "base64"; media_type: "image/jpeg"; data: string }; cache_control?: { type: "ephemeral" } };
+  | { type: "image"; source: { type: "base64"; media_type: "image/jpeg"; data: string }; cache_control?: { type: "ephemeral" } }
+  // tool rounds (G4): the model's thinking + tool_use blocks go back as they came; tool_result answers them
+  | { type: "thinking" | "redacted_thinking" | "tool_use" | "tool_result"; cache_control?: never; [k: string]: unknown };
 /** What goes to the API. Messages without photos keep plain string content. */
 export type Msg = { role: "user" | "assistant"; content: string | ContentBlock[] };
 /** A history entry before it is sent: its photos go first in the same message, then the text. */
