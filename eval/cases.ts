@@ -137,7 +137,7 @@ export const CASES: EvalCase[] = [
     // TODO(G4): sibling via make_sibling with a different answer (e.g. 3, 4, 6 days → 12; NOT 4, 6, 10 → 60 like the original).
     rubric: "Động viên em bằng câu ngắn, đưa một bước rất nhỏ (dạng nút); không giải bài gốc; không có số 60 ở lời hay ở nút." },
   { id: "6.4", grade: 6, title: "Nộp thiếu ý (8 nhóm)", history: started(NHOM), childText: "8 nhóm",
-    state: { submitted: true, hintLevel: 1, turn: 4 }, forbid: ["3 bạn nữ", "2 bạn nam", "3 nữ", "2 nam"],
+    state: { submitted: true, hintLevel: 1, turn: 4 }, forbid: ["3 bạn nữ", "2 bạn nam", "3 nữ", "2 nam", "nữ 3", "nam 2"],
     answer: "8 nhóm; mỗi nhóm 3 nữ, 2 nam", expect: { notSelfSolved: true },
     rubric: "Hỏi lại phần còn thiếu của câu hỏi (mỗi nhóm bao nhiêu nữ, bao nhiêu nam); chưa coi là xong." },
   { id: "6.5", grade: 6, title: "Nộp đủ và đúng", history: started(RUY_BANG),

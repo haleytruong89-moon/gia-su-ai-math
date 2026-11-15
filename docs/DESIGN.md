@@ -94,12 +94,15 @@ interface TurnEvent { kind: 'text' | 'button'; text: string; at: Date; }
    pre = applyPreTurn(state, {nan})              → có thể nhảy H4, +nanJumps
    if turnCount + 1 >= 18 → cờ "đề nghị để dành" vào ⑥; = 20 → đóng timed_out sau lượt này
 6. Ghép prompt: ①②③ (cache) + ④ hồ sơ đã duyệt (cache) + ⑤ thẻ KU (cache) + lịch sử bài + ⑥ trạng thái
-7. toolLoop (tối đa 3 lần gọi công cụ): Sonnet (hoặc Haiku nếu economy) với tools + output_format JSON schema
-8. Guard Haiku trên TutorOutput + danh sách tool đã gọi → pass | viết lại 1 lần | câu an toàn (blocked)
+7. Chọn model (DOMAIN §4.14, D28, `lib/rules/model.ts`): Sonnet; Opus khi nản / ≥ H3 / lượt trước cô `tutor_unsure`
+   (G5: bài chứng minh hình 9, câu thi khó); bài đã lên Opus thì ở lại Opus; tháng ≥ 45 USD (D29) → chỉ Sonnet.
+   toolLoop (G4, tối đa 3 lần gọi công cụ) với output_format JSON schema
+8. Guard Haiku (`lib/tutor/guard.ts`, fail-closed) trên TutorOutput + danh sách tool đã gọi → pass | viết lại 1 lần
+   trên Opus (Sonnet khi Opus tạm ngừng) | câu an toàn theo mức (blocked). Cả lượt có hạn TURN_BUDGET_MS = 240 s
 9. Luật sau model: nextHintLevel(state, output.danh_gia_luot_em); outcome = decideOutcome(state, output, toolLog)
    (solveGate: self_solved cần math_check đạt — DOMAIN §4.12; bài chứng minh → pending_review)
 10. Ghi: messages(tutor), model_calls (raw_output + tokens + cost), tool_calls, problems (state mới), diagnoses, usage_monthly += cost
-11. usage vượt ngưỡng → notify (D23) + model_mode = economy
+11. usage ≥ 45 USD → model_mode = economy (= tạm ngừng Opus, không có chế độ trả lời tiết kiệm — D29) + notify (D23, G7)
 12. Trả {message, buttons, hintLevel, status, turnCount}
 ```
 
