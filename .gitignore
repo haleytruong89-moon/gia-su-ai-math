@@ -8,3 +8,6 @@ spike/results/
 next-env.d.ts
 *.tsbuildinfo
 eval/results/
+.launcher/
+test-results/
+playwright-report/

@@ -10,9 +10,11 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "eval": "tsx --conditions=react-server eval/run.ts"
+    "eval": "tsx --conditions=react-server eval/run.ts",
+    "e2e": "playwright test"
   },
   "devDependencies": {
+    "@playwright/test": "^1.65.1",
     "@tailwindcss/postcss": "^4.3.5",
     "@types/node": "^22.20.5",
     "@types/react": "^19.3.0",
