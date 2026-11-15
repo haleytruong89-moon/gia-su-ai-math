@@ -128,7 +128,7 @@ interface KnowledgeUnit {
 
 ## 7. Bảo mật và riêng tư
 - RLS + quyền theo DOMAIN §2 (SQL + test ở repo Launcher). `lib/supabase/admin.ts` có `import "server-only"`.
-- Ảnh: nhận jpg/png/heic ≤ 10 MB → `sharp` xoay theo EXIF rồi **bỏ toàn bộ metadata**, cạnh dài ≤ 1000 px, jpg q80 → Storage `tutor-images/<child_id>/<problem_id>/<uuid>.jpg`; URL ký hạn 10 phút.
+- Ảnh (G3, phụ huynh chốt 15/11/2026): **máy con** đọc ảnh (iPad đọc cả HEIC), xoay đứng, thu về ≤ 2048 px, JPEG → gửi multipart ≤ 4 MB (dưới giới hạn 4,5 MB của Vercel). **Máy chủ** `lib/images.ts` (`sharp`) đọc lại (chỉ jpeg/png/webp), xoay theo EXIF, **bỏ toàn bộ metadata**, thu về cỡ chuẩn Claude **≤ 1568 px và ≤ 1568 token hình** (ô 28 px; A4 1075×1520 → 924×1307), JPEG q80 → Storage private `tutor-images/<child_id>/<problem_id>/<uuid>.jpg` (Launcher 0019; không policy cho trình duyệt) + dòng `attachments` có `message_id`; URL ký hạn 10 phút. Tối đa **4 ảnh/bài** (ảnh đề + ảnh bài làm). Mỗi lượt máy chủ tải lại ảnh của bài, gắn vào đúng tin của con; ảnh mới nhất là cache breakpoint thứ 4. Bộ kiểm tra thấy ảnh đề tới khi có `confirmed_statement`. "Chụp lại" = bài mới, bài cũ chưa xác nhận đề → `abandoned`. "Sai chỗ…" ≥ 2 lần → màn gợi ý gõ đề / chụp lại.
 - Model chỉ thấy mã con (`child_code`) và lớp. Không gửi `display_name`.
 - Header bảo mật giống Launcher; không log nội dung tin nhắn.
 

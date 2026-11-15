@@ -2,12 +2,13 @@ import "server-only";
 // lib/db/supabaseRepo.ts — TutorRepo on schema `tutor` (SQL lives in the study-launcher repo,
 // migration 0017). Service role: every call site has already checked the actor from the session.
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { ImageData } from "@/lib/tutor/assemble";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { BTN_SAVE } from "@/lib/copy";
 import type { InputKind } from "@/lib/rules/events";
 import type { HintLevel } from "@/lib/rules/hints";
-import type { Msg } from "@/lib/tutor/assemble";
-import { flagsOf, type FoundMessage, type ProblemRow, type ProblemStatus, type StoredReply, type StuckKind, type TutorRepo } from "@/lib/tutor/repo";
+import { deleteAfterVn } from "@/lib/rules/photo";
+import { flagsOf, type FoundMessage, type HistoryItem, type ProblemRow, type ProblemStatus, type StoredReply, type StuckKind, type TutorRepo } from "@/lib/tutor/repo";
 
 const UNIQUE_VIOLATION = "23505";
 
@@ -18,18 +19,23 @@ function fail(where: string, error: { message: string } | null): never {
 interface ProblemDb {
   id: string; child_id: string; family_id: string; session_id: string; status: ProblemStatus; turn_count: number;
   hint_level: HintLevel; hint_level_max: HintLevel; nan_jumps: number; wrong_count: number; offtopic_count: number; u_level: 0 | 1 | 2 | 3;
-  stuck_kind: StuckKind | null; statement_confirmed: boolean;
+  stuck_kind: StuckKind | null; statement_confirmed: boolean; confirmed_statement: string | null;
 }
 interface MessageDb { id: string; role: "child" | "tutor" | "system"; content: string; buttons: string[] | null;
   hint_level: number | null; client_msg_id: string | null; created_at: string; problem_id: string; input_kind: InputKind }
 
 // offtopic_count and input_kind come from Launcher migration 0018 (G2).
 const PROBLEM_COLS = "id, child_id, family_id, session_id, status, turn_count, hint_level, hint_level_max, nan_jumps, wrong_count, " +
-  "offtopic_count, u_level, stuck_kind, statement_confirmed";
+  "offtopic_count, u_level, stuck_kind, statement_confirmed, confirmed_statement";
 const MESSAGE_COLS = "id, role, content, buttons, hint_level, client_msg_id, created_at, problem_id, input_kind";
 
-function replyFrom(p: Pick<ProblemDb, "id" | "status" | "turn_count">, m: MessageDb): StoredReply {
-  return { problemId: p.id, message: m.content, buttons: m.buttons ?? [], hintLevel: m.hint_level ?? 0, status: p.status, turnCount: p.turn_count };
+const BUCKET = "tutor-images"; // private, server only (Launcher 0019)
+const SIGNED_URL_SECONDS = 600;
+const REPLY_COLS = "id, status, turn_count, statement_confirmed";
+
+function replyFrom(p: Pick<ProblemDb, "id" | "status" | "turn_count" | "statement_confirmed">, m: MessageDb): StoredReply {
+  return { problemId: p.id, message: m.content, buttons: m.buttons ?? [], hintLevel: m.hint_level ?? 0, status: p.status, turnCount: p.turn_count,
+    statementConfirmed: p.statement_confirmed };
 }
 
 export function supabaseRepo(db: SupabaseClient = createAdminClient(), strongModel = "claude-opus-5-5"): TutorRepo {
@@ -86,7 +92,7 @@ export function supabaseRepo(db: SupabaseClient = createAdminClient(), strongMod
       const list = (rows ?? []) as (MessageDb & { role: "child" | "tutor" })[];
       const last = list.at(-1);
       const answered = last?.role === "child" ? list.slice(0, -1) : list;
-      const history: Msg[] = answered.map((m) => ({ role: m.role === "child" ? "user" : "assistant", content: m.content }));
+      const history: HistoryItem[] = answered.map((m) => ({ id: m.id, role: m.role === "child" ? "user" : "assistant", content: m.content }));
 
       const { count: strongCalls, error: e3 } = await t().from("model_calls").select("id", { count: "exact", head: true })
         .eq("problem_id", p.id).eq("purpose", "tutor").eq("model", strongModel);
@@ -95,11 +101,14 @@ export function supabaseRepo(db: SupabaseClient = createAdminClient(), strongMod
         .eq("problem_id", p.id).eq("purpose", "tutor").not("message_id", "is", null)
         .order("created_at", { ascending: false }).limit(1).maybeSingle();
       if (e4) fail("getProblem.lastCall", e4);
+      const { count: photos, error: e5 } = await t().from("attachments").select("id", { count: "exact", head: true }).eq("problem_id", p.id);
+      if (e5) fail("getProblem.photos", e5);
 
       const row: ProblemRow = {
         id: p.id, childId: p.child_id, familyId: p.family_id, sessionId: p.session_id, status: p.status, turnCount: p.turn_count,
         hintLevel: p.hint_level, hintLevelMax: p.hint_level_max, nanJumps: p.nan_jumps, wrongCount: p.wrong_count,
-        offtopicCount: p.offtopic_count, uLevel: p.u_level, stuckKind: p.stuck_kind, statementConfirmed: p.statement_confirmed, history,
+        offtopicCount: p.offtopic_count, uLevel: p.u_level, stuckKind: p.stuck_kind, statementConfirmed: p.statement_confirmed,
+        confirmedStatement: p.confirmed_statement, history, imageCount: photos ?? 0,
         thread: list.map((m) => ({ id: m.id, role: m.role, content: m.content, inputKind: m.input_kind })),
         statement: list.find((m) => m.role === "child")?.content ?? null,
         usedStrong: (strongCalls ?? 0) > 0,
@@ -120,7 +129,7 @@ export function supabaseRepo(db: SupabaseClient = createAdminClient(), strongMod
       if (e2) fail("findByClientMsg.next", e2);
       let reply: StoredReply | null = null;
       if (next?.role === "tutor") {
-        const { data: p, error: e3 } = await t().from("problems").select("id, status, turn_count").eq("id", m.problem_id).single();
+        const { data: p, error: e3 } = await t().from("problems").select(REPLY_COLS).eq("id", m.problem_id).single();
         if (e3 || !p) fail("findByClientMsg.problem", e3);
         reply = replyFrom(p as ProblemDb, next);
       }
@@ -139,6 +148,13 @@ export function supabaseRepo(db: SupabaseClient = createAdminClient(), strongMod
     },
 
     async deleteMessage(messageId) {
+      // Its photos: files first (the attachments rows go with the message, on delete cascade).
+      const { data: att, error: e0 } = await t().from("attachments").select("storage_path").eq("message_id", messageId);
+      if (e0) fail("deleteMessage.photos", e0);
+      if (att?.length) {
+        const { error: e1 } = await db.storage.from(BUCKET).remove(att.map((x) => x.storage_path as string));
+        if (e1) fail("deleteMessage.files", e1);
+      }
       // Only an unanswered child message is ever removed: it is the claim of a turn that never ran.
       const { error } = await t().from("messages").delete().eq("id", messageId).eq("role", "child");
       if (error) fail("deleteMessage", error);
@@ -152,9 +168,10 @@ export function supabaseRepo(db: SupabaseClient = createAdminClient(), strongMod
       // Optimistic lock: only the turn that read turn_count = N may write N+1 (two devices, DOMAIN §5).
       const { data: p, error: e1 } = await t().from("problems").update({
         turn_count: a.turn, status: a.status, statement_confirmed: a.statementConfirmed, hint_level: a.hintLevel,
+        ...(a.problem.confirmedStatement === null && a.confirmedStatement ? { confirmed_statement: a.confirmedStatement } : {}),
         hint_level_max: a.hintLevelMax, nan_jumps: a.nanJumps, wrong_count: a.wrongCount, offtopic_count: a.offtopicCount,
         u_level: a.uLevel, updated_at: nowIso, closed_at: a.status === "in_progress" ? null : nowIso,
-      }).eq("id", a.problem.id).eq("turn_count", a.problem.turnCount).select("id, status, turn_count").maybeSingle();
+      }).eq("id", a.problem.id).eq("turn_count", a.problem.turnCount).select(REPLY_COLS).maybeSingle();
       if (e1) fail("saveReply.problem", e1);
 
       const { data: msg, error: e2 } = p
@@ -179,6 +196,42 @@ export function supabaseRepo(db: SupabaseClient = createAdminClient(), strongMod
       const { error: e4 } = await t().from("study_sessions").update({ last_seen_at: nowIso, updated_at: nowIso }).eq("id", a.problem.sessionId);
       if (e4) fail("saveReply.session", e4);
       return replyFrom(p as ProblemDb, msg);
+    },
+
+    async saveImage(a) {
+      const path = `${a.actor.userId}/${a.problemId}/${crypto.randomUUID()}.jpg`;
+      const { error } = await db.storage.from(BUCKET).upload(path, a.jpeg, { contentType: "image/jpeg", upsert: false });
+      if (error) fail("saveImage.upload", error);
+      const { error: e2 } = await t().from("attachments").insert({
+        family_id: a.actor.familyId, child_id: a.actor.userId, problem_id: a.problemId, message_id: a.messageId, storage_path: path,
+        width: a.width, height: a.height, bytes: a.jpeg.byteLength, source_device: a.device, delete_after: deleteAfterVn(a.now),
+      });
+      if (e2) {
+        await db.storage.from(BUCKET).remove([path]); // no file without its row
+        fail("saveImage.row", e2);
+      }
+    },
+
+    async problemImages(problemId) {
+      const { data, error } = await t().from("attachments").select("message_id, storage_path")
+        .eq("problem_id", problemId).is("file_deleted_at", null).not("message_id", "is", null).order("created_at", { ascending: true });
+      if (error) fail("problemImages", error);
+      const out: { messageId: string; image: ImageData }[] = [];
+      for (const row of data ?? []) {
+        const { data: file, error: e2 } = await db.storage.from(BUCKET).download(row.storage_path as string);
+        if (e2 || !file) fail("problemImages.download", e2);
+        out.push({ messageId: row.message_id as string, image: { mediaType: "image/jpeg", data: Buffer.from(await file.arrayBuffer()).toString("base64") } });
+      }
+      return out;
+    },
+
+    async abandonUnconfirmed(problemId, childId, now) {
+      if (!/^[0-9a-f-]{36}$/i.test(problemId)) return false;
+      const at = now.toISOString();
+      const { data, error } = await t().from("problems").update({ status: "abandoned", closed_at: at, updated_at: at })
+        .eq("id", problemId).eq("child_id", childId).eq("status", "in_progress").eq("statement_confirmed", false).select("id");
+      if (error) fail("abandonUnconfirmed", error);
+      return (data?.length ?? 0) > 0;
     },
 
     async monthUsage(familyId, now) {
@@ -237,22 +290,38 @@ async function addUsage(db: SupabaseClient, familyId: string, now: Date, cost: n
   if (e2) fail("usage.write", e2);
 }
 
-export interface ThreadMessage { id: string; role: "child" | "tutor"; text: string; buttons: string[] }
-export interface Thread { problemId: string; status: ProblemStatus; turnCount: number; messages: ThreadMessage[] }
+export interface ThreadMessage { id: string; role: "child" | "tutor"; text: string; buttons: string[]; images: string[] }
+export interface Thread {
+  problemId: string; status: ProblemStatus; turnCount: number; statementConfirmed: boolean; hasImages: boolean; messages: ThreadMessage[];
+}
 
-/** The chat of one problem for the child's screen; null when it is not this child's. */
+/** The chat of one problem for the child's screen; null when it is not this child's. Photos as 10-minute signed URLs. */
 export async function problemThread(problemId: string, childId: string, db: SupabaseClient = createAdminClient()): Promise<Thread | null> {
   if (!/^[0-9a-f-]{36}$/i.test(problemId)) return null;
   const t = db.schema("tutor");
-  const { data: p, error } = await t.from("problems").select("id, status, turn_count")
+  const { data: p, error } = await t.from("problems").select(REPLY_COLS)
     .eq("id", problemId).eq("child_id", childId).is("deleted_at", null).maybeSingle();
   if (error) fail("problemThread", error);
   if (!p) return null;
   const { data: rows, error: e2 } = await t.from("messages").select(MESSAGE_COLS)
     .eq("problem_id", problemId).is("deleted_at", null).neq("role", "system").order("created_at", { ascending: true }).returns<MessageDb[]>();
   if (e2) fail("problemThread.messages", e2);
+  const { data: att, error: e3 } = await t.from("attachments").select("message_id, storage_path")
+    .eq("problem_id", problemId).is("file_deleted_at", null).order("created_at", { ascending: true });
+  if (e3) fail("problemThread.photos", e3);
+  const byMessage = new Map<string, string[]>();
+  if (att?.length) {
+    const { data: urls, error: e4 } = await db.storage.from(BUCKET).createSignedUrls(att.map((a) => a.storage_path as string), SIGNED_URL_SECONDS);
+    if (e4) fail("problemThread.urls", e4);
+    att.forEach((a, i) => {
+      const url = urls?.[i]?.signedUrl;
+      if (url && a.message_id) byMessage.set(a.message_id as string, [...(byMessage.get(a.message_id as string) ?? []), url]);
+    });
+  }
   return {
     problemId, status: p.status as ProblemStatus, turnCount: p.turn_count as number,
-    messages: (rows ?? []).map((m) => ({ id: m.id, role: m.role === "child" ? "child" : "tutor", text: m.content, buttons: m.buttons ?? [] })),
+    statementConfirmed: p.statement_confirmed as boolean, hasImages: (att?.length ?? 0) > 0,
+    messages: (rows ?? []).map((m) => ({ id: m.id, role: m.role === "child" ? "child" : "tutor", text: m.content, buttons: m.buttons ?? [],
+      images: byMessage.get(m.id) ?? [] })),
   };
 }

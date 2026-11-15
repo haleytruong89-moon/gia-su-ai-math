@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import sharp from "sharp";
 import { adminClient } from "./env";
 import { signIn } from "./session";
 
@@ -68,4 +69,65 @@ test("parent: the teaching profile page shows the child and the current profile"
   await page.goto("/gia-su/bo-me");
   await expect(page.getByRole("heading", { name: "Con thử · lớp 9" })).toBeVisible();
   await expect(page.getByText(/Đang bật · phiên bản 1/)).toBeVisible();
+});
+
+// G3 — photos. The pictures are drawn here from SVG (made-up problems, no real photo).
+const picture = (text: string) => sharp(Buffer.from(
+  `<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900"><rect width="100%" height="100%" fill="#fff"/>` +
+  `<text x="60" y="200" font-family="DejaVu Sans, sans-serif" font-size="56">${text}</text></svg>`))
+  .withExif({ IFD0: { Make: "PhoneMaker" } }).jpeg().toBuffer();
+let photoProblem = "";
+
+async function choosePhoto(page: Page, selector: string, text: string) {
+  await page.locator(selector).setInputFiles({ name: "de.jpg", mimeType: "image/jpeg", buffer: await picture(text) });
+}
+
+test("photo: the child sends a photo of the problem → the tutor restates it; the file is private, small and has no EXIF", async ({ page, context }) => {
+  await signIn(context, "child");
+  await page.goto("/gia-su");
+  await choosePhoto(page, 'input[type="file"]:not([capture])', "Bài 1. Tính 2 + 3 (đề bịa)");
+  await expect(page.getByAltText("Ảnh đề em chọn")).toBeVisible();
+  await page.getByRole("button", { name: "Gửi", exact: true }).click();
+  await page.waitForURL(/\/gia-su\/hoi\//);
+  await expect(page.getByText("Em kiểm tra giúp cô đúng chưa?")).toBeVisible();
+  await expect(page.getByAltText("Ảnh em gửi")).toBeVisible();
+  photoProblem = page.url().split("/hoi/")[1]!;
+
+  const { data: p } = await tutor().from("problems").select("child_id").eq("id", photoProblem).single();
+  const { data: att } = await tutor().from("attachments").select("message_id, storage_path, width, height").eq("problem_id", photoProblem);
+  expect(att).toHaveLength(1);
+  expect(att![0]!.message_id).not.toBeNull();
+  expect(att![0]!.storage_path.startsWith(`${p!.child_id}/${photoProblem}/`)).toBe(true);
+  expect(Math.max(att![0]!.width, att![0]!.height)).toBeLessThanOrEqual(1568);
+  const { data: file } = await adminClient().storage.from("tutor-images").download(att![0]!.storage_path);
+  const meta = await sharp(Buffer.from(await file!.arrayBuffer())).metadata();
+  expect([meta.format, meta.exif]).toEqual(["jpeg", undefined]);
+  // the browser cannot read the bucket directly: only the signed URL works
+  const anon = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/tutor-images/${att![0]!.storage_path}`);
+  expect(anon.ok).toBe(false);
+});
+
+test("photo: 'Chụp lại ảnh khác' opens a new problem and drops the unconfirmed one", async ({ page, context }) => {
+  await signIn(context, "child");
+  await page.goto(`/gia-su/hoi/${photoProblem}`);
+  await page.getByRole("link", { name: "Chụp lại ảnh khác" }).click();
+  await page.waitForURL(/thay=/);
+  await choosePhoto(page, 'input[type="file"]:not([capture])', "Bài 1. Tính 2 + 3 (chụp lại)");
+  await page.getByRole("button", { name: "Gửi", exact: true }).click();
+  await page.waitForURL((u) => u.pathname.includes("/hoi/") && !u.pathname.endsWith(photoProblem));
+  const { data } = await tutor().from("problems").select("status").eq("id", photoProblem).single();
+  expect(data?.status).toBe("abandoned");
+  photoProblem = page.url().split("/hoi/")[1]!;
+});
+
+test("photo: a photo of the work mid-problem goes with the turn", async ({ page, context }) => {
+  await signIn(context, "child");
+  await page.goto(`/gia-su/hoi/${photoProblem}`);
+  await choosePhoto(page, 'input[type="file"]', "2 + 3 = 5 (bài làm bịa)");
+  await expect(page.getByAltText("Ảnh bài làm em chọn")).toBeVisible();
+  const answered = page.waitForResponse((r) => r.url().endsWith("/gia-su/api/turn") && r.request().method() === "POST");
+  await page.getByRole("button", { name: "Gửi", exact: true }).click();
+  expect((await answered).status()).toBe(200);
+  const { data: att } = await tutor().from("attachments").select("id").eq("problem_id", photoProblem);
+  expect(att).toHaveLength(2);
 });

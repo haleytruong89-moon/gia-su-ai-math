@@ -51,4 +51,11 @@ describe("safeLine (DOMAIN §5: blocked twice)", () => {
     expect(safeLine(5).buttons).toEqual(["Để dành hỏi thầy"]);
     expect(safeLine(2).buttons).toEqual([]);
   });
+  it("sends the problem photo to the checker when it is given (statement not confirmed yet)", async () => {
+    const c = reply('{"pass":true,"ly_do":[]}');
+    await runGuard(c, "claude-haiku-5-5", "P", { ...input, statement: "(đề trong ảnh, chưa xác nhận)", images: [{ mediaType: "image/jpeg", data: "QUJD" }] });
+    expect(JSON.stringify(c.last)).toContain('"type":"image"');
+    await runGuard(c, "claude-haiku-5-5", "P", input);
+    expect(JSON.stringify(c.last)).not.toContain('"type":"image"');
+  });
 });

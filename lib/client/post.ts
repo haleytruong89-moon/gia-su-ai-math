@@ -7,10 +7,24 @@ const SIGNED_OUT = "Em cần đăng nhập lại ở Study Launcher.";
 
 /** Retries a 409 "pending" (the first send is still running) every 3 s, up to 5 times. */
 export async function postWithRetry<T>(path: string, body: object, tries = 5): Promise<PostResult<T>> {
+  return send<T>(path, () => ({ headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }), tries);
+}
+
+/** Same, as multipart with a photo (G3). The browser sets the multipart boundary itself. */
+export async function postForm<T>(path: string, fields: Record<string, string>, image: Blob | null, tries = 5): Promise<PostResult<T>> {
+  return send<T>(path, () => {
+    const fd = new FormData();
+    for (const [k, v] of Object.entries(fields)) fd.set(k, v);
+    if (image) fd.set("image", image, "anh.jpg");
+    return { body: fd };
+  }, tries);
+}
+
+async function send<T>(path: string, init: () => RequestInit, tries: number): Promise<PostResult<T>> {
   for (let i = 0; i < tries; i++) {
     let res: Response;
     try {
-      res = await fetch(`/gia-su${path}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      res = await fetch(`/gia-su${path}`, { method: "POST", ...init() });
     } catch {
       return { ok: false, status: 0, message: NETWORK };
     }

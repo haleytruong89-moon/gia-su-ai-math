@@ -4,11 +4,16 @@
 import { z } from "zod";
 import { costUsd } from "@/lib/anthropic";
 import type { HintLevel } from "@/lib/rules/hints";
+import { imageBlocks, type ImageData } from "@/lib/tutor/assemble";
 import { messageLines } from "@/lib/tutor/lines";
 import type { TutorOutput } from "@/lib/tutor/schema";
 import type { ModelClient } from "@/lib/tutor/turn";
 
-export interface GuardInput { statement: string; hintLevel: HintLevel; submitted: boolean; maxLines: number; output: TutorOutput; toolsCalled: string[] }
+export interface GuardInput {
+  statement: string; hintLevel: HintLevel; submitted: boolean; maxLines: number; output: TutorOutput; toolsCalled: string[];
+  /** The problem photo, while the statement is not confirmed in words yet (G3). */
+  images?: ImageData[];
+}
 export interface GuardResult {
   pass: boolean; reasons: string[]; raw: string; costUsd: number; model: string;
   tokens: { in: number; cached: number; out: number };
@@ -36,7 +41,7 @@ export async function runGuard(client: ModelClient, model: string, guardPrompt: 
   try {
     const res = await client.create({
       model, max_tokens: 1500, thinking: { type: "disabled" }, system: guardPrompt,
-      messages: [{ role: "user", content: user }],
+      messages: [{ role: "user", content: i.images?.length ? [...imageBlocks(i.images), { type: "text", text: user }] : user }],
       output_config: { effort: "low", format: { type: "json_schema", schema } },
     });
     const raw = res.content.filter((p) => p.type === "text").map((p) => p.text ?? "").join("");

@@ -6,18 +6,21 @@
 // §4.14, §5). G4 adds the tools and math_check (until then self_solved is never allowed).
 import { z } from "zod";
 import type { Actor } from "@/lib/actor";
-import { SAFE_BUSY, safeLine } from "@/lib/copy";
+import { PHOTO_COPY, PHOTO_ONLY_TEXT, SAFE_BUSY, safeLine } from "@/lib/copy";
+import { processImage } from "@/lib/images";
+import { MAX_IMAGES_PER_PROBLEM } from "@/lib/rules/photo";
+import { isTooBig } from "@/lib/tutor/form";
 import { childEvents, type InputKind } from "@/lib/rules/events";
 import { applyPreTurn, nextHintLevel } from "@/lib/rules/hints";
 import { pickModel, rewriteRoute, strongPaused, type ModelTier, type RouteReason } from "@/lib/rules/model";
 import { isNanSignal } from "@/lib/rules/nan";
 import { decideOutcome } from "@/lib/rules/outcome";
 import { dateVn } from "@/lib/time";
-import { assemble, type Msg, type SystemBlock } from "@/lib/tutor/assemble";
+import { assemble, type ImageData, type Msg, type SystemBlock, type Turn } from "@/lib/tutor/assemble";
 import { runGuard, type GuardResult } from "@/lib/tutor/guard";
 import type { Layers } from "@/lib/tutor/layers";
 import {
-  STUCK_KINDS, type ChildActor, type ModelCallRecord, type PendingMessage, type ProblemRow, type ProblemStatus, type TutorRepo,
+  STUCK_KINDS, type ChildActor, type Device, type ModelCallRecord, type PendingMessage, type ProblemRow, type ProblemStatus, type TutorRepo,
 } from "@/lib/tutor/repo";
 import type { TutorOutput } from "@/lib/tutor/schema";
 import { runTutorTurn, type ModelClient } from "@/lib/tutor/turn";
@@ -50,25 +53,46 @@ type Result = { status: number; json: unknown };
 
 const device = z.enum(["ipad", "boox", "laptop"]).catch("laptop");
 const sessionBody = z.object({ device: device.optional() }).catch({});
+// Multipart sends every field as a string: "" means "not given".
+const blankToNull = (v: unknown) => (v === "" || v === undefined ? null : v);
+const photo = z.instanceof(Uint8Array).optional();
 const problemBody = z.object({
   clientMsgId: z.string().uuid(),
-  stuckKind: z.enum(STUCK_KINDS).nullable(),
-  statement: z.string().trim().min(1).max(2000),
+  stuckKind: z.preprocess(blankToNull, z.enum(STUCK_KINDS).nullable()),
+  statement: z.string().trim().max(2000).default(""),
   device: device.optional(),
-});
+  image: photo,
+  /** retake (G3 Q3): the unconfirmed problem this one replaces */
+  replacesProblemId: z.preprocess(blankToNull, z.string().uuid().nullable()).optional(),
+}).refine((b) => b.statement.length > 0 || b.image !== undefined);
 const turnBody = z.object({
   problemId: z.string().min(1).max(64),
   clientMsgId: z.string().uuid(),
-  text: z.string().trim().min(1).max(2000),
+  text: z.string().trim().max(2000).default(""),
   /** how the child sent it: typed, a button (incl. "Chưa hiểu"), or marked as the final answer */
   kind: z.enum(["text", "button", "submit"]).default("text"),
-});
+  device: device.optional(),
+  /** a photo of the child's work (G3 Q2) */
+  image: photo,
+}).refine((b) => b.text.length > 0 || b.image !== undefined);
 const saveBody = z.object({ problemId: z.string().min(1).max(64), clientMsgId: z.string().uuid() });
 
 const unauthorized: Result = { status: 401, json: { error: "unauthorized" } };
 const badRequest: Result = { status: 400, json: { error: "bad_request" } };
 const pending: Result = { status: 409, json: { error: "pending" } };
 const busy: Result = { status: 503, json: { error: "model_unavailable", message: SAFE_BUSY } };
+const tooBig: Result = { status: 413, json: { error: "image_too_big", message: PHOTO_COPY.tooBig } };
+const notImage: Result = { status: 415, json: { error: "not_an_image", message: PHOTO_COPY.unreadable } };
+const tooMany: Result = { status: 409, json: { error: "too_many_images", message: PHOTO_COPY.tooMany } };
+
+type Photo = { jpeg: Buffer; width: number; height: number; device: Device };
+/** Cleans the photo before anything is stored; null when none was sent. */
+async function cleanPhoto(image: Uint8Array | undefined, dev: Device): Promise<{ photo: Photo | null } | { error: Result }> {
+  if (!image) return { photo: null };
+  const r = await processImage(image);
+  if (!r.ok) return { error: r.error === "too_big" ? tooBig : notImage };
+  return { photo: { jpeg: r.jpeg, width: r.width, height: r.height, device: dev } };
+}
 
 const asChild = (a: Actor | null): ChildActor | null => (a?.role === "child" ? a : null);
 const isStale = (p: PendingMessage, now: Date) => now.getTime() - p.at.getTime() > STALE_PENDING_MS;
@@ -85,9 +109,11 @@ export async function startSession(d: Deps, raw: unknown): Promise<Result> {
 export async function newProblem(d: Deps, raw: unknown): Promise<Result> {
   const actor = asChild(d.actor);
   if (!actor) return unauthorized;
+  if (isTooBig(raw)) return tooBig;
   const parsed = problemBody.safeParse(raw);
   if (!parsed.success) return badRequest;
-  const { clientMsgId, stuckKind, statement } = parsed.data;
+  const { clientMsgId, stuckKind, statement, image, replacesProblemId } = parsed.data;
+  const text = statement || PHOTO_ONLY_TEXT;
 
   // A double tap or a resend: answer with the problem the first tap opened.
   const seen = await d.repo.findByClientMsg(actor.userId, clientMsgId);
@@ -101,12 +127,18 @@ export async function newProblem(d: Deps, raw: unknown): Promise<Result> {
     return again.status === 200 ? { status: 200, json: { problemId: stuck.id, reply: again.json } } : again;
   }
 
-  const session = await d.repo.openSession({ actor, device: parsed.data.device ?? "laptop", dateVn: dateVn(d.now),
+  const dev = parsed.data.device ?? "laptop";
+  const cleaned = await cleanPhoto(image, dev);
+  if ("error" in cleaned) return cleaned.error;
+  // Retake: the problem read from the old photo is dropped if its statement was never confirmed.
+  if (replacesProblemId) await d.repo.abandonUnconfirmed(replacesProblemId, actor.userId, d.now);
+
+  const session = await d.repo.openSession({ actor, device: dev, dateVn: dateVn(d.now),
     promptVersion: d.promptVersion, modelMain: d.models.main });
   const { id } = await d.repo.createProblem({ actor, sessionId: session.id, stuckKind });
   const problem = await d.repo.getProblemForChild(id, actor.userId);
   if (!problem) throw new Error("problem vanished after insert");
-  const r = await runTurn(d, actor, problem, clientMsgId, statement, "text");
+  const r = await runTurn(d, actor, problem, clientMsgId, text, "text", cleaned.photo);
   // Model down, or a parallel double tap won the clientMsgId: this problem stays empty.
   if (r.status !== 200) await d.repo.setProblemStatus(id, "abandoned", d.now);
   return r.status === 200 ? { status: 200, json: { problemId: id, reply: r.json } } : r;
@@ -115,9 +147,11 @@ export async function newProblem(d: Deps, raw: unknown): Promise<Result> {
 export async function handleTurn(d: Deps, raw: unknown): Promise<Result> {
   const actor = asChild(d.actor);
   if (!actor) return unauthorized;
+  if (isTooBig(raw)) return tooBig;
   const parsed = turnBody.safeParse(raw);
   if (!parsed.success) return badRequest;
-  const { problemId, clientMsgId, text, kind } = parsed.data;
+  const { problemId, clientMsgId, kind, image } = parsed.data;
+  const text = parsed.data.text || PHOTO_ONLY_TEXT;
 
   // The child id comes from the session only; a problem of another child looks like no problem.
   const problem = await d.repo.getProblemForChild(problemId, actor.userId);
@@ -134,7 +168,10 @@ export async function handleTurn(d: Deps, raw: unknown): Promise<Result> {
     return runClaimed(d, actor, problem, seen.messageId, seen.text, stored);
   }
   if (problem.status !== "in_progress") return closed(problem.status);
-  return runTurn(d, actor, problem, clientMsgId, text, kind);
+  if (image && problem.imageCount >= MAX_IMAGES_PER_PROBLEM) return tooMany;
+  const cleaned = await cleanPhoto(image, parsed.data.device ?? "laptop");
+  if ("error" in cleaned) return cleaned.error;
+  return runTurn(d, actor, problem, clientMsgId, text, kind, cleaned.photo);
 }
 
 /** "Để dành hỏi thầy" (DOMAIN §3.2): allowed at any time while the problem is open. */
@@ -152,14 +189,24 @@ export async function saveForLater(d: Deps, raw: unknown): Promise<Result> {
 
 const closed = (status: ProblemStatus): Result => ({ status: 409, json: { error: "problem_closed", status } });
 
-async function runTurn(d: Deps, actor: ChildActor, problem: ProblemRow, clientMsgId: string, text: string, kind: InputKind): Promise<Result> {
+async function runTurn(d: Deps, actor: ChildActor, problem: ProblemRow, clientMsgId: string, text: string, kind: InputKind,
+  photo: Photo | null): Promise<Result> {
   if (problem.pending) {
     if (!isStale(problem.pending, d.now)) return pending; // one turn at a time per problem
     await d.repo.deleteMessage(problem.pending.messageId);
   }
   const claim = await d.repo.insertChildMessage({ actor, problemId: problem.id, clientMsgId, text, inputKind: kind, now: d.now });
   if ("conflict" in claim) return pending;
-  return runClaimed(d, actor, problem, claim.messageId, text, kind);
+  if (photo) {
+    try {
+      await d.repo.saveImage({ actor, problemId: problem.id, messageId: claim.messageId, ...photo, now: d.now });
+    } catch (e) {
+      console.error("photo upload failed", e instanceof Error ? e.message : "unknown");
+      await d.repo.deleteMessage(claim.messageId);
+      return busy;
+    }
+  }
+  return runClaimed(d, actor, { ...problem, imageCount: problem.imageCount + (photo ? 1 : 0) }, claim.messageId, text, kind);
 }
 
 type Answer = Awaited<ReturnType<typeof runTutorTurn>>;
@@ -185,7 +232,7 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
     ? problem.thread
     : [...problem.thread, { id: messageId, role: "child" as const, content: text, inputKind: kind }];
   const nan = isNanSignal(childEvents(thread));
-  // 2. Hint level before the call: nản jumps to H4 (§4.1 c). TODO(G3): afterSibling from the sibling problem.
+  // 2. Hint level before the call: nản jumps to H4 (§4.1 c). TODO(G4): afterSibling from the sibling problem (make_sibling).
   const pre = applyPreTurn({ hintLevel: problem.hintLevel, hintLevelMax: problem.hintLevelMax, nanJumps: problem.nanJumps, afterSibling: false }, { nan });
   const level = pre.state.hintLevel;
 
@@ -196,12 +243,22 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
   const route = pickModel({ grade: actor.grade, hintLevel: level, nan, prevTutorUnsure: problem.lastTutorFlags.includes("tutor_unsure"),
     problemUsedStrong: problem.usedStrong, strongPaused: paused });
 
+  // Photos of this problem go back on the child messages they were sent with (G3); later turns read them from the cache.
+  const photos = problem.imageCount > 0 ? await d.repo.problemImages(problem.id) : [];
+  const photosOf = (id: string): ImageData[] => photos.filter((p) => p.messageId === id).map((p) => p.image);
+  const history: Turn[] = problem.history.map((h) => ({ role: h.role, content: h.content, images: photosOf(h.id) }));
+  // The checker needs the problem: the confirmed restatement, else the typed text, else the first photo.
+  const typed = problem.statement && problem.statement !== PHOTO_ONLY_TEXT ? problem.statement : null;
+  const guardStatement = problem.confirmedStatement ?? typed ?? (text !== PHOTO_ONLY_TEXT ? text : "(đề trong ảnh, chưa xác nhận)");
+  const guardImages = problem.confirmedStatement === null && photos.length ? [photos[0]!.image] : undefined;
+
   const { system, messages } = assemble({
     layers: d.layers,
     profileText: actor.profileText,
     knowledgeCard: null,
-    history: problem.history,
+    history,
     childText: text,
+    childImages: photosOf(messageId),
     state: {
       grade: actor.grade, hintLevel: level, wrongCount: problem.wrongCount, nan, idle: false, submitted,
       mode: "thuong", minutesLeft: 45, turn, stuckKind: problem.stuckKind, kuCode: null, examSlot: null,
@@ -212,7 +269,7 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
     runTutorTurn(d.client, { model: d.models[tier], system: sys, messages: msgs });
   // Out of time counts as not passed (fail-closed).
   const check = async (o: TutorOutput): Promise<GuardResult | null> => left() < GUARD_NEEDS_MS ? null : runGuard(d.client, d.models.light, d.layers.guard, {
-    statement: problem.statement ?? text, hintLevel: level, submitted, maxLines: actor.maxLines, output: o, toolsCalled: [],
+    statement: guardStatement, images: guardImages, hintLevel: level, submitted, maxLines: actor.maxLines, output: o, toolsCalled: [],
   });
   const noTime = ["out_of_time"];
 
@@ -274,6 +331,9 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
     actor, problem, childMessageId: messageId, turn,
     status: outcome.status,
     statementConfirmed: problem.statementConfirmed || shown?.de_da_xac_nhan === true,
+    // The tutor's last restatement before the child confirmed it (G3; kept after the photo is deleted, §4.8).
+    confirmedStatement: !problem.statementConfirmed && shown?.de_da_xac_nhan === true
+      ? (problem.history.filter((h) => h.role === "assistant").at(-1)?.content ?? null) : null,
     replyHintLevel: level,
     hintLevel: next.hintLevel,
     hintLevelMax: next.hintLevelMax,

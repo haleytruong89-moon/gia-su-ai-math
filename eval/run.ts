@@ -12,6 +12,7 @@ import { runTutorTurn, type Effort, type ModelClient } from "@/lib/tutor/turn";
 import fewshot from "../tests/fixtures/fewshot.json";
 import { CASES, type EvalCase } from "./cases";
 import { checkOutput } from "./checks";
+import { sheet } from "./images";
 import { TEST_PROFILES } from "./profiles";
 
 const JUDGE_MODEL = "claude-haiku-5-5";
@@ -54,6 +55,7 @@ async function judge(c: EvalCase, message: string, buttons: string[]) {
     `Lớp ${c.grade}. Tình huống: ${c.title}.`,
     `Đáp số bài gốc (chỉ để em đối chiếu): ${c.answer}`,
     `Tin cuối của học sinh: ${c.childText}`,
+    ...(c.image ? [`Học sinh gửi kèm ảnh; chữ trong ảnh:\n${c.image.lines.join("\n")}`] : []),
     `Lượt trả lời của gia sư:\n<<<\n${message}\n>>>`,
     `Nút bấm gia sư đưa cho học sinh: ${buttons.length ? buttons.map((b) => `[${b}]`).join(" ") : "(không có)"}`,
     `Yêu cầu riêng của tình huống: ${c.rubric}`,
@@ -81,6 +83,7 @@ async function runCase(model: string, c: EvalCase) {
   const profile = TEST_PROFILES[c.grade];
   const { system, messages } = assemble({
     layers: loadLayers(), profileText: profile.text, knowledgeCard: null, history: c.history, childText: c.childText,
+    childImages: c.image ? [await sheet(c.image.lines, { rotate: c.image.rotate })] : undefined,
     state: { ...baseState, grade: c.grade, maxLines: profile.maxLines, ...c.state },
   });
   const started = Date.now();

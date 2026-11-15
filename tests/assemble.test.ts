@@ -29,4 +29,24 @@ describe("assemble", () => {
   it("⑥ carries max_lines from the teaching profile", () => {
     expect(renderStateBlock({ ...state, maxLines: 4 })).toContain("max_lines: 4");
   });
+  const img = { mediaType: "image/jpeg" as const, data: "QUJD" };
+  it("photos go before the text of the same child message; the newest photo is the 4th cache breakpoint", () => {
+    const out = assemble({ layers: { role: "①", rules: "②", method: "③" }, profileText: "④", knowledgeCard: null,
+      history: [{ role: "user", content: "📷 Em gửi ảnh", images: [img] }, { role: "assistant", content: "Cô đọc đề là…" }],
+      childText: "Đây là bài làm", childImages: [img], state });
+    const first = out.messages[0]!.content as { type: string; cache_control?: unknown }[];
+    expect(first.map((b) => b.type)).toEqual(["image", "text"]);
+    expect(first[0]!.cache_control).toBeUndefined();
+    const last = out.messages.at(-1)!.content as { type: string; text?: string; cache_control?: unknown }[];
+    expect(last.map((b) => b.type)).toEqual(["image", "text"]);
+    expect(last[0]!.cache_control).toEqual({ type: "ephemeral" });
+    expect(last[1]!.text).toContain("[EM]\nĐây là bài làm");
+    expect(JSON.stringify(out).match(/"ephemeral"/g)).toHaveLength(4); // the API allows 4
+  });
+  it("text-only turns keep string content (and 3 breakpoints)", () => {
+    const out = assemble({ layers: { role: "①", rules: "②", method: "③" }, profileText: "④", knowledgeCard: null,
+      history: [{ role: "user", content: "đề" }], childText: "x", state });
+    expect(typeof out.messages[0]!.content).toBe("string");
+    expect(JSON.stringify(out).match(/"ephemeral"/g)).toHaveLength(3);
+  });
 });

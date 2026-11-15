@@ -32,3 +32,19 @@ const SAFE_BY_LEVEL: Record<0 | 1 | 2 | 3 | 4 | 5, string> = {
 export function safeLine(level: 0 | 1 | 2 | 3 | 4 | 5): { message: string; buttons: string[] } {
   return { message: SAFE_BY_LEVEL[level], buttons: level >= 4 ? [BTN_SAVE] : [] };
 }
+
+/** G3 — photos (decisions 15/11/2026). */
+export const PHOTO_COPY = {
+  take: "📷 Chụp ảnh đề",
+  pick: "Chọn ảnh có sẵn",
+  remove: "Bỏ ảnh",
+  retake: "Chụp lại ảnh khác",
+  work: "Gửi ảnh bài làm",
+  hint: "Chụp gọn chỉ bài em cần hỏi. Đừng chụp họ tên, tên trường.",
+  unreadable: "Ảnh này máy chưa đọc được. Em chụp bằng camera hoặc gửi ảnh JPG/PNG.",
+  tooBig: "Ảnh lớn quá. Em chụp lại gần hơn, chỉ lấy bài cần hỏi nhé.",
+  misread: "Cô đọc ảnh chưa đúng. Em gõ đề vào ô dưới, hoặc chụp lại ảnh rõ hơn.",
+  tooMany: "Bài này đã có 4 ảnh. Em gõ phần còn lại cho cô nhé.",
+} as const;
+/** Stored as the child's message when a photo is sent without typed text. */
+export const PHOTO_ONLY_TEXT = "📷 Em gửi ảnh";
