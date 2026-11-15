@@ -15,7 +15,7 @@ import { runTutorTurn, type ModelClient } from "@/lib/tutor/turn";
 /** D15: at most 20 turns per problem; turn 20 closes it. */
 export const MAX_TURNS = 20;
 /** A child message without a reply after this long is treated as lost (the server call died). */
-export const STALE_PENDING_MS = 120_000;
+export const STALE_PENDING_MS = 150_000;
 
 export interface Deps {
   repo: TutorRepo;

@@ -8,13 +8,14 @@ import { z } from "zod";
 import { costUsd, withRetry } from "@/lib/anthropic";
 import { assemble, type TurnStateBlock } from "@/lib/tutor/assemble";
 import { loadLayers, promptVersion } from "@/lib/tutor/layers";
-import { runTutorTurn, type ModelClient } from "@/lib/tutor/turn";
+import { runTutorTurn, type Effort, type ModelClient } from "@/lib/tutor/turn";
 import fewshot from "../tests/fixtures/fewshot.json";
 import { CASES, type EvalCase } from "./cases";
 import { checkOutput } from "./checks";
 import { TEST_PROFILES } from "./profiles";
 
 const JUDGE_MODEL = "claude-haiku-5-5";
+const effort = (process.env.EFFORT as Effort | undefined) || "medium";
 const arg = (name: string) => process.argv.find((a) => a.startsWith(`--${name}=`))?.split("=")[1];
 const models = (arg("models") || "claude-haiku-5-5,claude-sonnet-5-5,claude-opus-5-5").split(",").filter(Boolean);
 const only = arg("cases")?.split(",").filter(Boolean);
@@ -58,8 +59,8 @@ async function judge(c: EvalCase, message: string) {
     "Chấm: leaks_original_answer = gia sư nói ra (hoặc xác nhận) đáp số / lời giải trọn của bài gốc mà học sinh chưa tự đưa ra. ends_with_question_or_small_task = lượt kết thúc bằng câu hỏi hoặc một bước nhỏ cho em tự làm. rubric_met = đạt yêu cầu riêng. reason = một câu tiếng Việt.",
   ].join("\n\n");
   const res = await client.create({
-    model: JUDGE_MODEL, max_tokens: 300, messages: [{ role: "user", content: prompt }],
-    output_config: { format: { type: "json_schema", schema: verdictSchema } },
+    model: JUDGE_MODEL, max_tokens: 2000, thinking: { type: "disabled" }, messages: [{ role: "user", content: prompt }],
+    output_config: { effort: "low", format: { type: "json_schema", schema: verdictSchema } },
   });
   const text = res.content.filter((p) => p.type === "text").map((p) => p.text ?? "").join("");
   let json: unknown = null;
@@ -83,7 +84,7 @@ async function runCase(model: string, c: EvalCase) {
   });
   const started = Date.now();
   try {
-    const r = await runTutorTurn(client, { model, system, messages });
+    const r = await runTutorTurn(client, { model, system, messages, effort });
     const ms = Date.now() - started;
     const auto = checkOutput(r.output, { maxLines: profile.maxLines, forbid: c.forbid, expect: c.expect });
     const j = r.output ? await judge(c, r.output.message) : { verdict: null, costUsd: 0 };
@@ -96,7 +97,7 @@ async function runCase(model: string, c: EvalCase) {
       leak: auto.leak || j.verdict?.leaks_original_answer === true,
       lengthOk: !auto.failures.some((f) => f.startsWith("lines:")),
       endsOk: j.verdict?.ends_with_question_or_small_task ?? false,
-      judgeReason: j.verdict?.reason ?? null, output: r.output, raw: r.output ? undefined : r.raw,
+      judgeReason: j.verdict?.reason ?? null, output: r.output, raw: r.output ? undefined : r.raw, stopReason: r.stopReason,
       costUsd: r.costUsd, judgeCostUsd: j.costUsd, ms, tokens: r.tokens };
   } catch (e) {
     return { model, id: c.id, title: c.title, pass: false, failures: [`error:${e instanceof Error ? e.message.slice(0, 400) : "unknown"}`],
@@ -124,19 +125,20 @@ function summary(rows: Row[], caseCount: number): string {
   const lines = [
     `# Bộ test sư phạm — ${new Date().toISOString().slice(0, 16).replace("T", " ")} UTC`,
     "",
-    `Prompt ${promptVersion()} · ${caseCount} tình huống chữ có trong bộ chạy (BO_TEST v0.2, chưa gồm ảnh và công cụ) · chấm phụ: ${JUDGE_MODEL}`,
+    `Prompt ${promptVersion()} · effort ${effort} · ${caseCount} tình huống chữ có trong bộ chạy (BO_TEST v0.2, chưa gồm ảnh và công cụ) · chấm phụ: ${JUDGE_MODEL}`,
     "",
-    "| Model | Đạt hết | (a) Lộ đáp số | (b) Độ dài + kết bằng câu hỏi | Lỗi định dạng | Chi phí | Thời gian TB |",
-    "|---|---|---|---|---|---|---|",
+    "| Model | Đạt hết | (a) Lộ đáp số | (b) Độ dài + kết bằng câu hỏi | Lỗi định dạng | Bị cắt (max_tokens) | Chi phí | Thời gian TB |",
+    "|---|---|---|---|---|---|---|---|",
   ];
   for (const m of models) {
     const r = rows.filter((x) => x.model === m);
     const leaks = r.filter((x) => x.leak).length;
     const b = r.filter((x) => x.lengthOk && x.endsOk).length;
     const fmt = r.filter((x) => x.failures.includes("format")).length;
+    const cut = r.filter((x) => "stopReason" in x && x.stopReason === "max_tokens").length;
     const cost = r.reduce((s, x) => s + x.costUsd + x.judgeCostUsd, 0);
     const avg = r.length ? Math.round(r.reduce((s, x) => s + x.ms, 0) / r.length / 100) / 10 : 0;
-    lines.push(`| ${m} | ${r.filter((x) => x.pass).length}/${r.length} | ${leaks === 0 ? "✅ 0" : `❌ ${leaks}`} | ${pct(b, r.length)} ${b / Math.max(r.length, 1) >= 0.9 ? "✅" : "❌"} | ${fmt} | ${cost.toFixed(3)} USD | ${avg} s |`);
+    lines.push(`| ${m} | ${r.filter((x) => x.pass).length}/${r.length} | ${leaks === 0 ? "✅ 0" : `❌ ${leaks}`} | ${pct(b, r.length)} ${b / Math.max(r.length, 1) >= 0.9 ? "✅" : "❌"} | ${fmt} | ${cut} | ${cost.toFixed(3)} USD | ${avg} s |`);
   }
   lines.push("", "Tiêu chí chọn (BO_TEST §1): model rẻ nhất có (a) 0 lần lộ đáp số và (b) ≥ 90%. (c) đọc ảnh và (d) gọi `math_check` chạy ở các lần sau (G3, G4).", "");
   lines.push("## Tình huống chưa đạt", "", "| Model | # | Tình huống | Lỗi | Nhận xét của bộ chấm |", "|---|---|---|---|---|");
