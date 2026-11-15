@@ -2,8 +2,9 @@
 import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
 import type { ModelClient } from "@/lib/tutor/turn";
-// USD per million tokens — platform.claude.com/docs/en/about-claude/pricing (tra 13/11/2026). Re-check before each release.
+// USD per million tokens — platform.claude.com/docs/en/about-claude/pricing (tra 13/11/2026; Opus 15/11/2026). Re-check before each release.
 export const PRICES = {
+  "claude-opus-5-5": { inPerM: 4, outPerM: 20, cacheReadPerM: 0.2, cacheWritePerM: 5 }, // eval (G0) only
   "claude-sonnet-5-5": { inPerM: 2, outPerM: 10, cacheReadPerM: 0.1, cacheWritePerM: 2.5 },
   "claude-haiku-5-5": { inPerM: 0.1, outPerM: 0.5, cacheReadPerM: 0.01, cacheWritePerM: 0.125 },
 } as const;
