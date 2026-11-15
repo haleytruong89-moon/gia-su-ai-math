@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { checkOutput, mentions, messageLines } from "@/eval/checks";
+import { toolKeys, checkOutput, mentions, messageLines } from "@/eval/checks";
 import type { TutorOutput } from "@/lib/tutor/schema";
 
 const out = (o: Partial<TutorOutput> = {}): TutorOutput => ({
@@ -46,5 +46,14 @@ describe("checkOutput", () => {
   });
   it("an unreadable reply fails as format", () => {
     expect(checkOutput(null, { maxLines: 6 }).failures).toEqual(["format"]);
+  });
+  it("G4: required tools must have run", () => {
+    const tools = [
+      ...toolKeys({ tool: "math_check", input: { mode: "simplify_check" }, output: { ok: true } }),
+      ...toolKeys({ tool: "make_sibling", input: {}, output: { verified: true, numbers_differ: false } }),
+    ];
+    expect(tools).toEqual(["math_check", "math_check:simplify_check", "make_sibling"]);
+    const r = checkOutput(out({}), { maxLines: 6, tools, expect: { toolsInclude: ["math_check:simplify_check", "make_sibling:verified"] } });
+    expect(r.failures).toEqual(["tool_missing:make_sibling:verified"]);
   });
 });

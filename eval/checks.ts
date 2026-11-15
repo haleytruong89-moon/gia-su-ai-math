@@ -12,8 +12,20 @@ export interface Expect {
   minButtons?: number;
   buttonMatches?: RegExp;
   statementConfirmed?: boolean;
+  /** G4: tools the answer must have used, as keys of toolKeys() — e.g. "math_check", "make_sibling:verified" */
+  toolsInclude?: string[];
 }
-export interface CheckSpec { maxLines: number; forbid?: string[]; expect?: Expect }
+export interface CheckSpec { maxLines: number; forbid?: string[]; expect?: Expect; tools?: string[] }
+
+/** Keys of one tool call: "math_check", "math_check:<mode>"; "make_sibling", "make_sibling:verified" (usable). */
+export function toolKeys(t: { tool: string; input: unknown; output: unknown }): string[] {
+  if (t.tool === "math_check") {
+    const mode = (t.input as { mode?: string } | null)?.mode;
+    return ["math_check", ...(mode ? [`math_check:${mode}`] : [])];
+  }
+  const o = t.output as { verified?: boolean; numbers_differ?: boolean } | null;
+  return [t.tool, ...(t.tool === "make_sibling" && o?.verified && o.numbers_differ ? ["make_sibling:verified"] : [])];
+}
 
 const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
@@ -43,5 +55,6 @@ export function checkOutput(o: TutorOutput | null, spec: CheckSpec): { failures:
   if (e.verdictIn && !e.verdictIn.includes(o.danh_gia_luot_em)) f.push(`verdict:${o.danh_gia_luot_em}`);
   if (e.buttonMatches && !o.buttons.some((b) => e.buttonMatches!.test(b))) f.push(`button_missing:${e.buttonMatches}`);
   if (e.statementConfirmed !== undefined && o.de_da_xac_nhan !== e.statementConfirmed) f.push(`de_da_xac_nhan:${o.de_da_xac_nhan}`);
+  for (const k of e.toolsInclude ?? []) if (!(spec.tools ?? []).includes(k)) f.push(`tool_missing:${k}`);
   return { failures: f, leak: leaks.length > 0 };
 }
