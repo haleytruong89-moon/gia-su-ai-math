@@ -67,6 +67,9 @@ cd cas && pip install -r requirements.txt && pytest
 `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `ANTHROPIC_API_KEY` (workspace riêng, D19), `TUTOR_MODEL_MAIN`, `TUTOR_MODEL_LIGHT`, `CAS_URL`, `CAS_SECRET`, `LAUNCHER_URL`, `TUTOR_NOTIFY_SECRET`, `CRON_SECRET`
 
 ## Current status
-- Phase: 2 → 3. Chưa có code. Kế hoạch: hub `deliverables/gia-su-ai/PLAN_CODE_v0.1.md`.
-- Có sẵn (đã kiểm 14/11): `cas/` (math_check, 14 test pytest xanh); `lib/rules`, `lib/tutor`, `lib/{env,actor,anthropic,time}.ts` (48 test Vitest xanh, tsc sạch); SQL `0017_tutor_schema.sql` + `rls_tutor_test.sql` cho repo Launcher (chạy xanh trên Postgres tạm 14/11).
-- Chờ phụ huynh: D20–D27; API key + workspace riêng (D19).
+- Phase: 3 — Implementation. Last updated: 14/11/2026.
+- Xong: L-0 (schema `tutor`, Launcher PR #75), D19 (key riêng), D20 (`/gia-su` dưới Launcher), D21, D22.
+- Đang mở: **G1** walking skeleton (`feature/g1-walking-skeleton`, plan `docs/superpowers/plans/2026-11-14-g1-walking-skeleton.md`) + **L-1** bên Launcher (rewrite + 2 cửa vào Góc học tập).
+- Hồ sơ dạy học (lớp ④) bố mẹ nhập ở `/gia-su/bo-me`, chỉ nằm trong DB — không đưa vào repo.
+- Nợ cổng: e2e Playwright (G2). Chưa cho con dùng thật trước G2 (bộ kiểm tra Haiku).
+- Chờ phụ huynh: D23–D27; tạo project Vercel cho repo này (hướng dẫn trong PR G1).

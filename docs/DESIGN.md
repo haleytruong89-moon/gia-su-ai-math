@@ -138,7 +138,7 @@ Theo canvas. Chế độ e-ink (`device = boox`): không animation/transition, c
 | **G0** | Spike chọn model: `spike/run.ts` chạy bộ test sư phạm trên Haiku/Sonnet/Opus (math_check giả lập bằng `cas/` chạy local) | API key D19 | Bảng kết quả + chọn model (BO_TEST §1) |
 | **L-0** | SQL `0017_tutor_schema.sql` + `rls_tutor_test.sql` + `test-db.sh` chạy thêm test | — | CI Launcher xanh; phụ huynh merge |
 | **G1** | **Walking skeleton**: scaffold Next (basePath), `getActor`, bắt đầu buổi, con gõ đề → 1 lượt Sonnet (structured output) → hiện; ghi sessions/problems/messages/model_calls; deploy Vercel | L-0 | Con thật đăng nhập qua Launcher, gõ đề, nhận lượt xác nhận đề trên preview |
-| **L-1** | Rewrite `/gia-su/*` + app slot "Hỏi gia sư AI" + cập nhật CLAUDE.md Launcher (T1, D20–D23) | G1 deploy | Bấm ô trên Hôm nay mở được gia sư, không đăng nhập lại |
+| **L-1** | Rewrite `/gia-su/*` (biến `TUTOR_APP_ORIGIN`) + 2 cửa vào trong **Góc học tập** (thẻ "Cô gia sư Toán"; nút "Em kẹt bài này? Hỏi cô" khi việc là môn Toán — phụ huynh duyệt 14/11) + cập nhật CLAUDE.md Launcher (T1, D20–D21). Không SQL | G1 deploy | Bấm thẻ trong Góc học tập mở được gia sư, không đăng nhập lại |
 | **G2** | Luật máy chủ: hints, nan, outcome, 20 lượt, idempotency, guard Haiku, câu an toàn | G1 | DOMAIN §4.1–4.4 bằng Vitest; bộ test 9.2, 9.3, 9.12–9.15 |
 | **G3** | Ảnh: upload, xóa EXIF, thu nhỏ, Storage, xác nhận đề, "em đang làm bài số mấy" | G2 | US1; 9.9, 9.11 |
 | **G4** | `cas` lên Vercel Services + toolLoop + solveGate + make_sibling | G2 | DOMAIN §4.12; 9.16, 9.21–9.25 |

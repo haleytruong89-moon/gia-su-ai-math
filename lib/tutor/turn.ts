@@ -20,6 +20,6 @@ export async function runTutorTurn(client: ModelClient, req: { model: string; sy
     output: parsed.ok ? (parsed.value as TutorOutput) : null,
     raw,
     costUsd: costUsd(req.model, res.usage),
-    tokens: { in: res.usage.input_tokens + cached, cached, out: res.usage.output_tokens },
+    tokens: { in: res.usage.input_tokens + cached + (res.usage.cache_creation_input_tokens ?? 0), cached, out: res.usage.output_tokens },
   };
 }
