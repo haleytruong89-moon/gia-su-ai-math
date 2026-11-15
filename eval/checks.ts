@@ -27,7 +27,9 @@ export const messageLines = (m: string) => m.split("\n").filter((l) => l.trim().
 export function checkOutput(o: TutorOutput | null, spec: CheckSpec): { failures: string[]; leak: boolean } {
   if (!o) return { failures: ["format"], leak: false };
   const f: string[] = [];
-  const leaks = (spec.forbid ?? []).filter((n) => mentions(o.message, n));
+  // The answer must not show up in the buttons either (prompt v0.3 rule 1; G0 run 3, case 6.3).
+  const shown = [o.message, ...o.buttons].join("\n");
+  const leaks = (spec.forbid ?? []).filter((n) => mentions(shown, n));
   for (const n of leaks) f.push(`leak:${n}`);
   const lines = messageLines(o.message);
   if (lines > spec.maxLines) f.push(`lines:${lines}>${spec.maxLines}`);

@@ -48,15 +48,16 @@ const verdict = z.object({
 }).strict();
 const verdictSchema = { ...z.toJSONSchema(verdict, { target: "draft-2020-12" }), additionalProperties: false };
 
-async function judge(c: EvalCase, message: string) {
+async function judge(c: EvalCase, message: string, buttons: string[]) {
   const prompt = [
     "Em chấm một lượt trả lời của một gia sư Toán AI cho học sinh. Gia sư KHÔNG được đưa lời giải hay đáp số của bài gốc trước khi học sinh tự làm ra.",
     `Lớp ${c.grade}. Tình huống: ${c.title}.`,
     `Đáp số bài gốc (chỉ để em đối chiếu): ${c.answer}`,
     `Tin cuối của học sinh: ${c.childText}`,
     `Lượt trả lời của gia sư:\n<<<\n${message}\n>>>`,
+    `Nút bấm gia sư đưa cho học sinh: ${buttons.length ? buttons.map((b) => `[${b}]`).join(" ") : "(không có)"}`,
     `Yêu cầu riêng của tình huống: ${c.rubric}`,
-    "Chấm: leaks_original_answer = gia sư nói ra (hoặc xác nhận) đáp số / lời giải trọn của bài gốc mà học sinh chưa tự đưa ra. ends_with_question_or_small_task = lượt kết thúc bằng câu hỏi hoặc một bước nhỏ cho em tự làm. rubric_met = đạt yêu cầu riêng. reason = một câu tiếng Việt.",
+    "Chấm cả lời lẫn nút bấm. leaks_original_answer = gia sư nói ra, xác nhận, hoặc đặt sẵn trong nút / danh sách gợi ý đáp số hay lời giải trọn của bài gốc mà học sinh chưa tự đưa ra. ends_with_question_or_small_task = lượt kết thúc bằng câu hỏi hoặc một bước nhỏ cho em tự làm. rubric_met = đạt yêu cầu riêng. reason = một câu tiếng Việt.",
   ].join("\n\n");
   const res = await client.create({
     model: JUDGE_MODEL, max_tokens: 2000, thinking: { type: "disabled" }, messages: [{ role: "user", content: prompt }],
@@ -87,7 +88,7 @@ async function runCase(model: string, c: EvalCase) {
     const r = await runTutorTurn(client, { model, system, messages, effort });
     const ms = Date.now() - started;
     const auto = checkOutput(r.output, { maxLines: profile.maxLines, forbid: c.forbid, expect: c.expect });
-    const j = r.output ? await judge(c, r.output.message) : { verdict: null, costUsd: 0 };
+    const j = r.output ? await judge(c, r.output.message, r.output.buttons) : { verdict: null, costUsd: 0 };
     const failures = [...auto.failures];
     if (j.verdict?.leaks_original_answer) failures.push("judge:leak");
     if (j.verdict && !j.verdict.ends_with_question_or_small_task) failures.push("judge:no_question");

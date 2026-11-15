@@ -1,9 +1,18 @@
-# DOMAIN — Gia sư AI Toán · v0.4 (Phase 1.5 lite, tier M)
+# DOMAIN — Gia sư AI Toán · v0.5 (Phase 1.5 lite, tier M)
 
-> Lập: 14/11/2026 · Trạng thái: quy tắc v0.3 **✅ phụ huynh đã xác nhận (14/11)**; v0.4 thêm phần **bộ năng lực** (kiến thức, công cụ, ôn cách quãng) và phần **đối chiếu repo Launcher thật** — các mục mới ghi rõ ✅ hay *Đề xuất*
+> Lập: 14/11/2026 · v0.5: 15/11/2026 (chọn model mỗi lượt, bỏ chế độ tiết kiệm — phụ huynh chốt sau kết quả G0) · Trạng thái: quy tắc v0.3 **✅ phụ huynh đã xác nhận (14/11)**; v0.4 thêm phần **bộ năng lực** (kiến thức, công cụ, ôn cách quãng) và phần **đối chiếu repo Launcher thật** — các mục mới ghi rõ ✅ hay *Đề xuất*
 > **Đây là nguồn đúng duy nhất cho quy tắc.** Các mục 3, 4.6, 7.3, 8.3, 10, 12 của `SPEC_GIA_SU_AI_v0.2.md` đã bị thay bởi file này.
-> Bản trước: `DOMAIN_v0.3.md`, `DOMAIN_v0.2.md`, `DOMAIN_v0.1.md` · Mới liên quan: `NANG_LUC_GIA_SU_AI_v0.1.md`, `BAN_DO_CHUONG_TRINH_TOAN9_v0.2.md`, `BAN_DO_CHUONG_TRINH_TOAN6_v0.1.md`, `HOP_CONG_CU_HINH_9_v0.2.md`, `HOP_CONG_CU_RUT_GON_9_v0.1.md`, `GHI_CHU_GIA_SU_2026-11-14.md`, `TICH_HOP_LAUNCHER_v0.2.md` · Nguồn: `SPEC_GIA_SU_AI_v0.2.md` · `TICH_HOP_LAUNCHER_v0.1.md` · `SYSTEM_PROMPT_v0.1.md` · `BO_TEST_v0.1.md` · `PROJECT_HOC_TOAN_LOP9_6_THANG_MASTER.md` (M0–M4) · whiteboard https://claude.ai/artifact/XaZqd5Zz3mp2ZYqrT8Cb2b · canvas https://claude.ai/artifact/T8ySbzJ29YWFA6Q7D56HVm
+> Bản trước: `DOMAIN_v0.4.md`, `DOMAIN_v0.3.md`, `DOMAIN_v0.2.md`, `DOMAIN_v0.1.md` · Mới liên quan: `NANG_LUC_GIA_SU_AI_v0.1.md`, `BAN_DO_CHUONG_TRINH_TOAN9_v0.2.md`, `BAN_DO_CHUONG_TRINH_TOAN6_v0.1.md`, `HOP_CONG_CU_HINH_9_v0.2.md`, `HOP_CONG_CU_RUT_GON_9_v0.1.md`, `GHI_CHU_GIA_SU_2026-11-14.md`, `TICH_HOP_LAUNCHER_v0.2.md` · Nguồn: `SPEC_GIA_SU_AI_v0.2.md` · `TICH_HOP_LAUNCHER_v0.1.md` · `SYSTEM_PROMPT_v0.1.md` · `BO_TEST_v0.1.md` · `PROJECT_HOC_TOAN_LOP9_6_THANG_MASTER.md` (M0–M4) · whiteboard https://claude.ai/artifact/XaZqd5Zz3mp2ZYqrT8Cb2b · canvas https://claude.ai/artifact/T8ySbzJ29YWFA6Q7D56HVm
 > Chép nguyên vào repo `gia-su-ai` thành `docs/DOMAIN.md` (bridge files, `repo/`).
+
+### Thay đổi v0.4 → v0.5 (15/11, sau G0 — `KET_QUA_G0_2026-11-15.md`)
+| Mục | v0.5 |
+|---|---|
+| §0 | D8 sửa (Opus dùng theo luật chọn model); **D13 thay bằng D29** (bỏ chế độ tiết kiệm Haiku); D19 ✅; thêm **D28** chọn model mỗi lượt |
+| §1 | `usage_monthly.model_mode`: giá trị `economy` nay nghĩa là **"tạm ngừng chuyển Opus"** (giữ nguyên SQL); cần thêm cột `model_calls.route_reason` (SQL ở lát G2) |
+| §4.5 | Ví dụ b, c, e theo D29 |
+| §4.14 | **Mới:** chọn model mỗi lượt + 10 ví dụ chuẩn |
+| §5 | Bỏ dòng "chế độ tiết kiệm giảng kém"; dòng "bộ kiểm tra chặn" theo §4.14 |
 
 ### Thay đổi v0.3 → v0.4 (14/11 tối)
 | Mục | v0.4 |
@@ -47,30 +56,32 @@
 | T2 | Dùng chung Supabase `study-launcher`, schema riêng `tutor`, RLS riêng | [one-way] | 14/11 |
 | T3 | Repo riêng `gia-su-ai`, deploy riêng trên Vercel (sin1) | [one-way] | 14/11 |
 | D7 | Tiêu chí go/no-go 2 tuần thí điểm theo spec v0.2 §10 | thường | 14/11 |
-| D8 | Trần chi tiêu API **50 USD/tháng** — đã đặt trong Console, đã tắt auto-reload. Model chính **Sonnet 5.5**; tác vụ phụ **Haiku 5.5**; Opus chỉ dùng trong bộ test chọn model | thường | 14/11 |
+| D8 | Trần chi tiêu API **50 USD/tháng** — đã đặt trong Console, đã tắt auto-reload. Model chính **Sonnet 5.5**; tác vụ phụ (bộ kiểm tra, phân loại) **Haiku 5.5**; **Opus 5.5** cho phần khó theo D28 | thường | 14/11 · sửa 15/11 ✅ |
 | D9 | Repo `study-launcher` giữ public. Repo `gia-su-ai` tạo private; không ghi họ tên thật của con trong code, prompt mẫu, test, docs (dùng mã con) | thường | 14/11 |
 | D10 | Con có dấu hiệu nản → gia sư AI được nhảy thẳng lên H4 (bài anh em) | thường | 14/11 |
 | D11 | Đơn vị làm việc là **buổi 30–45 phút**, mỗi buổi nhiều bài | thường | 14/11 |
 | D12 | **Không** giới hạn khung giờ, số buổi/ngày, chi phí/ngày. Chỉ trần tháng 50 USD | thường | 14/11 |
-| D13 | Gần trần (~45 USD): báo ngay cho bố mẹ **và** tự chuyển sang Haiku trong lúc chờ bố mẹ quyết | thường | 14/11 |
+| ~~D13~~ | ~~Gần trần (~45 USD): tự chuyển sang Haiku~~ → thay bằng D29 (G0: Haiku lộ đáp số 3/28 ca) | — | bỏ 15/11 |
 | D14 | Gia sư người **không** có tài khoản; bố mẹ chia sẻ báo cáo | thường | 14/11 |
 | D15 | Tối đa 20 lượt/bài (lượt 18 cô đề nghị để dành); cảnh báo theo tốc độ chi tháng | thường | 14/11 |
 | D16 | Im > 3 phút chỉ hỏi han, không nhảy H4 | thường | 14/11 |
 | D17 | Nhảy H4 do nản không giới hạn số lần; mỗi lần ghi cờ `nan_jump` | thường | 14/11 |
 | D18 | Bài chứng minh hình nộp xong → `pending_review` (chờ thầy xem) | thường | 14/11 |
-| D19 | Gia sư AI dùng **API key + workspace riêng** trong Console (tách chi phí với App Toán và bộ test) | thường | đề xuất 14/11 |
+| D19 | Gia sư AI dùng **API key + workspace riêng** trong Console (tách chi phí với App Toán và bộ test) | thường | ✅ 14/11 (workspace GS AI - Math, key hết hạn 31/10/2027) |
 | — | Tier **M**; skill con `vibe-code-domain-learning` | thường | 14/11 |
 | Q1 | HS-9A thi **chuyên Anh** → Toán thi đề thường, mục tiêu 8,5–9,25; không luyện đề chuyên Toán | thường | 14/11 ✅ |
 | Q2 | Thứ tự nội dung: rút gọn biểu thức → tam giác đồng dạng → ôn hằng đẳng thức đầu buổi → checklist mới → form trình bày của thầy (khi có) | thường | 14/11 ✅ |
 | Q3 | Chưa dạy trước HK II (Viète, tứ giác nội tiếp…); đi cùng nhịp 5–7 buổi lớp 8 của thầy. Con tự hỏi bài HK II thì vẫn dạy bình thường (không trả lời "ngoài phạm vi") | thường | 14/11 ✅ |
 | Q5 | Chưa có form của thầy → dạy theo cách trình bày dễ hiểu + barem của cô (§4.10) | thường | 14/11 ✅ |
-| D20 | Gia sư AI chạy **dưới địa chỉ Launcher**: `…/gia-su` (Launcher chuyển tiếp sang deploy riêng của `gia-su-ai`). Con không phải đăng nhập lần 2, dùng luôn PIN; extension không cần mở thêm tên miền | [one-way] | *Đề xuất 14/11* |
-| D21 | File SQL của schema `tutor` nằm trong **repo `study-launcher`** (`supabase/migrations/00NN_tutor_*.sql`) → tự chạy khi phụ huynh merge, như hiện nay. Repo `gia-su-ai` không có migration | [one-way] | *Đề xuất 14/11* |
-| D22 | Mở schema `tutor` cho Data API (Supabase → API settings → Exposed schemas). Con chỉ **đọc** qua RLS; mọi ghi đi qua máy chủ `gia-su-ai` (service role) — giống mẫu Launcher | thường | *Đề xuất 14/11* |
+| D20 | Gia sư AI chạy **dưới địa chỉ Launcher**: `…/gia-su` (Launcher chuyển tiếp sang deploy riêng của `gia-su-ai`). Con không phải đăng nhập lần 2, dùng luôn PIN; extension không cần mở thêm tên miền | [one-way] | ✅ 14/11 (phụ huynh duyệt 22:37) |
+| D21 | File SQL của schema `tutor` nằm trong **repo `study-launcher`** (`supabase/migrations/00NN_tutor_*.sql`) → tự chạy khi phụ huynh merge, như hiện nay. Repo `gia-su-ai` không có migration | [one-way] | ✅ 14/11 (merge PR #75) |
+| D22 | Mở schema `tutor` cho Data API (Supabase → API settings → Exposed schemas). Con chỉ **đọc** qua RLS; mọi ghi đi qua máy chủ `gia-su-ai` (service role) — giống mẫu Launcher | thường | ✅ 14/11 (đã bật Exposed schemas) |
 | D23 | Thông báo đẩy cho bố mẹ: Launcher thêm route nội bộ `POST /api/internal/tutor-notify` (khóa bí mật riêng), dùng lại `lib/push/send.ts`; gia sư AI gọi route này | thường | *Đề xuất 14/11* |
 | D24 | Máy tính đại số C1 = **Python + SymPy** chạy riêng tư trong cùng project Vercel (Vercel Services — đang beta). Không chạy được → tách thành project Vercel riêng có khóa bí mật | thường | *Đề xuất 14/11* |
 | D25 | Kho kiến thức (bản đồ chương trình, hộp công cụ) lưu trong repo `knowledge/*.json`, sinh từ các file md đã duyệt trong hub; có `KNOWLEDGE_VERSION`; mỗi bài ghi version đã dùng | thường | *Đề xuất 14/11* |
 | D26 | Ôn cách quãng đầu buổi: tối đa 2 câu, có nút "Để sau"; lịch 1 → 3 → 7 ngày; đúng 3 lần liên tiếp thì thôi ôn (§4.11) | thường | *Đề xuất 14/11* |
+| D28 | **Chọn model mỗi lượt do máy chủ quyết** (§4.14): mặc định Sonnet; chuyển **Opus** khi (1) bộ kiểm tra chặn câu của Sonnet, (2) con nản hoặc mức ≥ H3, (3) bài hình chứng minh lớp 9, (4) ý chặn đề vào 10, (5) cô báo không chắc. Đã chuyển thì giữ Opus đến hết bài. Lớp 6 chỉ dùng (1), (2), (5) | thường | ✅ 15/11 |
+| D29 | **Không có chế độ tiết kiệm.** Gần trần (~45 USD): báo ngay cho bố mẹ và **tạm ngừng chuyển Opus** (Sonnet vẫn chạy, kể cả lượt viết lại sau khi bị chặn). Trần cứng 50 USD trên Console giữ nguyên | thường | ✅ 15/11 |
 | D27 | Gắn nhãn ý đề vào 10 Hà Nội (`exam_slot`, vd `HN10-2c`) cho bài luyện; báo cáo tối/tuần đếm theo ý chặn | thường | *Đề xuất 14/11* |
 
 ## 1. Data model (schema `tutor` trong Supabase `study-launcher`)
@@ -92,7 +103,7 @@ Quy ước chung mọi bảng: `id uuid`, `created_at timestamptz`, `updated_at 
 | `diagnoses` | `problem_id`, `root` (read / concept / strategy / calc / careful / unknown), `source` (self_reported / verified) | Có thể nhiều dòng mỗi bài |
 | `ratings` | `session_id` (unique), `face` (easy / ok / hard), `reasons` (enum[]: too_long, hard_words, answer_too_early, too_many_questions, good_example, clear), `comment` | Con chấm 1 lần cuối mỗi buổi |
 | `parent_feedback` | `problem_id`, `message_id` (nullable), `thumb` (up / down), `note` | Góp ý của bố mẹ |
-| `usage_monthly` | `month` (tháng theo UTC, khớp kỳ của Console), `cost_usd` (cộng từ `model_calls`), `model_mode` (normal / economy), `burn_alert_sent_at`, `economy_alert_sent_at` | Sổ chi phí của app; đối chiếu với Console hằng tuần (D13, D15) |
+| `usage_monthly` | `month` (tháng theo UTC, khớp kỳ của Console), `cost_usd` (cộng từ `model_calls`), `model_mode` (normal / economy — *từ v0.5, `economy` = tạm ngừng chuyển Opus, D29*), `burn_alert_sent_at`, `economy_alert_sent_at` | Sổ chi phí của app; đối chiếu với Console hằng tuần (D13, D15) |
 | `topic_packs` | `child_id`, `title`, `version`, `status` (§3.5), `source_docs`, `content_path`, `approved_by` | v1: gói vẫn là app HTML trong hub; bảng này để Launcher giao như bài bổ sung |
 | view `daily_summary` | theo `child_id` × `date_vn` | Tạo với `security_invoker = true`; Launcher đọc qua quyền bố mẹ để hiện thẻ trong Xem gộp |
 | *(v0.4)* `problems` — cột thêm | `ku_code` (mã bài SGK, vd `T9.9`; thay cho `topic_tag`), `exam_slot` (nullable, vd `HN10-2c`), `knowledge_version`, `prereq_gaps text[]` (mã KU nền bị hổng, vd `N8.02`) | `ku_code` do Haiku phân loại ở lượt đầu, gia sư AI sửa được khi xác nhận đề |
@@ -229,11 +240,11 @@ Mọi ngưỡng tính theo **sổ của app** (`usage_monthly.cost_usd`, cộng 
 | # | Tình huống | Kết quả | |
 |---|---|---|---|
 | a | Chi phí tháng đạt 40 USD (80%) | Ghi trong báo cáo tối; chưa đổi gì | ✅ |
-| b | Chi phí tháng đạt ~45 USD | Thông báo ngay cho bố mẹ (Web Push qua Launcher) **và** tự chuyển gia sư sang Haiku (`model_mode = economy`) | ✅ |
+| b | Chi phí tháng đạt ~45 USD | Thông báo ngay cho bố mẹ (Web Push qua Launcher) **và** tạm ngừng chuyển Opus (`model_mode = economy`); Sonnet chạy bình thường | ✅ 15/11 (D29) |
 | b2 | Ngày 10, đã chi 20 USD (dự báo 60 USD) | Báo bố mẹ "tốc độ chi đang vượt trần"; không chặn | ✅ (D15) |
-| c | Bố mẹ nâng trần trong Console | Bố mẹ bấm "Về chế độ thường" (có hộp xác nhận "Đã nâng trần trong Console chưa?") → dùng lại Sonnet | Đề xuất |
+| c | Bố mẹ nâng trần trong Console | Bố mẹ bấm "Bật lại Opus" (có hộp xác nhận "Đã nâng trần trong Console chưa?") → `model_mode = normal` | Đề xuất |
 | d | Console chặn vì đủ 50 USD | App báo "Gia sư AI tạm nghỉ, em ghi bài vào để dành nhé"; báo bố mẹ ngay (bắt buộc xử lý vì API ngừng trả lời) | Đề xuất |
-| e | Sang tháng mới | `usage_monthly` reset, tự về chế độ thường | Đề xuất |
+| e | Sang tháng mới | `usage_monthly` reset, tự bật lại Opus (`normal`) | Đề xuất |
 
 ### 4.6. Ngày theo giờ Việt Nam ✅
 `date_vn` đổi lúc 00:00 giờ VN. Ví dụ: 16:59 UTC 14/11 = 23:59 14/11 giờ VN → ngày 14/11; 17:00 UTC → ngày 15/11.
@@ -247,7 +258,7 @@ Mọi ngưỡng tính theo **sổ của app** (`usage_monthly.cost_usd`, cộng 
 | Con chấm khó hiểu | Có `ratings.face = hard` |
 | Bài hình chứng minh | Gia sư AI gắn cờ `geometry_proof` → để gia sư người xem |
 | Gia sư AI phải viết lại nhiều | `guard_result = rewritten` ≥ 2 lần trong 1 bài |
-| Chi phí | Chi phí tháng > 80% trần, hoặc đang ở chế độ tiết kiệm |
+| Chi phí | Chi phí tháng > 80% trần, hoặc đang tạm ngừng chuyển Opus (D29) |
 | *(v0.4)* Lỗ hổng nền | Có `prereq_gaps` trong ngày (ghi mã + tên, vd "N8.10 — tam giác đồng dạng") |
 | *(v0.4)* Ý chặn | Bài có `exam_slot` thuộc ý chặn (2c, 3c, 4b ý 2, 4c, 5) và con dừng ở U0–U1 |
 | *(v0.4)* C1 lỗi | Máy tính đại số lỗi/hết giờ ≥ 2 lần trong ngày |
@@ -256,7 +267,7 @@ Mọi ngưỡng tính theo **sổ của app** (`usage_monthly.cost_usd`, cộng 
 `delete_after` = ngày tải lên (giờ VN) + 90 ngày. Job hằng ngày xóa file; giữ metadata + mô tả đề bằng chữ. Bố mẹ xóa sớm được.
 Bố mẹ yêu cầu xóa (một bài, một buổi, hoặc toàn bộ dữ liệu một con) → **xóa cứng** cả dòng DB lẫn file Storage, không chỉ xóa mềm. Bản backup tuần của Launcher còn giữ dữ liệu tối đa đến hết thời hạn lưu backup; ghi thời hạn này vào trang bố mẹ.
 
-**Phía Anthropic (tra 14/11/2026, privacy.claude.com + platform.claude.com):** API tiêu chuẩn tự xóa đầu vào/đầu ra trong vòng 30 ngày; không dùng để huấn luyện model nếu không có sự cho phép; nội dung bị hệ thống an toàn gắn cờ vi phạm chính sách có thể giữ tới 2 năm. Sonnet 5.5 và Haiku 5.5 không thuộc nhóm model bắt buộc lưu 30 ngày đặc biệt (nhóm này là Fable/Mythos). Trang bố mẹ ghi đúng các ý này, kèm link nguồn.
+**Phía Anthropic (tra 14/11/2026, privacy.claude.com + platform.claude.com):** API tiêu chuẩn tự xóa đầu vào/đầu ra trong vòng 30 ngày; không dùng để huấn luyện model nếu không có sự cho phép; nội dung bị hệ thống an toàn gắn cờ vi phạm chính sách có thể giữ tới 2 năm. Sonnet 5.5, Opus 5.5 và Haiku 5.5 không thuộc nhóm model bắt buộc lưu 30 ngày đặc biệt (nhóm này là Fable/Mythos). Trang bố mẹ ghi đúng các ý này, kèm link nguồn.
 
 ### 4.9. Mức nắm vững M0–M4
 Theo §2 và §38 `PROJECT_HOC_TOAN_LOP9_6_THANG_MASTER.md`. Chat với gia sư AI **không** nâng mức M; v1 chưa tính M trong app.
@@ -313,6 +324,33 @@ Gia sư AI chỉ hỏi những mục **liên quan đến dạng bài** (vd bài 
 - Báo cáo tối liệt kê KU nền bị hổng trong ngày (vd "N8.02 — hằng đẳng thức, 2 lần").
 - Bài thuộc HK II hoặc ngoài đề cương mà con tự hỏi → vẫn dạy theo KNTT (Q3), không trả lời "ngoài phạm vi".
 
+### 4.14. Chọn model mỗi lượt (D28, D29) — *v0.5, ✅ phụ huynh chốt 15/11*
+Máy chủ chọn model **trước** khi gọi; model không tự đổi. Thứ tự xét: (1) đang tạm ngừng Opus (D29) → Sonnet; (2) bài đã từng chạy Opus → Opus (giữ đến hết bài); (3) có dấu hiệu nào trong bảng dưới → Opus; (4) còn lại → Sonnet. Lý do chuyển ghi vào `model_calls.route_reason` và lên báo cáo tối.
+
+| Dấu hiệu | Lớp 9 | Lớp 6 | Nguồn | Có từ lát |
+|---|---|---|---|---|
+| `guard_blocked` — bộ kiểm tra chặn câu của Sonnet ở lượt này | ✅ | ✅ | Haiku guard | G2 |
+| `nan` — con nản (§4.2) | ✅ | ✅ | luật nản | G2 |
+| `hint_h3` — mức gợi ý ≥ H3 | ✅ | ✅ | §4.1 | G2 |
+| `tutor_unsure` — lượt trước cô gắn cờ không chắc | ✅ | ✅ | đầu ra của cô | G2 |
+| `geometry_proof` — bài hình chứng minh | ✅ | — | cờ / `ku_code` | G5 |
+| `exam_slot_hard` — ý chặn đề vào 10 (`HN10-2c`, `-3c`, `-4b`, `-4c`, `-5`) | ✅ | — | `exam_slot` | G5 |
+
+| # | Tình huống | Kết quả | |
+|---|---|---|---|
+| a | Lớp 9, lượt 1, bài rút gọn, H0, không nản | Sonnet | ✅ |
+| b | Lớp 9, H2, sai 1 lần, không nản | Sonnet | ✅ |
+| c | Lớp 9, máy chủ vừa nâng lên H3 | Opus (`hint_h3`) | ✅ |
+| d | Sonnet trả lời, bộ kiểm tra chặn vì lộ đáp số | Viết lại lượt đó bằng Opus (`guard_blocked`); con chỉ thấy câu của Opus; từ lượt sau giữ Opus đến hết bài | ✅ |
+| e | Lớp 6, con bấm "Chưa hiểu" lần 3 → nản | Opus (`nan`) | ✅ |
+| f | Bài đã chuyển Opus ở lượt 5; lượt 8 con làm tốt, về H1 | Vẫn Opus (giữ đến hết bài) | ✅ |
+| g | Bài mới sau bài f | Sonnet | ✅ |
+| h | Lớp 9, bài hình chứng minh, lượt 1 | Opus (`geometry_proof`) — từ G5 khi app biết dạng bài | ✅ |
+| i | Lớp 6, bài hình (vẽ, chu vi) | Sonnet (dấu hiệu hình chỉ áp cho lớp 9) | ✅ |
+| j | Chi tháng đạt 45 USD; lớp 9 nản | Sonnet (tạm ngừng Opus, D29); báo cáo ghi "đáng lẽ chuyển Opus" | ✅ |
+
+*Ước chi phí (G0, effort medium): Sonnet ~0,009 USD/lượt, Opus ~0,022 USD/lượt; nếu ~25–30% lượt chạy Opus → ~13–15 USD/tháng cho ~1.100 lượt.*
+
 ## 5. Tình huống khó
 | Tình huống | Cách xử lý |
 |---|---|
@@ -322,7 +360,7 @@ Gia sư AI chỉ hỏi những mục **liên quan đến dạng bài** (vd bài 
 | Mở cùng buổi trên 2 thiết bị | Chỉ thiết bị mới nhất được gửi; máy kia thấy "Buổi đang mở ở máy khác" |
 | Mất mạng | Tin chưa gửi giữ ở máy, gửi lại khi có mạng; thời gian tính theo giờ máy chủ |
 | Claude API lỗi | Thử lại 1 lần; vẫn lỗi → "Cô đang bận, em thử lại sau ít phút"; không tính lượt |
-| Haiku chặn câu trả lời 2 lần liền | Gửi câu an toàn soạn sẵn theo mức gợi ý; ghi cờ ⚠️ |
+| Bộ kiểm tra chặn câu trả lời | Lần 1: viết lại bằng Opus (§4.14 d; khi tạm ngừng Opus thì viết lại bằng Sonnet). Bị chặn lần 2 → câu an toàn soạn sẵn theo mức gợi ý; ghi cờ ⚠️ |
 | Bố mẹ duyệt luật mới giữa buổi | Buổi đang chạy giữ luật cũ |
 | Ảnh Boox PNG rất lớn | Máy chủ thu nhỏ về ~1000 px cạnh dài trước khi gửi AI và lưu |
 | Ảnh có EXIF/GPS hoặc có họ tên in trên phiếu | Máy chủ xóa EXIF trước khi lưu và gửi; màn chụp nhắc con cắt ảnh chỉ lấy bài cần hỏi |
@@ -330,7 +368,6 @@ Gia sư AI chỉ hỏi những mục **liên quan đến dạng bài** (vd bài 
 | Tin gửi lại sau mất mạng | `client_msg_id` trùng → máy chủ trả lại kết quả cũ, không gọi model lần 2 |
 | Buổi bỏ dở không có request nào | Job mỗi 5 phút đóng buổi quá 10 phút không có tín hiệu "còn mở" |
 | Con hỏi chuyện ngoài học | Đưa về bài; lặp 3 lần trong 1 bài → đóng bài `closed_offtopic`, ghi cờ |
-| Chế độ tiết kiệm (Haiku) giảng kém hơn | Báo cáo tối ghi rõ những bài làm ở chế độ tiết kiệm |
 
 ## 6. Skill con `vibe-code-domain-learning`: mục áp dụng
 | Mục | Áp dụng? |
@@ -366,4 +403,5 @@ Lưu ý quyền riêng tư: một phiếu của HS-6A có ghi họ tên. Khi đ�
 | 14/11/2026 | v0.1 cập nhật — D9, D10 |
 | 14/11/2026 | **v0.2** — phụ huynh xác nhận quy tắc qua pop-up; D11–D14 (buổi 30–45', bỏ giới hạn giờ/buổi/ngày, chế độ tiết kiệm ~45 USD, không tài khoản gia sư người); §4.10 barem; §8 nguồn nội dung |
 | 14/11/2026 | **v0.3** — sửa theo review độc lập: tách log gốc model, RLS chi tiết, máy chủ giữ trạng thái, định nghĩa nản cụ thể, trạng thái `pending_review` và `closed_offtopic`, xóa EXIF, idempotency; D15–D19 |
+| 15/11/2026 | **v0.5** — sau G0: D28 chọn model mỗi lượt (§4.14), D29 bỏ chế độ tiết kiệm Haiku; D19 ✅ |
 | 14/11/2026 | **v0.4** — bộ năng lực (kho kiến thức, công cụ, ôn cách quãng, dạy bù nền), khớp repo Launcher thật, Q1–Q5, D20–D27 đề xuất, checklist 6–10 |
