@@ -3,9 +3,11 @@
 import Link from "next/link";
 import { useRef, useState } from "react";
 import type { Thread, ThreadMessage } from "@/lib/db/supabaseRepo";
-import { BTN_NOT_UNDERSTOOD, BTN_SAVE } from "@/lib/copy";
+import { prepareImage } from "@/lib/client/image";
+import { BTN_NOT_UNDERSTOOD, BTN_SAVE, PHOTO_COPY, PHOTO_ONLY_TEXT } from "@/lib/copy";
+import { MAX_IMAGES_PER_PROBLEM, MISREAD_HINT_AT, misreadCount } from "@/lib/rules/photo";
 import { lines } from "@/lib/markdown";
-import { newClientMsgId, postWithRetry } from "@/lib/client/post";
+import { newClientMsgId, postForm, postWithRetry } from "@/lib/client/post";
 import type { InputKind } from "@/lib/rules/events";
 import type { ProblemStatus, StoredReply } from "@/lib/tutor/repo";
 
@@ -23,6 +25,12 @@ function Bubble({ m }: { m: ThreadMessage }) {
     <li className={`flex ${tutor ? "justify-start" : "justify-end"}`}>
       <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-base leading-relaxed ${tutor ? "bg-white" : "bg-accent text-white"}`}>
         <span className="sr-only">{tutor ? "Cô: " : "Em: "}</span>
+        {m.images.map((src) => (
+          <a key={src} href={src} target="_blank" rel="noreferrer" className="mb-2 block">
+            {/* eslint-disable-next-line @next/next/no-img-element -- short-lived signed URL / local preview */}
+            <img src={src} alt="Ảnh em gửi" className="max-h-60 rounded-xl bg-white" />
+          </a>
+        ))}
         {lines(m.text).map((runs, i) => (
           <p key={i} className="min-h-[1em]">
             {runs.map((r, j) => (r.bold ? <b key={j}>{r.text}</b> : <span key={j}>{r.text}</span>))}
@@ -36,6 +44,9 @@ function Bubble({ m }: { m: ThreadMessage }) {
 export function Chat({ initial }: { initial: Thread }) {
   const [messages, setMessages] = useState(initial.messages);
   const [status, setStatus] = useState(initial.status);
+  const [confirmed, setConfirmed] = useState(initial.statementConfirmed);
+  const [photo, setPhoto] = useState<{ blob: Blob; previewUrl: string } | null>(null);
+  const picker = useRef<HTMLInputElement>(null);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -49,26 +60,50 @@ export function Chat({ initial }: { initial: Thread }) {
   // "Chưa hiểu" and "Để dành hỏi thầy" are always in the fixed row below, so not repeated here.
   const buttons = tutorTurn ? last.buttons.filter((b) => b !== BTN_NOT_UNDERSTOOD && b !== BTN_SAVE) : [];
 
+  const photoCount = messages.reduce((n, m) => n + m.images.length, 0);
+  const canAddPhoto = photoCount < MAX_IMAGES_PER_PROBLEM;
+  const showMisread = open && !confirmed && misreadCount(messages) >= MISREAD_HINT_AT;
+
+  async function choose(file: File | undefined) {
+    if (!file) return;
+    setError(null);
+    const r = await prepareImage(file);
+    if (!r.ok) {
+      setError(r.message);
+      return;
+    }
+    if (photo) URL.revokeObjectURL(photo.previewUrl);
+    setPhoto({ blob: r.blob, previewUrl: r.previewUrl });
+  }
+
   async function send(value: string, kind: InputKind) {
     const t = value.trim();
-    if (!t || busy || !open) return;
+    const withPhoto = kind !== "button" ? photo : null; // a button press never carries the photo
+    if ((!t && !withPhoto) || busy || !open) return;
     if (!attempt.current || attempt.current.text !== t) attempt.current = { id: newClientMsgId(), text: t };
     const id = attempt.current.id;
     setBusy(true);
     setError(null);
     setAskSave(false);
-    setMessages((ms) => (ms.some((m) => m.id === id) ? ms : [...ms, { id, role: "child", text: t, buttons: [] }]));
-    const r = await postWithRetry<StoredReply>("/api/turn", { problemId: initial.problemId, clientMsgId: id, text: t, kind });
+    const shown = t || PHOTO_ONLY_TEXT;
+    setMessages((ms) => (ms.some((m) => m.id === id) ? ms
+      : [...ms, { id, role: "child", text: shown, buttons: [], images: withPhoto ? [withPhoto.previewUrl] : [] }]));
+    const fields = { problemId: initial.problemId, clientMsgId: id, text: t, kind };
+    const r = withPhoto
+      ? await postForm<StoredReply>("/api/turn", fields, withPhoto.blob)
+      : await postWithRetry<StoredReply>("/api/turn", fields);
     if (r.ok) {
-      setMessages((ms) => [...ms, { id: `${id}-reply`, role: "tutor", text: r.data.message, buttons: r.data.buttons }]);
+      setMessages((ms) => [...ms, { id: `${id}-reply`, role: "tutor", text: r.data.message, buttons: r.data.buttons, images: [] }]);
       setStatus(r.data.status);
+      setConfirmed(r.data.statementConfirmed);
+      if (withPhoto) setPhoto(null); // the preview URL stays in use by the bubble
       if (kind !== "button") setText("");
       if (kind === "submit") setSubmit(false);
       attempt.current = null;
     } else {
-      if (r.status === 503) {
+      if (r.status === 503 || r.status === 413 || r.status === 415 || (r.status === 409 && !r.message.startsWith("Bài này đã đóng") && !r.message.startsWith("Cô vẫn"))) {
         attempt.current = null;
-        setMessages((ms) => ms.filter((m) => m.id !== id)); // the server dropped it
+        setMessages((ms) => ms.filter((m) => m.id !== id)); // the server dropped it (or never stored it)
       }
       if (r.status === 409 && r.message.startsWith("Bài này đã đóng")) setStatus("timed_out");
       setError(r.message);
@@ -84,7 +119,7 @@ export function Chat({ initial }: { initial: Thread }) {
     setError(null);
     const r = await postWithRetry<{ status: ProblemStatus }>("/api/problem/save", { problemId: initial.problemId, clientMsgId: saveId.current });
     if (r.ok) {
-      setMessages((ms) => [...ms, { id: saveId.current!, role: "child", text: BTN_SAVE, buttons: [] }]);
+      setMessages((ms) => [...ms, { id: saveId.current!, role: "child", text: BTN_SAVE, buttons: [], images: [] }]);
       setStatus("saved_for_later");
     } else {
       if (r.status === 409 && r.message.startsWith("Bài này đã đóng")) setStatus("timed_out");
@@ -154,8 +189,33 @@ export function Chat({ initial }: { initial: Thread }) {
                 </button>
               </div>
             )}
+            {showMisread && (
+              <p className="rounded-xl bg-[#FFF4E0] px-3 py-2 text-sm">
+                {PHOTO_COPY.misread} <Link href={`/?thay=${initial.problemId}`} className="font-semibold">{PHOTO_COPY.retake}</Link>
+              </p>
+            )}
+            {!showMisread && !confirmed && initial.hasImages && (
+              <Link href={`/?thay=${initial.problemId}`} className="self-start text-sm font-semibold">{PHOTO_COPY.retake}</Link>
+            )}
+            {photo && (
+              <div className="flex items-center gap-3">
+                {/* eslint-disable-next-line @next/next/no-img-element -- a local blob preview */}
+                <img src={photo.previewUrl} alt="Ảnh bài làm em chọn" className="h-20 rounded-lg border border-ink/10" />
+                <button type="button" onClick={() => { URL.revokeObjectURL(photo.previewUrl); setPhoto(null); }}
+                  className="btn border-[1.5px] border-ink/15 bg-white">{PHOTO_COPY.remove}</button>
+              </div>
+            )}
             {error && <p role="alert" className="text-sm font-semibold text-[#A33A2B]">{error}</p>}
             <div className="flex items-end gap-2">
+              <button type="button" aria-label={PHOTO_COPY.work} title={canAddPhoto ? PHOTO_COPY.work : PHOTO_COPY.tooMany}
+                disabled={busy || !canAddPhoto} onClick={() => picker.current?.click()}
+                className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-[14px] border-[1.5px] border-ink/20 bg-white disabled:opacity-50">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M4 8h3l2-3h6l2 3h3v11H4z" /><circle cx="12" cy="13" r="3.5" />
+                </svg>
+              </button>
+              <input ref={picker} type="file" accept="image/*" className="hidden" aria-label={PHOTO_COPY.work}
+                onChange={(e) => { void choose(e.target.files?.[0]); e.target.value = ""; }} />
               <label className="flex flex-1 flex-col">
                 <span className="sr-only">Em trả lời</span>
                 <textarea
@@ -167,7 +227,7 @@ export function Chat({ initial }: { initial: Thread }) {
                   className="rounded-xl border-[1.5px] border-ink/15 bg-white p-3 text-base"
                 />
               </label>
-              <button type="submit" disabled={busy || !text.trim()} className="btn bg-accent text-white disabled:opacity-50">
+              <button type="submit" disabled={busy || (!text.trim() && !photo)} className="btn bg-accent text-white disabled:opacity-50">
                 {submit ? "Nộp" : "Gửi"}
               </button>
             </div>

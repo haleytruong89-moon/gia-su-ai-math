@@ -11,9 +11,12 @@ const NOT_READY = {
   no_profile: "Tài khoản này chưa dùng được cô gia sư. Em nhờ bố mẹ xem giúp nhé.",
 } as const;
 
-export default async function Home({ searchParams }: { searchParams: Promise<{ task?: string }> }) {
+export default async function Home({ searchParams }: { searchParams: Promise<{ task?: string; thay?: string }> }) {
   const entry = await getEntry();
-  const task = (await searchParams).task?.slice(0, 120) || null;
+  const params = await searchParams;
+  const task = params.task?.slice(0, 120) || null;
+  // "Chụp lại ảnh khác" (G3 Q3): the server checks that this problem is the child's own and still unconfirmed.
+  const replaces = params.thay && /^[0-9a-f-]{36}$/i.test(params.thay) ? params.thay : null;
 
   if (entry.kind === "signed_out") {
     return (
@@ -56,8 +59,8 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ t
       <main className="mx-auto flex max-w-2xl flex-col gap-4 p-4">
         <h1 className="text-2xl font-bold">Em kẹt bài nào?</h1>
         {task && <p className="rounded-xl bg-white px-3 py-2 text-sm text-ink/80">Bài đang làm: <b>{task}</b></p>}
-        <p className="text-sm text-ink/70">Cô hỏi gợi ý từng bước để em tự làm, cô không làm hộ. Em gõ đề bài vào ô dưới.</p>
-        <StartForm />
+        <p className="text-sm text-ink/70">Cô hỏi gợi ý từng bước để em tự làm, cô không làm hộ. Em chụp ảnh đề hoặc gõ đề vào ô dưới.</p>
+        <StartForm replaces={replaces} />
       </main>
     </>
   );
