@@ -1,0 +1,68 @@
+name: Bộ test sư phạm (G0)
+
+# Runs only when a person presses "Run workflow" (never on PRs: the API key stays in a secret).
+on:
+  workflow_dispatch:
+    inputs:
+      models:
+        description: "Model, cách nhau bằng dấu phẩy"
+        default: "claude-haiku-5-5,claude-sonnet-5-5,claude-opus-5-5"
+        required: true
+      cases:
+        description: "Chỉ chạy các tình huống này (vd 9.1,6.2). Để trống = chạy hết"
+        default: ""
+        required: false
+
+permissions:
+  contents: write # results are committed to the eval-results branch
+
+concurrency:
+  group: eval
+  cancel-in-progress: false
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --legacy-peer-deps
+      - name: Check the secret
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "::error::Chưa có secret ANTHROPIC_API_KEY (Settings → Secrets and variables → Actions)."
+            exit 1
+          fi
+      - name: Run
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          MODELS: ${{ inputs.models }}
+          CASES: ${{ inputs.cases }}
+        run: |
+          OUT="eval/results/$(date -u +%Y-%m-%d-%H%M)-run${GITHUB_RUN_NUMBER}"
+          echo "OUT=$OUT" >> "$GITHUB_ENV"
+          ARGS="--models=$MODELS --out=$OUT"
+          if [ -n "$CASES" ]; then ARGS="$ARGS --cases=$CASES"; fi
+          npm run eval -- $ARGS
+      - name: Save results to the eval-results branch
+        if: always() && env.OUT != ''
+        run: |
+          [ -d "$OUT" ] || exit 0
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          mkdir -p /tmp/res && cp -r "$OUT" /tmp/res/
+          if git ls-remote --exit-code origin eval-results >/dev/null; then
+            git fetch origin eval-results && git checkout -f eval-results
+          else
+            git checkout --orphan eval-results && git rm -rq . && rm -rf eval node_modules .next
+          fi
+          mkdir -p eval/results && cp -r /tmp/res/* eval/results/
+          git add eval/results
+          git commit -m "eval: ${OUT##*/} (${{ inputs.models }})"
+          git push origin eval-results

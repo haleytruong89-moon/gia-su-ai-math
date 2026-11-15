@@ -9,7 +9,8 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "eval": "tsx --conditions=react-server eval/run.ts"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.5",
@@ -19,6 +20,7 @@
     "eslint": "^9.39.5",
     "eslint-config-next": "^16.4.6",
     "tailwindcss": "^4.3.5",
+    "tsx": "^4.23.15",
     "typescript": "~5.9.3",
     "vite": "^8.3.8",
     "vitest": "^5.0.4"
