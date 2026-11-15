@@ -52,17 +52,20 @@ jobs:
           npm run eval -- $ARGS
       - name: Save results to the eval-results branch
         if: always() && env.OUT != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           [ -d "$OUT" ] || exit 0
+          REPO="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          mkdir -p /tmp/res && cd /tmp/res
+          if git ls-remote --exit-code "$REPO" eval-results >/dev/null; then
+            git clone -q --depth 1 --branch eval-results "$REPO" .
+          else
+            git init -q -b eval-results . && git remote add origin "$REPO"
+          fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          mkdir -p /tmp/res && cp -r "$OUT" /tmp/res/
-          if git ls-remote --exit-code origin eval-results >/dev/null; then
-            git fetch origin eval-results && git checkout -f eval-results
-          else
-            git checkout --orphan eval-results && git rm -rq . && rm -rf eval node_modules .next
-          fi
-          mkdir -p eval/results && cp -r /tmp/res/* eval/results/
+          mkdir -p eval/results && cp -r "$GITHUB_WORKSPACE/$OUT" eval/results/
           git add eval/results
-          git commit -m "eval: ${OUT##*/} (${{ inputs.models }})"
-          git push origin eval-results
+          git commit -q -m "eval: ${OUT##*/} (${{ inputs.models }})"
+          git push -q origin eval-results
