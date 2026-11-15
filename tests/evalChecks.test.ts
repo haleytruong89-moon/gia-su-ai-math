@@ -35,6 +35,10 @@ describe("checkOutput", () => {
     expect(r.failures).toEqual(["leak:24", "lines:7>6", "flag_missing:geometry_proof", "self_solved_too_early"]);
     expect(r.leak).toBe(true);
   });
+  it("an answer inside a button is a leak", () => {
+    const r = checkOutput(out({ buttons: ["30", "40", "60"] }), { maxLines: 4, forbid: ["60"] });
+    expect(r).toEqual({ failures: ["leak:60"], leak: true });
+  });
   it("checks buttons and the verdict on the child's turn", () => {
     const r = checkOutput(out({ buttons: [], danh_gia_luot_em: "dung" }),
       { maxLines: 4, expect: { minButtons: 1, verdictIn: ["sai"], buttonMatches: /đồng dạng/i } });
