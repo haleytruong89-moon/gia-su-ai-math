@@ -3,8 +3,11 @@ import "server-only";
 // migration 0017). Service role: every call site has already checked the actor from the session.
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { BTN_SAVE } from "@/lib/copy";
+import type { InputKind } from "@/lib/rules/events";
+import type { HintLevel } from "@/lib/rules/hints";
 import type { Msg } from "@/lib/tutor/assemble";
-import type { FoundMessage, ProblemRow, ProblemStatus, StoredReply, StuckKind, TutorRepo } from "@/lib/tutor/repo";
+import { flagsOf, type FoundMessage, type ProblemRow, type ProblemStatus, type StoredReply, type StuckKind, type TutorRepo } from "@/lib/tutor/repo";
 
 const UNIQUE_VIOLATION = "23505";
 
@@ -14,19 +17,22 @@ function fail(where: string, error: { message: string } | null): never {
 
 interface ProblemDb {
   id: string; child_id: string; family_id: string; session_id: string; status: ProblemStatus; turn_count: number;
-  hint_level: number; wrong_count: number; stuck_kind: StuckKind | null; statement_confirmed: boolean;
+  hint_level: HintLevel; hint_level_max: HintLevel; nan_jumps: number; wrong_count: number; offtopic_count: number; u_level: 0 | 1 | 2 | 3;
+  stuck_kind: StuckKind | null; statement_confirmed: boolean;
 }
 interface MessageDb { id: string; role: "child" | "tutor" | "system"; content: string; buttons: string[] | null;
-  hint_level: number | null; client_msg_id: string | null; created_at: string; problem_id: string }
+  hint_level: number | null; client_msg_id: string | null; created_at: string; problem_id: string; input_kind: InputKind }
 
-const PROBLEM_COLS = "id, child_id, family_id, session_id, status, turn_count, hint_level, wrong_count, stuck_kind, statement_confirmed";
-const MESSAGE_COLS = "id, role, content, buttons, hint_level, client_msg_id, created_at, problem_id";
+// offtopic_count and input_kind come from Launcher migration 0018 (G2).
+const PROBLEM_COLS = "id, child_id, family_id, session_id, status, turn_count, hint_level, hint_level_max, nan_jumps, wrong_count, " +
+  "offtopic_count, u_level, stuck_kind, statement_confirmed";
+const MESSAGE_COLS = "id, role, content, buttons, hint_level, client_msg_id, created_at, problem_id, input_kind";
 
 function replyFrom(p: Pick<ProblemDb, "id" | "status" | "turn_count">, m: MessageDb): StoredReply {
   return { problemId: p.id, message: m.content, buttons: m.buttons ?? [], hintLevel: m.hint_level ?? 0, status: p.status, turnCount: p.turn_count };
 }
 
-export function supabaseRepo(db: SupabaseClient = createAdminClient()): TutorRepo {
+export function supabaseRepo(db: SupabaseClient = createAdminClient(), strongModel = "claude-opus-5-5"): TutorRepo {
   const t = () => db.schema("tutor");
 
   return {
@@ -77,13 +83,27 @@ export function supabaseRepo(db: SupabaseClient = createAdminClient()): TutorRep
       const { data: rows, error: e2 } = await t().from("messages").select(MESSAGE_COLS)
         .eq("problem_id", p.id).is("deleted_at", null).neq("role", "system").order("created_at", { ascending: true }).returns<MessageDb[]>();
       if (e2) fail("getProblem.messages", e2);
-      const list = rows ?? [];
+      const list = (rows ?? []) as (MessageDb & { role: "child" | "tutor" })[];
       const last = list.at(-1);
       const answered = last?.role === "child" ? list.slice(0, -1) : list;
       const history: Msg[] = answered.map((m) => ({ role: m.role === "child" ? "user" : "assistant", content: m.content }));
+
+      const { count: strongCalls, error: e3 } = await t().from("model_calls").select("id", { count: "exact", head: true })
+        .eq("problem_id", p.id).eq("purpose", "tutor").eq("model", strongModel);
+      if (e3) fail("getProblem.strong", e3);
+      const { data: lastCall, error: e4 } = await t().from("model_calls").select("raw_output")
+        .eq("problem_id", p.id).eq("purpose", "tutor").not("message_id", "is", null)
+        .order("created_at", { ascending: false }).limit(1).maybeSingle();
+      if (e4) fail("getProblem.lastCall", e4);
+
       const row: ProblemRow = {
         id: p.id, childId: p.child_id, familyId: p.family_id, sessionId: p.session_id, status: p.status, turnCount: p.turn_count,
-        hintLevel: p.hint_level, wrongCount: p.wrong_count, stuckKind: p.stuck_kind, statementConfirmed: p.statement_confirmed, history,
+        hintLevel: p.hint_level, hintLevelMax: p.hint_level_max, nanJumps: p.nan_jumps, wrongCount: p.wrong_count,
+        offtopicCount: p.offtopic_count, uLevel: p.u_level, stuckKind: p.stuck_kind, statementConfirmed: p.statement_confirmed, history,
+        thread: list.map((m) => ({ id: m.id, role: m.role, content: m.content, inputKind: m.input_kind })),
+        statement: list.find((m) => m.role === "child")?.content ?? null,
+        usedStrong: (strongCalls ?? 0) > 0,
+        lastTutorFlags: lastCall?.raw_output ? flagsOf(String(lastCall.raw_output)) : [],
         pending: last?.role === "child" ? { messageId: last.id, clientMsgId: last.client_msg_id, text: last.content, at: new Date(last.created_at) } : null,
       };
       return row;
@@ -111,7 +131,7 @@ export function supabaseRepo(db: SupabaseClient = createAdminClient()): TutorRep
       // created_at is the database clock, so the tutor reply (inserted later) always sorts after it.
       const { data, error } = await t().from("messages").insert({
         family_id: a.actor.familyId, child_id: a.actor.userId, problem_id: a.problemId, role: "child",
-        content: a.text, client_msg_id: a.clientMsgId, created_by: a.actor.userId,
+        content: a.text, client_msg_id: a.clientMsgId, input_kind: a.inputKind, created_by: a.actor.userId,
       }).select("id").single();
       if (error?.code === UNIQUE_VIOLATION) return { conflict: true };
       if (error || !data) fail("insertChildMessage", error);
@@ -126,38 +146,78 @@ export function supabaseRepo(db: SupabaseClient = createAdminClient()): TutorRep
 
     async saveReply(a) {
       const nowIso = a.now.toISOString();
-      // The model was paid for whatever happens next: count it first.
-      await addUsage(db, a.actor.familyId, a.now, a.costUsd);
+      // Every model call was paid for whatever happens next: count them first.
+      await addUsage(db, a.actor.familyId, a.now, a.calls.reduce((sum, c) => sum + c.costUsd, 0));
 
       // Optimistic lock: only the turn that read turn_count = N may write N+1 (two devices, DOMAIN §5).
       const { data: p, error: e1 } = await t().from("problems").update({
-        turn_count: a.turn, status: a.status, statement_confirmed: a.statementConfirmed, updated_at: nowIso,
-        closed_at: a.status === "in_progress" ? null : nowIso,
+        turn_count: a.turn, status: a.status, statement_confirmed: a.statementConfirmed, hint_level: a.hintLevel,
+        hint_level_max: a.hintLevelMax, nan_jumps: a.nanJumps, wrong_count: a.wrongCount, offtopic_count: a.offtopicCount,
+        u_level: a.uLevel, updated_at: nowIso, closed_at: a.status === "in_progress" ? null : nowIso,
       }).eq("id", a.problem.id).eq("turn_count", a.problem.turnCount).select("id, status, turn_count").maybeSingle();
       if (e1) fail("saveReply.problem", e1);
 
       const { data: msg, error: e2 } = p
         ? await t().from("messages").insert({
             family_id: a.actor.familyId, child_id: a.actor.userId, problem_id: a.problem.id, role: "tutor",
-            content: a.tutorText, buttons: a.buttons, hint_level: a.problem.hintLevel, created_by: a.actor.userId,
+            content: a.tutorText, buttons: a.buttons, hint_level: a.replyHintLevel, created_by: a.actor.userId,
           }).select(MESSAGE_COLS).single<MessageDb>()
         : { data: null, error: null };
       if (e2) fail("saveReply.message", e2);
 
-      const { error: e3 } = await t().from("model_calls").insert({
-        family_id: a.actor.familyId, child_id: a.actor.userId, message_id: msg?.id ?? null, problem_id: a.problem.id, purpose: "tutor",
-        model: a.model, prompt_version: a.promptVersion, raw_output: a.rawOutput,
-        tokens_in: a.tokens.in, tokens_cached: a.tokens.cached, tokens_out: a.tokens.out, cost_usd: a.costUsd,
-      });
-      if (e3) fail("saveReply.model_call", e3);
+      if (a.calls.length) {
+        const { error: e3 } = await t().from("model_calls").insert(a.calls.map((c) => ({
+          family_id: a.actor.familyId, child_id: a.actor.userId, message_id: c.shown ? (msg?.id ?? null) : null,
+          problem_id: a.problem.id, purpose: c.purpose, model: c.model, prompt_version: a.promptVersion, raw_output: c.raw,
+          tokens_in: c.tokens.in, tokens_cached: c.tokens.cached, tokens_out: c.tokens.out, cost_usd: c.costUsd,
+          route_reason: c.routeReason, guard_result: c.guardResult, guard_reasons: c.guardReasons,
+        })));
+        if (e3) fail("saveReply.model_calls", e3);
+      }
       if (!p || !msg) return { conflict: true as const };
 
       const { error: e4 } = await t().from("study_sessions").update({ last_seen_at: nowIso, updated_at: nowIso }).eq("id", a.problem.sessionId);
       if (e4) fail("saveReply.session", e4);
       return replyFrom(p as ProblemDb, msg);
     },
+
+    async monthUsage(familyId, now) {
+      const { data, error } = await t().from("usage_monthly").select("cost_usd, model_mode")
+        .eq("family_id", familyId).eq("month", monthOf(now)).maybeSingle();
+      if (error) fail("monthUsage", error);
+      return { costUsd: Number(data?.cost_usd ?? 0), mode: data?.model_mode === "economy" ? "economy" : "normal" };
+    },
+
+    async pauseStrong(familyId, now) {
+      const { data, error } = await t().from("usage_monthly").update({ model_mode: "economy", updated_at: now.toISOString() })
+        .eq("family_id", familyId).eq("month", monthOf(now)).select("family_id");
+      if (error) fail("pauseStrong", error);
+      if (data?.length) return;
+      const { error: e2 } = await t().from("usage_monthly")
+        .upsert({ family_id: familyId, month: monthOf(now), model_mode: "economy", updated_at: now.toISOString() }, { onConflict: "family_id,month" });
+      if (e2) fail("pauseStrong.insert", e2);
+    },
+
+    async saveForLater(a) {
+      // The press is a child message first (client id is unique), so a resend of it is "already".
+      const { data: m, error } = await t().from("messages").insert({
+        family_id: a.actor.familyId, child_id: a.actor.userId, problem_id: a.problemId, role: "child",
+        content: BTN_SAVE, client_msg_id: a.clientMsgId, input_kind: "button", created_by: a.actor.userId,
+      }).select("id").single();
+      if (error?.code === UNIQUE_VIOLATION) return "already";
+      if (error || !m) fail("saveForLater.message", error);
+      const at = a.now.toISOString();
+      const { data: p, error: e2 } = await t().from("problems").update({ status: "saved_for_later", closed_at: at, updated_at: at })
+        .eq("id", a.problemId).eq("child_id", a.actor.userId).eq("status", "in_progress").select("id").maybeSingle();
+      if (e2) fail("saveForLater.problem", e2);
+      if (p) return "saved";
+      await this.deleteMessage(m.id as string); // the problem was already closed: leave no stray press
+      return "not_open";
+    },
   };
 }
+
+const monthOf = (now: Date) => `${now.toISOString().slice(0, 7)}-01`;
 
 /**
  * Adds to the family's monthly spend (UTC month, like the Anthropic Console).
@@ -165,7 +225,7 @@ export function supabaseRepo(db: SupabaseClient = createAdminClient()): TutorRep
  * this into an SQL function in the study-launcher repo (the cap check also reads model_calls).
  */
 async function addUsage(db: SupabaseClient, familyId: string, now: Date, cost: number) {
-  const month = `${now.toISOString().slice(0, 7)}-01`;
+  const month = monthOf(now);
   const t = db.schema("tutor");
   const { data, error } = await t.from("usage_monthly").select("cost_usd").eq("family_id", familyId).eq("month", month).maybeSingle();
   if (error) fail("usage.read", error);
