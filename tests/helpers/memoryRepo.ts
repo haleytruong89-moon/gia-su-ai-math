@@ -4,7 +4,7 @@ import { deleteAfterVn } from "@/lib/rules/photo";
 import type { HintLevel } from "@/lib/rules/hints";
 import type { InputKind } from "@/lib/rules/events";
 import {
-  flagsOf, type FoundMessage, type HistoryItem, type ModelCallRecord, type ProblemRow, type ProblemStatus, type SaveReplyInput, type StoredReply,
+  checklistOf, flagsOf, usableSibling, type FoundMessage, type HistoryItem, type ModelCallRecord, type ProblemRow, type ProblemStatus, type SaveReplyInput, type StoredReply,
   type StuckKind, type TutorRepo,
 } from "@/lib/tutor/repo";
 
@@ -16,6 +16,7 @@ interface ImageRow { id: string; problemId: string; messageId: string; childId: 
   height: number; deleteAfter: string }
 interface MsgRow { id: string; childId: string; problemId: string; role: "child" | "tutor"; text: string; buttons: string[];
   inputKind: InputKind; hintLevel: number | null; clientMsgId: string | null; at: Date; reply?: StoredReply }
+type ToolRow = { problemId: string; tool: string; input: unknown; output: unknown; ok: boolean; ms: number; callRow: number };
 type CallRow = ModelCallRecord & { problemId: string; childMessageId: string; tutorMessageId: string | null; promptVersion: string };
 
 export interface Seed {
@@ -42,6 +43,7 @@ export function memoryRepo(seed: Seed = {}, strongModel = "claude-opus-5-5") {
     tutorMessageId: "", promptVersion: "test", ...c }));
   const images: ImageRow[] = (seed.images ?? []).map((i) => ({ id: id("i"), childId: "c1", path: "c1/x/y.jpg", data: "QUJD",
     width: 10, height: 10, deleteAfter: "2027-01-01", ...i }));
+  const toolCalls: ToolRow[] = [];
   const usage = new Map<string, number>();
   const modes = new Map<string, "normal" | "economy">();
   for (const u of seed.usage ?? []) {
@@ -98,6 +100,9 @@ export function memoryRepo(seed: Seed = {}, strongModel = "claude-opus-5-5") {
         statement: list.find((m) => m.role === "child")?.text ?? null,
         usedStrong: calls.some((c) => c.purpose === "tutor" && c.model === strongModel),
         lastTutorFlags: lastShown ? flagsOf(lastShown.raw) : [],
+        siblingShown: toolCalls.some((t) => t.problemId === p.id && t.tool === "make_sibling" && t.ok && usableSibling(t.output)
+          && modelCalls[t.callRow]?.shown === true),
+        checklistAsked: [...new Set(calls.filter((c) => c.purpose === "tutor" && c.shown).flatMap((c) => checklistOf(c.raw)))],
         pending,
       };
       return row;
@@ -150,9 +155,12 @@ export function memoryRepo(seed: Seed = {}, strongModel = "claude-opus-5-5") {
           hintLevel: a.replyHintLevel, clientMsgId: null, at: a.now, reply };
         messages.push(t);
       }
+      const first = modelCalls.length;
       for (const c of a.calls)
         modelCalls.push({ ...c, problemId: p.id, childMessageId: a.childMessageId, tutorMessageId: c.shown ? (t?.id ?? null) : null,
           promptVersion: a.promptVersion });
+      for (const tr of a.tools)
+        toolCalls.push({ problemId: p.id, tool: tr.tool, input: tr.input, output: tr.output, ok: tr.ok, ms: tr.ms, callRow: first + tr.callIndex });
       return reply ?? { conflict: true as const };
     },
     async monthUsage(familyId, now) {
@@ -172,5 +180,5 @@ export function memoryRepo(seed: Seed = {}, strongModel = "claude-opus-5-5") {
       return "saved";
     },
   };
-  return Object.assign(repo, { sessions, problems, messages, modelCalls, usage, modes, images });
+  return Object.assign(repo, { sessions, problems, messages, modelCalls, usage, modes, images, toolCalls });
 }

@@ -37,7 +37,7 @@ export async function runToolLoop(client: ModelClient, req: {
   let force = false;
 
   for (;;) {
-    const answer = await runTutorTurn(client, { model: req.model, system: req.system, messages, tools: TOOL_DEFS,
+    const answer = await runTutorTurn(client, { model: req.model, system: req.system, messages: [...messages], tools: TOOL_DEFS,
       toolChoice: force ? { type: "none" } : { type: "auto" } });
     calls.push(answer);
     const round = calls.length - 1;

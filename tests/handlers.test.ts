@@ -40,7 +40,7 @@ function deps<C extends ModelClient = ReturnType<typeof client>>(seed: Seed = {}
   actor: Deps["actor"] = child) {
   const repo = memoryRepo(seed);
   const d: Deps = { repo, client: c, actor, now: NOW, layers: { role: "①", rules: "②", method: "③", guard: "Em là bộ kiểm tra", sibling: "Em là người soạn BÀI ANH EM" },
-    promptVersion: "v0.2", models: MODELS };
+    promptVersion: "v0.2", models: MODELS, cas: null };
   return { d, repo, c };
 }
 const MODELS = { main: "claude-sonnet-5-5", strong: "claude-opus-5-5", light: "claude-haiku-5-5" };
@@ -345,7 +345,7 @@ describe("G2 turn pipeline", () => {
     await handleTurn(d, body());
     expect(repo.modelCalls.at(-2)?.routeReason).toBe("tutor_unsure");
   });
-  it("4.12 b: the tutor says self_solved on a submitted answer → still in_progress (no math_check in G2)", async () => {
+  it("4.12 b: the tutor says self_solved on a submitted answer → still in_progress (no confirming math_check)", async () => {
     const solved = JSON.stringify({ ...JSON.parse(confirmed), ket_qua_bai: "self_solved" });
     const { d, repo, c } = deps(inProgress, client([solved]));
     await handleTurn(d, { ...body(1, "x = 24, y = 48"), kind: "submit" });
@@ -487,3 +487,104 @@ describe("G3 photos", () => {
   });
 });
 
+
+// G4 — math_check, solve gate, sibling (DOMAIN §3.3, §4.12; Q1–Q4 phụ huynh chốt 15/11/2026)
+describe("G4 tools in a turn", () => {
+  const usage = { input_tokens: 100, output_tokens: 10 };
+  const base1 = JSON.parse(confirmed) as Record<string, unknown>;
+  const reply = (o: Record<string, unknown> = {}) => ({ content: [{ type: "text", text: JSON.stringify({ ...base1, ...o }) }], stop_reason: "end_turn", usage });
+  const ask = (id: string, name: string, input: object) => ({ content: [{ type: "thinking", thinking: "…", signature: "s" }, { type: "tool_use", id, name, input }], stop_reason: "tool_use", usage });
+  function world(o: { tutor: object[]; guard?: boolean[]; sibling?: object[] }) {
+    const log: { kind: "tutor" | "guard" | "sibling"; model: string; req: Record<string, unknown> }[] = [];
+    let ti = 0, gi = 0, si = 0;
+    return {
+      log,
+      create: async (req: object) => {
+        const r = req as { model: string; system?: unknown };
+        const kind = typeof r.system !== "string" ? "tutor" : r.system.includes("BÀI ANH EM") ? "sibling" : "guard";
+        log.push({ kind, model: r.model, req: JSON.parse(JSON.stringify(req)) });
+        if (kind === "guard") return { content: [{ type: "text", text: JSON.stringify({ pass: o.guard?.[gi++] ?? true, ly_do: ["6: khẳng định khi chưa kiểm"] }) }], usage };
+        if (kind === "sibling") return { content: [{ type: "text", text: JSON.stringify(o.sibling![Math.min(si++, o.sibling!.length - 1)]) }], usage };
+        return o.tutor[Math.min(ti++, o.tutor.length - 1)] as never;
+      },
+    };
+  }
+  const fakeCas = (modes: Record<string, (a: Record<string, unknown>) => Record<string, unknown>>) =>
+    ({ check: async (m: string, a: Record<string, unknown>) => (modes[m] ? { ok: true as const, result: modes[m]!(a) } : { ok: false as const, error: "timeout" }), health: async () => true });
+  const submit = (n: number, text: string) => ({ problemId: "p1", clientMsgId: uuid(n), text, kind: "submit" });
+  const simplify = { mode: "simplify_check", expr_a: "3/(3-sqrt(x))", expr_b: "sqrt(x)/(sqrt(x)-3) + 2*sqrt(x)/(sqrt(x)+3) - (3*x+9)/(x-9)" };
+
+  it("4.12 a: the child submits, the tutor calls math_check, cas confirms, a checklist item was asked → self_solved", async () => {
+    const w = world({ tutor: [ask("t1", "math_check", simplify), reply({ ket_qua_bai: "self_solved", danh_gia_luot_em: "dung", checklist_da_hoi: [7] })] });
+    const { d, repo } = deps(inProgress, client([confirmed]));
+    const cas = fakeCas({ simplify_check: () => ({ equivalent: true, fully_simplified: true, common_factor: null }) });
+    const r = await handleTurn({ ...d, client: w, cas }, submit(1, "P = 3/(3 - √x)"));
+    expect((r.json as { status: string }).status).toBe("self_solved");
+    expect(repo.toolCalls).toEqual([expect.objectContaining({ tool: "math_check", ok: true })]);
+    expect(repo.modelCalls[repo.toolCalls[0]!.callRow]?.shown).toBe(true); // linked to the answer the child saw
+  });
+  it("4.12 b: self_solved proposed without a check → the app asks once; cas confirms → self_solved", async () => {
+    const w = world({ tutor: [reply({ ket_qua_bai: "self_solved", checklist_da_hoi: [6] }), ask("t2", "math_check", { mode: "check_root", equation: "x - 4 = 0", value: "4" }),
+      reply({ ket_qua_bai: "self_solved", checklist_da_hoi: [6] })] });
+    const { d, repo } = deps(inProgress, client([confirmed]));
+    const r = await handleTurn({ ...d, client: w, cas: fakeCas({ check_root: () => ({ is_root: true, undefined: false }) }) }, submit(1, "x = 4"));
+    expect((r.json as { status: string }).status).toBe("self_solved");
+    const tutorReqs = w.log.filter((x) => x.kind === "tutor");
+    expect(tutorReqs).toHaveLength(3);
+    expect(JSON.stringify(tutorReqs[1]!.req.messages)).toContain("[APP] Em đã nộp bài. Cô gọi math_check");
+    expect(repo.toolCalls).toHaveLength(1);
+  });
+  it("4.12 c: equivalent but a common factor is left → the problem stays open", async () => {
+    const w = world({ tutor: [ask("t1", "math_check", { ...simplify, expr_a: "(-3*sqrt(x)-9)/(x-9)" }), reply({ ket_qua_bai: "self_solved", checklist_da_hoi: [7] })] });
+    const { d, repo } = deps(inProgress, client([confirmed]));
+    const cas = fakeCas({ simplify_check: () => ({ equivalent: true, fully_simplified: false, common_factor: "sqrt(x) + 3" }) });
+    await handleTurn({ ...d, client: w, cas }, submit(1, "P = (−3√x − 9)/(x − 9)"));
+    expect(repo.problems[0]?.status).toBe("in_progress");
+  });
+  it("Q2: grade 9, cas confirms but no checklist item asked yet → stays open", async () => {
+    const w = world({ tutor: [ask("t1", "math_check", simplify), reply({ ket_qua_bai: "self_solved", checklist_da_hoi: [] })] });
+    const { d, repo } = deps(inProgress, client([confirmed]));
+    await handleTurn({ ...d, client: w, cas: fakeCas({ simplify_check: () => ({ equivalent: true, fully_simplified: true }) }) }, submit(1, "P = 3/(3 - √x)"));
+    expect(repo.problems[0]?.status).toBe("in_progress");
+  });
+  it("§4.12: cas not configured → the tool answers an error; tutor_unsure → the next turn goes to Opus", async () => {
+    const w = world({ tutor: [ask("t1", "math_check", { mode: "check_root", equation: "x - 4 = 0", value: "4" }), reply({ flags: ["tutor_unsure"] }), reply({})] });
+    const { d, repo } = deps(inProgress, client([confirmed]));
+    await handleTurn({ ...d, client: w, cas: null }, body1(1, "x = 4"));
+    expect(repo.toolCalls[0]).toMatchObject({ ok: false, output: { ok: false, error: "cas_not_configured" } });
+    await handleTurn({ ...d, client: w, cas: null }, body1(2, "em làm lại rồi"));
+    expect(repo.modelCalls.filter((c) => c.purpose === "tutor").at(-1)).toMatchObject({ model: "claude-opus-5-5", routeReason: "tutor_unsure" });
+  });
+  it("§3.3: nản → H4, the tutor shows a checked sibling; wrong again on the original → H5", async () => {
+    const sib = { statement: "Hai vòi cùng chảy 12 giờ đầy bể; vòi I chảy 2 giờ, vòi II chảy 4 giờ được 25% bể. Hỏi mỗi vòi chảy riêng bao lâu?",
+      solution_steps: ["Gọi x, y…", "Lập hệ…"], final_answer: "Vòi I 20 giờ, vòi II 30 giờ",
+      check: { mode: "check_solution", equations: ["1/x+1/y=1/12", "2/x+4/y=1/4"], values: { x: "20", y: "30" } } };
+    const seed: Seed = { ...nanSeed, messages: [{ problemId: "p1", role: "child", text: "Hai người thợ cùng làm 16 giờ thì xong…" }, ...nanSeed.messages!] };
+    const w = world({ tutor: [ask("t1", "make_sibling", { original_statement: "Hai người thợ… 16 giờ…", ku_code: "T9.3", difficulty: "same" }),
+      reply({ danh_gia_luot_em: "khong_biet" }), reply({ danh_gia_luot_em: "sai" })], sibling: [sib] });
+    const { d, repo } = deps(seed, client([confirmed]));
+    const cas = fakeCas({ check_solution: () => ({ satisfies: true, failed: [] }) });
+    await handleTurn({ ...d, client: w, cas }, body1(1, "ko biết"));
+    expect(repo.problems[0]?.hintLevel).toBe(4);
+    expect(repo.toolCalls[0]).toMatchObject({ tool: "make_sibling", ok: true, output: { verified: true, numbers_differ: true } });
+    expect(repo.modelCalls.some((c) => c.purpose === "sibling")).toBe(true);
+    await handleTurn({ ...d, client: w, cas }, body1(2, "x = 30, y = 40"));
+    expect(repo.problems[0]?.hintLevel).toBe(5);
+  });
+  it("the checker sees which tools ran and their results (guard rules 6–7)", async () => {
+    const w = world({ tutor: [ask("t1", "math_check", simplify), reply({})] });
+    const { d } = deps(inProgress, client([confirmed]));
+    await handleTurn({ ...d, client: w, cas: fakeCas({ simplify_check: () => ({ equivalent: true, fully_simplified: false }) }) }, body1(1, "P = …"));
+    const guardReq = JSON.stringify(w.log.find((x) => x.kind === "guard")!.req);
+    expect(guardReq).toContain("math_check(simplify_check → equivalent=true, fully_simplified=false)");
+  });
+  it("the rewrite after a block may call tools too (on Opus)", async () => {
+    const w = world({ tutor: [reply({}), ask("t9", "math_check", { mode: "check_root", equation: "x - 4 = 0", value: "4" }), reply({})], guard: [false, true] });
+    const { d, repo } = deps(inProgress, client([confirmed]));
+    await handleTurn({ ...d, client: w, cas: fakeCas({ check_root: () => ({ is_root: true }) }) }, body1(1, "x = 4"));
+    expect(w.log.filter((x) => x.kind === "tutor").map((x) => x.model)).toEqual(["claude-sonnet-5-5", "claude-opus-5-5", "claude-opus-5-5"]);
+    expect(repo.toolCalls).toHaveLength(1);
+    expect(repo.modelCalls.find((c) => c.shown)?.guardResult).toBe("rewritten");
+  });
+  const body1 = (n: number, text: string) => ({ problemId: "p1", clientMsgId: uuid(n), text });
+});
