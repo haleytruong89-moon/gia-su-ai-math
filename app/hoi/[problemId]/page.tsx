@@ -14,7 +14,7 @@ export default async function ProblemPage({ params }: { params: Promise<{ proble
   return (
     <>
       <TopBar />
-      <main className="mx-auto flex max-w-2xl flex-col gap-4 p-4 pb-40">
+      <main className="mx-auto flex max-w-2xl flex-col gap-4 p-4 pb-72">
         <Chat initial={thread} />
       </main>
     </>
