@@ -37,3 +37,53 @@ jobs:
           python-version: "3.12"
       - run: pip install -r requirements.txt pytest httpx
       - run: python -m pytest -q tests
+
+  # e2e on a real local Supabase built from the Study Launcher migrations (SQL lives there, D21)
+  # and the fake model (no API call, no cost). Fake people only.
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: haleytruong89-moon/study-launcher
+          path: .launcher
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --legacy-peer-deps
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.120.0
+      - name: Start local Supabase (Launcher migrations, schema tutor exposed like production D22)
+        working-directory: .launcher
+        run: |
+          grep -q '^\[api\]' supabase/config.toml || printf '\n[api]\nschemas = ["public", "graphql_public", "tutor"]\n' >> supabase/config.toml
+          supabase start -x studio,imgproxy,edge-runtime,logflare,vector,mailpit,postgres-meta,supavisor,realtime
+          supabase status -o env > "$RUNNER_TEMP/sb.env"
+      - name: Export local connection values
+        run: |
+          get() { grep "^$1=" "$RUNNER_TEMP/sb.env" | head -1 | cut -d= -f2- | tr -d '"'; }
+          echo "NEXT_PUBLIC_SUPABASE_URL=$(get API_URL)" >> "$GITHUB_ENV"
+          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$(get ANON_KEY)" >> "$GITHUB_ENV"
+          echo "SUPABASE_SERVICE_ROLE_KEY=$(get SERVICE_ROLE_KEY)" >> "$GITHUB_ENV"
+          echo "ANTHROPIC_API_KEY=fake-not-used" >> "$GITHUB_ENV"
+          echo "NEXT_TELEMETRY_DISABLED=1" >> "$GITHUB_ENV"
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - name: Run end-to-end tests
+        run: |
+          set -o pipefail
+          npm run e2e 2>&1 | tee "$RUNNER_TEMP/e2e.log"
+      - name: Diagnostics on failure (shown as annotations on the check)
+        if: failure()
+        run: |
+          annotate() {
+            body="$(tail -n "$3" "$2" 2>/dev/null | sed 's/\x1b\[[0-9;]*m//g' | sed 's/%/%25/g' | tr -d '\r' | sed ':a;N;$!ba;s/\n/%0A/g')"
+            echo "::error title=$1::${body}"
+          }
+          annotate "e2e output" "$RUNNER_TEMP/e2e.log" 70
+          sed 's/\x1b\[[0-9;]*m//g' "$RUNNER_TEMP/e2e.log" | sed -n '/^  1) /,$p' | grep -v '^\s*$' | head -n 45 > "$RUNNER_TEMP/e2e-fail.log" || true
+          annotate "e2e first failure" "$RUNNER_TEMP/e2e-fail.log" 45
