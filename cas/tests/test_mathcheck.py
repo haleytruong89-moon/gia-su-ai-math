@@ -59,3 +59,37 @@ def test_rounding():
 def test_forbidden_input_rejected():
     with pytest.raises(m.MathInputError):
         m.equivalent("__import__('os')", "1")
+
+
+# --- G4 (phụ huynh chốt Q4, 15/11/2026): systems of equations, gcd / lcm ---
+def test_solve_system_two_workers():  # BO_TEST 9.1: together 16 h; I works 3 h + II works 6 h = 25 %
+    r = m.solve_system(["1/x + 1/y = 1/16", "3/x + 6/y = 1/4"], ["x", "y"])
+    assert r == {"solutions": [{"x": "24", "y": "48"}], "no_solution": False}
+
+
+def test_solve_system_linear_and_no_solution():
+    assert m.solve_system(["x + y = 5", "x - y = 1"], ["x", "y"]) == {"solutions": [{"x": "3", "y": "2"}], "no_solution": False}
+    assert m.solve_system(["x + y = 1", "x + y = 2"], ["x", "y"]) == {"solutions": [], "no_solution": True}
+
+
+def test_check_solution():
+    eqs = ["x + y = 5", "x - y = 1"]
+    assert m.check_solution(eqs, {"x": "3", "y": "2"}) == {"satisfies": True, "failed": []}
+    assert m.check_solution(eqs, {"x": "4", "y": "1"}) == {"satisfies": False, "failed": [1]}
+    assert m.check_solution(["1/x + 1/y = 1/16"], {"x": "24", "y": "48"}) == {"satisfies": True, "failed": []}
+
+
+def test_check_solution_undefined_point_fails():
+    assert m.check_solution(["1/x = 1"], {"x": "0"}) == {"satisfies": False, "failed": [0]}
+
+
+def test_lcm_gcd_grade6():  # BO_TEST 6.9: ships every 10, 12, 15 days
+    assert m.evaluate("lcm(10, 12, 15)")["exact"] == "60"
+    assert m.evaluate("gcd(24, 36)")["exact"] == "12"
+
+
+def test_system_rejects_bad_input():
+    with pytest.raises(m.MathInputError):
+        m.solve_system(["x = 1"], ["__x"])
+    with pytest.raises(m.MathInputError):
+        m.solve_system(["x = 1", "y = 2", "z = 3", "w = 4"], ["x", "y", "z", "w"])

@@ -17,7 +17,7 @@ from sympy.parsing.sympy_parser import (
 )
 
 _TRANSFORMS = standard_transformations + (implicit_multiplication_application,)
-_ALLOWED = {"sqrt": sp.sqrt, "cbrt": sp.cbrt, "Abs": sp.Abs, "pi": sp.pi}
+_ALLOWED = {"sqrt": sp.sqrt, "cbrt": sp.cbrt, "Abs": sp.Abs, "pi": sp.pi, "gcd": sp.gcd, "lcm": sp.lcm}
 MAX_LEN = 400
 
 
@@ -40,7 +40,7 @@ def _parse(text: str, symbols: dict[str, sp.Symbol]) -> sp.Expr:
 
 
 def _symbols(variable: str) -> dict[str, sp.Symbol]:
-    if not variable.isidentifier() or len(variable) > 3:
+    if not isinstance(variable, str) or not variable.isidentifier() or variable.startswith("_") or len(variable) > 3:
         raise MathInputError("bad variable name")
     return {variable: sp.Symbol(variable, real=True)}
 
@@ -183,6 +183,63 @@ def domain(expr: str, variable: str = "x") -> dict[str, Any]:
     return {"domain": str(d)}
 
 
+MAX_UNKNOWNS = 3
+
+
+def _symbols_many(names: list[str]) -> dict[str, sp.Symbol]:
+    if not isinstance(names, list) or not names or len(names) > MAX_UNKNOWNS:
+        raise MathInputError("1 to 3 variables")
+    out: dict[str, sp.Symbol] = {}
+    for n in names:
+        out.update(_symbols(n))
+    return out
+
+
+def _equation(text: str, syms: dict[str, sp.Symbol]) -> tuple[sp.Expr, sp.Expr]:
+    left, _, right = text.partition("=")
+    return _parse(left, syms), (_parse(right, syms) if right.strip() else sp.S.Zero)
+
+
+def _equations(texts: list[str], syms: dict[str, sp.Symbol]) -> list[tuple[sp.Expr, sp.Expr]]:
+    if not isinstance(texts, list) or not texts or len(texts) > MAX_UNKNOWNS:
+        raise MathInputError("1 to 3 equations")
+    return [_equation(t, syms) for t in texts]
+
+
+def solve_system(equations: list[str], variables: list[str]) -> dict[str, Any]:
+    """Real solutions of a system with up to 3 unknowns (word problems of grade 9: 'lập hệ phương trình')."""
+    syms = _symbols_many(variables)
+    eqs = _equations(equations, syms)
+    order = [syms[v] for v in variables]
+    raw = sp.solve([sp.Eq(lhs, rhs) for lhs, rhs in eqs], order, dict=True)
+    kept: list[dict[str, str]] = []
+    for sol in raw:
+        if len(sol) != len(order) or any(not sp.sympify(v).is_real for v in sol.values()):
+            continue
+        undefined = any(_has_zero_denominator(lhs - rhs, sol) for lhs, rhs in eqs)
+        if not undefined:
+            kept.append({str(k): str(sp.nsimplify(v)) for k, v in sol.items()})
+    return {"solutions": kept, "no_solution": not kept}
+
+
+def _has_zero_denominator(expr: sp.Expr, values: dict) -> bool:
+    return any(sp.simplify(d.subs(values)) == 0 for d in _denominators(expr))
+
+
+def check_solution(equations: list[str], values: dict[str, str]) -> dict[str, Any]:
+    """Does this point satisfy every equation? `failed` lists the indices of the equations it breaks."""
+    if not isinstance(values, dict) or not values:
+        raise MathInputError("values needed")
+    syms = _symbols_many(list(values.keys()))
+    point = {syms[k]: _parse(v, syms) for k, v in values.items()}
+    failed: list[int] = []
+    for i, (lhs, rhs) in enumerate(_equations(equations, syms)):
+        diff = (lhs - rhs).subs(point)
+        if _has_zero_denominator(lhs - rhs, point) or diff.has(sp.zoo, sp.nan) or sp.simplify(diff) != 0:
+            failed.append(i)
+    return {"satisfies": not failed, "failed": failed}
+
+
 MODES = {
     "equivalent": equivalent,
     "simplify_check": simplify_check,
@@ -191,4 +248,6 @@ MODES = {
     "evaluate": evaluate,
     "inequality": inequality,
     "domain": domain,
+    "solve_system": solve_system,
+    "check_solution": check_solution,
 }
