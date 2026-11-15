@@ -75,13 +75,13 @@ async function judge(c: EvalCase, message: string, buttons: string[]) {
 }
 
 const baseState: TurnStateBlock = { grade: 9, hintLevel: 0, wrongCount: 0, nan: false, idle: false, submitted: false,
-  mode: "thuong", minutesLeft: 30, turn: 1, stuckKind: null, kuCode: null, examSlot: null };
+  mode: "thuong", minutesLeft: 30, turn: 1, stuckKind: null, kuCode: null, examSlot: null, maxLines: 6 };
 
 async function runCase(model: string, c: EvalCase) {
   const profile = TEST_PROFILES[c.grade];
   const { system, messages } = assemble({
     layers: loadLayers(), profileText: profile.text, knowledgeCard: null, history: c.history, childText: c.childText,
-    state: { ...baseState, grade: c.grade, ...c.state },
+    state: { ...baseState, grade: c.grade, maxLines: profile.maxLines, ...c.state },
   });
   const started = Date.now();
   try {

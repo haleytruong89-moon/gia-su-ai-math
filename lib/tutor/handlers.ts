@@ -136,6 +136,7 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
     state: {
       grade: actor.grade, hintLevel: problem.hintLevel, wrongCount: problem.wrongCount, nan: false, idle: false,
       submitted: false, mode: "thuong", minutesLeft: 45, turn, stuckKind: problem.stuckKind, kuCode: null, examSlot: null,
+      maxLines: actor.maxLines,
     },
   });
 
