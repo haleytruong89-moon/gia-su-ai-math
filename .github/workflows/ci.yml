@@ -49,6 +49,7 @@ jobs:
         with:
           repository: haleytruong89-moon/study-launcher
           path: .launcher
+          ref: feature/gs3-tutor-images # TEMP until Launcher #81 merges (bucket tutor-images); revert before merge
       - uses: actions/setup-node@v4
         with:
           node-version: 22
