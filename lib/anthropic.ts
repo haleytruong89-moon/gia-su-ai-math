@@ -40,6 +40,6 @@ export function withRetry(client: ModelClient, waitMs = 800): ModelClient {
 
 /** The real Claude client (key from the tutor's own workspace, D19). Server only. */
 export function realClient(apiKey: string): ModelClient {
-  const sdk = new Anthropic({ apiKey, maxRetries: 0, timeout: 40_000 });
+  const sdk = new Anthropic({ apiKey, maxRetries: 0, timeout: 50_000 });
   return withRetry({ create: (req) => sdk.messages.create(req as never) as never });
 }

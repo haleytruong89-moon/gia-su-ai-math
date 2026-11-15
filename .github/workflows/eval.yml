@@ -8,6 +8,10 @@ on:
         description: "Model, cách nhau bằng dấu phẩy"
         default: "claude-haiku-5-5,claude-sonnet-5-5,claude-opus-5-5"
         required: true
+      effort:
+        description: "Mức suy nghĩ của model (low / medium / high)"
+        default: "medium"
+        required: true
       cases:
         description: "Chỉ chạy các tình huống này (vd 9.1,6.2). Để trống = chạy hết"
         default: ""
@@ -43,6 +47,7 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           MODELS: ${{ inputs.models }}
+          EFFORT: ${{ inputs.effort }}
           CASES: ${{ inputs.cases }}
         run: |
           OUT="eval/results/$(date -u +%Y-%m-%d-%H%M)-run${GITHUB_RUN_NUMBER}"

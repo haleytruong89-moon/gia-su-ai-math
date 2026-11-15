@@ -77,7 +77,7 @@ describe("newProblem", () => {
     expect([repo.problems.length, c.calls]).toEqual([1, 1]);
     expect(b.json).toEqual(a.json);
   });
-  it("a resend after the first call died (> 2 min, no reply) runs the first turn again on the same problem", async () => {
+  it("a resend after the first call died (> 2,5 min, no reply) runs the first turn again on the same problem", async () => {
     const at = new Date(NOW.getTime() - STALE_PENDING_MS - 1);
     const seed: Seed = { problems: [{ id: "p1", childId: "c1" }],
       messages: [{ problemId: "p1", role: "child", text: "Hai người thợ…", clientMsgId: body.clientMsgId, at }] };
@@ -87,7 +87,7 @@ describe("newProblem", () => {
     expect((r.json as { problemId: string }).problemId).toBe("p1");
     expect(repo.problems).toHaveLength(1);
   });
-  it("the same resend within 2 minutes waits (409 pending)", async () => {
+  it("the same resend within 2,5 minutes waits (409 pending)", async () => {
     const seed: Seed = { problems: [{ id: "p1", childId: "c1" }],
       messages: [{ problemId: "p1", role: "child", text: "x", clientMsgId: body.clientMsgId, at: new Date(NOW.getTime() - 10_000) }] };
     expect((await newProblem(deps(seed).d, body)).json).toEqual({ error: "pending" });
@@ -142,14 +142,14 @@ describe("handleTurn", () => {
     expect(c.reqs[0]?.messages.map((m) => m.role)).toEqual(["user", "assistant", "user"]);
     expect(repo.problems[0]?.statementConfirmed).toBe(true);
   });
-  it("409 pending while another message of this problem waits for its reply (< 2 min)", async () => {
+  it("409 pending while another message of this problem waits for its reply (< 2,5 min)", async () => {
     const seed: Seed = { ...inProgress, messages: [{ problemId: "p1", role: "child", text: "x", clientMsgId: uuid(9), at: new Date(NOW.getTime() - 30_000) }] };
     const { d, c } = deps(seed);
     expect((await handleTurn(d, body(1))).json).toEqual({ error: "pending" });
     expect((await handleTurn(d, body(9))).json).toEqual({ error: "pending" }); // the resend itself
     expect(c.calls).toBe(0);
   });
-  it("a resend of a message stuck for more than 2 minutes runs the turn again (stored text is used)", async () => {
+  it("a resend of a message stuck for more than 2,5 minutes runs the turn again (stored text is used)", async () => {
     const at = new Date(NOW.getTime() - STALE_PENDING_MS - 1);
     const seed: Seed = { ...inProgress, messages: [{ problemId: "p1", role: "child", text: "chữ cũ", clientMsgId: uuid(9), at }] };
     const { d, c } = deps(seed, client([confirmed]));
