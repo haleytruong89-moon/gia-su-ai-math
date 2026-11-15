@@ -18,17 +18,53 @@ export const tutorOutput = z.object({
 }).strict();
 export type TutorOutput = z.infer<typeof tutorOutput>;
 
+const KU = /^(T6|T9|N7|N8|TH)\.[0-9]{1,2}$/;
+
+/** Size limits the API no longer enforces (see apiSafeSchema): fix what can be fixed without losing the reply. */
+function normalize(raw: unknown): unknown {
+  if (!raw || typeof raw !== "object") return raw;
+  const o = { ...(raw as Record<string, unknown>) };
+  if (Array.isArray(o.buttons))
+    o.buttons = o.buttons.filter((b): b is string => typeof b === "string" && b.trim().length > 0 && b.length <= 40).slice(0, 4);
+  // A malformed knowledge code is not worth losing the reply over: treat it as unknown.
+  for (const k of ["ku_code_de_xuat", "prereq_gap"]) if (typeof o[k] === "string" && !KU.test(o[k] as string)) o[k] = null;
+  if (Array.isArray(o.checklist_da_hoi)) o.checklist_da_hoi = o.checklist_da_hoi.filter((n) => Number.isInteger(n) && n >= 1 && n <= 10);
+  return o;
+}
+
 export function parseTutorOutput(text: string): { ok: true; value: TutorOutput } | { ok: false; error: string } {
   const t = text.trim();
   if (!t.startsWith("{") || !t.endsWith("}")) return { ok: false, error: "not_json_object" };
   try {
-    const r = tutorOutput.safeParse(JSON.parse(t));
+    const r = tutorOutput.safeParse(normalize(JSON.parse(t)));
     return r.success ? { ok: true, value: r.data } : { ok: false, error: r.error.issues[0]?.message ?? "invalid" };
   } catch {
     return { ok: false, error: "bad_json" };
   }
 }
 
-// zod 4: z.toJSONSchema → plain JSON Schema for output_config.format.schema
-export const tutorOutputJsonSchema = z.toJSONSchema(tutorOutput, { target: "draft-2020-12" }) as
+// Structured outputs reject size/range keywords (HTTP 400 "For 'array' type, …", G0 run 1, 15/11/2026; the
+// docs list minimum/maximum and minLength/maxLength as unsupported). Like the SDK helpers, drop them from the
+// schema sent to the API and note them in `description`; zod still checks them in parseTutorOutput.
+const DROP = ["minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum", "minLength", "maxLength", "maxItems", "pattern"];
+
+export function apiSafeSchema(node: unknown): unknown {
+  if (Array.isArray(node)) return node.map(apiSafeSchema);
+  if (!node || typeof node !== "object") return node;
+  const out: Record<string, unknown> = {};
+  const notes: string[] = [];
+  for (const [k, v] of Object.entries(node as Record<string, unknown>)) {
+    if (k === "$schema") continue;
+    if (DROP.includes(k) || (k === "minItems" && typeof v === "number" && v > 1)) {
+      notes.push(`${k}: ${typeof v === "string" ? JSON.stringify(v) : String(v)}`);
+      continue;
+    }
+    out[k] = apiSafeSchema(v);
+  }
+  if (notes.length) out.description = [out.description, `{${notes.join(", ")}}`].filter(Boolean).join(" ");
+  return out;
+}
+
+// zod 4: z.toJSONSchema → plain JSON Schema → API-safe, for output_config.format.schema
+export const tutorOutputJsonSchema = apiSafeSchema(z.toJSONSchema(tutorOutput, { target: "draft-2020-12" })) as
   Record<string, unknown> & { additionalProperties: false };

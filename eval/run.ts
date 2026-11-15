@@ -99,7 +99,7 @@ async function runCase(model: string, c: EvalCase) {
       judgeReason: j.verdict?.reason ?? null, output: r.output, raw: r.output ? undefined : r.raw,
       costUsd: r.costUsd, judgeCostUsd: j.costUsd, ms, tokens: r.tokens };
   } catch (e) {
-    return { model, id: c.id, title: c.title, pass: false, failures: [`error:${e instanceof Error ? e.message.slice(0, 120) : "unknown"}`],
+    return { model, id: c.id, title: c.title, pass: false, failures: [`error:${e instanceof Error ? e.message.slice(0, 400) : "unknown"}`],
       leak: false, lengthOk: false, endsOk: false, judgeReason: null, output: null, costUsd: 0, judgeCostUsd: 0, ms: Date.now() - started };
   }
 }
@@ -161,6 +161,8 @@ async function main() {
   writeFileSync(join(outDir, "SUMMARY.md"), md);
   if (process.env.GITHUB_STEP_SUMMARY) writeFileSync(process.env.GITHUB_STEP_SUMMARY, md, { flag: "a" });
   console.log(md);
+  // Every turn failed before the tutor answered (bad key, bad request…): make the run red.
+  if (rows.every((r) => r.failures.some((f) => f.startsWith("error:")))) process.exitCode = 1;
 }
 
 void main();
