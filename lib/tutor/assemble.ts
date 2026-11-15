@@ -3,13 +3,13 @@ export type SystemBlock = { type: "text"; text: string; cache_control?: { type: 
 export type Msg = { role: "user" | "assistant"; content: string };
 export interface TurnStateBlock { grade: 6 | 9; hintLevel: number; wrongCount: number; nan: boolean; idle: boolean;
   submitted: boolean; mode: "thuong" | "tiet_kiem"; minutesLeft: number; turn: number; stuckKind: string | null;
-  kuCode: string | null; examSlot: string | null }
+  kuCode: string | null; examSlot: string | null; maxLines: number }
 
 export function renderStateBlock(s: TurnStateBlock): string {
   return [
     "[TRẠNG THÁI — do app tính, cô làm theo]",
     `lop: ${s.grade} | muc_goi_y: H${s.hintLevel} | so_lan_sai: ${s.wrongCount} | nan: ${s.nan} | im_lau: ${s.idle}`,
-    `da_nop_loi_giai: ${s.submitted} | che_do: ${s.mode}`,
+    `da_nop_loi_giai: ${s.submitted} | che_do: ${s.mode} | max_lines: ${s.maxLines}`,
     `thoi_gian_buoi_con_lai: ${s.minutesLeft} phút | luot_trong_bai: ${s.turn}/20`,
     `cho_ket_cua_em: ${s.stuckKind ?? "khong_ro"} | ku_code: ${s.kuCode ?? "chua_ro"} | exam_slot: ${s.examSlot ?? "khong"}`,
   ].join("\n");

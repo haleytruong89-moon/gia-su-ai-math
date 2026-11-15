@@ -10,6 +10,10 @@ const serverSchema = publicSchema.extend({
   ANTHROPIC_API_KEY: z.string().min(1),
   TUTOR_MODEL_MAIN: z.string().default("claude-sonnet-5-5"),
   TUTOR_MODEL_LIGHT: z.string().default("claude-haiku-5-5"),
+  // D28: harder turns go to the strong model (paused at 45 USD/month, D29).
+  TUTOR_MODEL_STRONG: z.string().default("claude-opus-5-5"),
+  // e2e only: canned model replies. Refused on Vercel (see fakeAllowed).
+  TUTOR_FAKE_MODEL: z.literal("1").optional(),
   // Required from G4 (cas) and G7 (notify, cron); G1 runs without them.
   CAS_URL: z.string().url().optional(),
   CAS_SECRET: z.string().min(1).optional(),

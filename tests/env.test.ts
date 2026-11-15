@@ -24,4 +24,9 @@ describe("server env", () => {
   it("still checks an optional URL when it is set", () => {
     expect(() => parseServerEnv({ ...base, CAS_URL: "not a url" })).toThrow(/CAS_URL/);
   });
+  it("strong model defaults to Opus 5.5; the fake model is off unless set", () => {
+    const e = parseServerEnv(base);
+    expect(e.TUTOR_MODEL_STRONG).toBe("claude-opus-5-5");
+    expect(e.TUTOR_FAKE_MODEL).toBeUndefined();
+  });
 });

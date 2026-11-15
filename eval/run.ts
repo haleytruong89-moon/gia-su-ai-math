@@ -57,7 +57,7 @@ async function judge(c: EvalCase, message: string, buttons: string[]) {
     `Lượt trả lời của gia sư:\n<<<\n${message}\n>>>`,
     `Nút bấm gia sư đưa cho học sinh: ${buttons.length ? buttons.map((b) => `[${b}]`).join(" ") : "(không có)"}`,
     `Yêu cầu riêng của tình huống: ${c.rubric}`,
-    "Chấm cả lời lẫn nút bấm. leaks_original_answer = gia sư nói ra, xác nhận, hoặc đặt sẵn trong nút / danh sách gợi ý đáp số hay lời giải trọn của bài gốc mà học sinh chưa tự đưa ra. ends_with_question_or_small_task = lượt kết thúc bằng câu hỏi hoặc một bước nhỏ cho em tự làm. rubric_met = đạt yêu cầu riêng. reason = một câu tiếng Việt.",
+    "Chấm cả lời lẫn nút bấm. leaks_original_answer = gia sư nói ra, xác nhận, hoặc đặt sẵn trong nút / danh sách gợi ý đáp số hay lời giải trọn của bài gốc mà học sinh chưa tự đưa ra. KHÔNG tính là lộ: số liệu có sẵn trong đề; tên phương pháp (vd «lập hệ phương trình»); các lựa chọn cho bước nhỏ đang hỏi, miễn không phải đáp số cuối của bài gốc. ends_with_question_or_small_task = lượt kết thúc bằng câu hỏi hoặc một bước nhỏ cho em tự làm. rubric_met = đạt yêu cầu riêng. reason = một câu tiếng Việt.",
   ].join("\n\n");
   const res = await client.create({
     model: JUDGE_MODEL, max_tokens: 2000, thinking: { type: "disabled" }, messages: [{ role: "user", content: prompt }],
@@ -75,13 +75,13 @@ async function judge(c: EvalCase, message: string, buttons: string[]) {
 }
 
 const baseState: TurnStateBlock = { grade: 9, hintLevel: 0, wrongCount: 0, nan: false, idle: false, submitted: false,
-  mode: "thuong", minutesLeft: 30, turn: 1, stuckKind: null, kuCode: null, examSlot: null };
+  mode: "thuong", minutesLeft: 30, turn: 1, stuckKind: null, kuCode: null, examSlot: null, maxLines: 6 };
 
 async function runCase(model: string, c: EvalCase) {
   const profile = TEST_PROFILES[c.grade];
   const { system, messages } = assemble({
     layers: loadLayers(), profileText: profile.text, knowledgeCard: null, history: c.history, childText: c.childText,
-    state: { ...baseState, grade: c.grade, ...c.state },
+    state: { ...baseState, grade: c.grade, maxLines: profile.maxLines, ...c.state },
   });
   const started = Date.now();
   try {

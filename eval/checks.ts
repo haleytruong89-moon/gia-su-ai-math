@@ -1,5 +1,8 @@
 // eval/checks.ts — automatic checks of one tutor turn (BO_TEST §3). Pure, tested in tests/evalChecks.test.ts.
+import { messageLines } from "@/lib/tutor/lines";
 import type { TutorOutput } from "@/lib/tutor/schema";
+
+export { messageLines };
 
 export interface Expect {
   flags?: TutorOutput["flags"];
@@ -22,7 +25,6 @@ export function mentions(text: string, needle: string): boolean {
   return new RegExp(loose).test(t);
 }
 
-export const messageLines = (m: string) => m.split("\n").filter((l) => l.trim().length > 0).length;
 
 export function checkOutput(o: TutorOutput | null, spec: CheckSpec): { failures: string[]; leak: boolean } {
   if (!o) return { failures: ["format"], leak: false };

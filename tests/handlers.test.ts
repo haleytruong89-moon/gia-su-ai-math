@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { handleTurn, newProblem, startSession, STALE_PENDING_MS, type Deps } from "@/lib/tutor/handlers";
-import { SAFE_BUSY, SAFE_REPLY } from "@/lib/copy";
+import { handleTurn, newProblem, saveForLater, startSession, STALE_PENDING_MS, type Deps } from "@/lib/tutor/handlers";
+import { costUsd } from "@/lib/anthropic";
+import type { ModelClient } from "@/lib/tutor/turn";
+import { BTN_NOT_UNDERSTOOD, SAFE_BUSY, safeLine } from "@/lib/copy";
 import { memoryRepo, type Seed } from "./helpers/memoryRepo";
 import fewshot from "./fixtures/fewshot.json";
 
@@ -10,6 +12,10 @@ const NOW = new Date("2026-11-14T10:05:00Z");
 const confirm = JSON.stringify((fewshot as object[])[0]); // Mẫu 1: xác nhận đề, de_da_xac_nhan = false
 const confirmed = JSON.stringify((fewshot as object[])[1]); // de_da_xac_nhan = true
 
+const PASS = JSON.stringify({ pass: true, ly_do: [] });
+const isGuardReq = (req: object) => typeof (req as { system?: unknown }).system === "string"; // tutor system = blocks
+
+/** Tutor replies in order; every checker call passes (the G1 tests do not test the checker). */
 function client(texts: string[] | (() => never)) {
   let calls = 0;
   const reqs: { messages: { role: string; content: string }[] }[] = [];
@@ -17,21 +23,24 @@ function client(texts: string[] | (() => never)) {
     get calls() { return calls; },
     reqs,
     async create(req: object) {
+      if (typeof texts === "function") texts();
+      if (isGuardReq(req)) return { content: [{ type: "text", text: PASS }], usage: { input_tokens: 1000, output_tokens: 100 } };
       calls++;
       reqs.push(req as never);
-      if (typeof texts === "function") texts();
       const text = (texts as string[])[Math.min(calls - 1, (texts as string[]).length - 1)] ?? "";
       return { content: [{ type: "text", text }], usage: { input_tokens: 1000, output_tokens: 100 } };
     },
   };
 }
 
-function deps(seed: Seed = {}, c = client([confirm]), actor: Deps["actor"] = child) {
+function deps<C extends ModelClient = ReturnType<typeof client>>(seed: Seed = {}, c: C = client([confirm]) as unknown as C,
+  actor: Deps["actor"] = child) {
   const repo = memoryRepo(seed);
-  const d: Deps = { repo, client: c, actor, now: NOW, layers: { role: "①", rules: "②", method: "③" },
-    promptVersion: "v0.2", modelMain: "claude-sonnet-5-5" };
+  const d: Deps = { repo, client: c, actor, now: NOW, layers: { role: "①", rules: "②", method: "③", guard: "Em là bộ kiểm tra" },
+    promptVersion: "v0.2", models: MODELS };
   return { d, repo, c };
 }
+const MODELS = { main: "claude-sonnet-5-5", strong: "claude-opus-5-5", light: "claude-haiku-5-5" };
 const uuid = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 const inProgress: Seed = { problems: [{ id: "p1", childId: "c1", sessionId: "s1" }] };
 
@@ -49,7 +58,8 @@ describe("startSession", () => {
   it("an active session from an earlier day is abandoned, with its open problems, and a new one opens", async () => {
     const { d, repo } = deps({ sessions: [{ childId: "c1", dateVn: "2026-11-13" }] });
     repo.problems.push({ id: "old", childId: "c1", familyId: "f1", sessionId: repo.sessions[0]!.id, status: "in_progress",
-      turnCount: 3, hintLevel: 0, wrongCount: 0, stuckKind: null, statementConfirmed: true });
+      turnCount: 3, hintLevel: 0, hintLevelMax: 0, nanJumps: 0, wrongCount: 0, offtopicCount: 0, uLevel: 0, stuckKind: null,
+      statementConfirmed: true });
     const r = await startSession(d, { device: "laptop" });
     expect((r.json as { reused: boolean }).reused).toBe(false);
     expect(repo.sessions.map((s) => s.status)).toEqual(["abandoned", "active"]);
@@ -185,7 +195,7 @@ describe("handleTurn", () => {
   });
   it("model down → 503, the child's message is released so the same resend works later", async () => {
     let fail = true;
-    const c = { create: async () => { if (fail) throw Object.assign(new Error("x"), { status: 500 }); return client([confirmed]).create({}); } };
+    const c = { create: async (req: object) => { if (fail) throw Object.assign(new Error("x"), { status: 500 }); return client([confirmed]).create(req); } };
     const { d, repo } = deps(inProgress, client([confirmed]));
     const down = { ...d, client: c };
     expect((await handleTurn(down, body())).status).toBe(503);
@@ -193,15 +203,188 @@ describe("handleTurn", () => {
     fail = false;
     expect((await handleTurn(down, body())).status).toBe(200);
   });
-  it("an unreadable model reply still answers with a safe line and keeps the raw text", async () => {
-    const { d, repo } = deps(inProgress, client(["xin chào"]));
+  it("an unreadable model reply is rewritten once; still unreadable → safe line, raw text kept", async () => {
+    const { d, repo, c } = deps(inProgress, client(["xin chào"]));
     const r = await handleTurn(d, body());
-    expect((r.json as { message: string }).message).toBe(SAFE_REPLY);
-    expect(repo.modelCalls[0]?.raw).toBe("xin chào");
+    expect((r.json as { message: string }).message).toBe(safeLine(0).message);
+    expect(c.calls).toBe(2);
+    expect(repo.modelCalls.map((m) => [m.raw, m.guardResult])).toEqual([["xin chào", "blocked"], ["xin chào", "blocked"]]);
   });
-  it("cost goes to the family's month (UTC month)", async () => {
+  it("cost of every call (answer + check) goes to the family's month (UTC month)", async () => {
     const { d, repo } = deps(inProgress, client([confirmed]));
     await handleTurn(d, body());
-    expect(repo.usage.get("f1|2026-11-01")).toBeCloseTo((1000 * 2 + 100 * 10) / 1e6, 9);
+    const u = { input_tokens: 1000, output_tokens: 100 };
+    expect(repo.usage.get("f1|2026-11-01")).toBeCloseTo(costUsd("claude-sonnet-5-5", u) + costUsd("claude-haiku-5-5", u), 9);
+  });
+});
+
+// G2 — the turn pipeline (DESIGN §4; DOMAIN §4.1, §4.2, §4.14, §5)
+/** Scripted tutor replies and checker verdicts, in order; records which model each call used. */
+function scripted(tutor: string[], guard: boolean[]) {
+  const models: string[] = [];
+  let ti = 0, gi = 0;
+  return {
+    models,
+    async create(req: object) {
+      const r = req as { model: string };
+      models.push(r.model);
+      const text = isGuardReq(req) ? JSON.stringify({ pass: guard[gi++] ?? true, ly_do: ["1: lộ đáp số"] }) : tutor[Math.min(ti++, tutor.length - 1)]!;
+      return { content: [{ type: "text", text }], usage: { input_tokens: 100, output_tokens: 10 } };
+    },
+  };
+}
+const nanSeed: Seed = { ...inProgress, messages: [{ problemId: "p1", role: "tutor", text: "?" },
+  { problemId: "p1", role: "child", text: "k" }, { problemId: "p1", role: "tutor", text: "?" }] };
+
+describe("G2 turn pipeline", () => {
+  const body = (n = 1, text = "Đúng rồi") => ({ problemId: "p1", clientMsgId: uuid(n), text });
+
+  it("§4.14 a: normal turn → Sonnet answers, Haiku checks, the child sees Sonnet's answer", async () => {
+    const c = scripted([confirmed], [true]);
+    const { d, repo } = deps(inProgress, c);
+    const r = await handleTurn(d, body());
+    expect(r.status).toBe(200);
+    expect(c.models).toEqual(["claude-sonnet-5-5", "claude-haiku-5-5"]);
+    expect(repo.modelCalls.map((m) => [m.purpose, m.routeReason, m.guardResult, m.shown]))
+      .toEqual([["tutor", null, "pass", true], ["guard", null, null, false]]);
+  });
+  it("§4.14 d: blocked → rewritten on Opus; the child sees Opus' answer; the next turn stays on Opus", async () => {
+    const c = scripted([confirm, confirmed, confirmed], [false, true, true]);
+    const { d, repo } = deps(inProgress, c);
+    const r = await handleTurn(d, body(1));
+    expect(c.models).toEqual(["claude-sonnet-5-5", "claude-haiku-5-5", "claude-opus-5-5", "claude-haiku-5-5"]);
+    expect((r.json as { message: string }).message).toBe(JSON.parse(confirmed).message);
+    expect(repo.modelCalls.filter((m) => m.purpose === "tutor").map((m) => [m.routeReason, m.guardResult]))
+      .toEqual([[null, "blocked"], ["guard_blocked", "rewritten"]]);
+    await handleTurn(d, body(2));
+    expect(c.models.at(-2)).toBe("claude-opus-5-5"); // sticky
+    expect(repo.modelCalls.filter((m) => m.purpose === "tutor").at(-1)?.routeReason).toBe("sticky");
+  });
+  it("the rewrite tells the tutor why the checker blocked the answer", async () => {
+    const reqs: { messages: { content: string }[] }[] = [];
+    const c = scripted([confirm, confirmed], [false, true]);
+    const spy = { create: (req: object) => { reqs.push(req as never); return c.create(req); } };
+    const { d } = deps(inProgress, client([confirm]));
+    await handleTurn({ ...d, client: spy }, body());
+    expect(reqs[2]?.messages.at(-1)?.content).toMatch(/BỘ KIỂM TRA CỦA APP.*1: lộ đáp số/);
+  });
+  it("§5: blocked twice → the safe line for the hint level; both answers kept as blocked", async () => {
+    const c = scripted([confirmed], [false, false]);
+    const { d, repo } = deps({ problems: [{ id: "p1", childId: "c1", hintLevel: 2, hintLevelMax: 2 }] }, c);
+    const r = await handleTurn(d, body());
+    expect((r.json as { message: string; buttons: string[] })).toMatchObject(safeLine(2));
+    expect(repo.modelCalls.filter((m) => m.purpose === "tutor").map((m) => m.guardResult)).toEqual(["blocked", "blocked"]);
+    expect(repo.modelCalls.some((m) => m.shown)).toBe(false);
+  });
+  it("§5: the checker is down → fail-closed (rewrite, then safe line)", async () => {
+    const c = { create: async (req: object) => {
+      if (isGuardReq(req)) throw Object.assign(new Error("x"), { status: 529 });
+      return { content: [{ type: "text", text: confirmed }], usage: { input_tokens: 100, output_tokens: 10 } };
+    } };
+    const { d, repo } = deps(inProgress, client([confirmed]));
+    const r = await handleTurn({ ...d, client: c }, body());
+    expect((r.json as { message: string }).message).toBe(safeLine(0).message);
+    expect(repo.modelCalls.filter((m) => m.purpose === "guard").map((m) => m.guardReasons)).toEqual([["guard_unavailable"], ["guard_unavailable"]]);
+  });
+  it("turn budget: no time left for a rewrite → safe line straight away", async () => {
+    let t = 0;
+    const c = scripted([confirmed], [false]);
+    const slow = { create: async (req: object) => { t += 100_000; return c.create(req); } };
+    const { d } = deps(inProgress, client([confirmed]));
+    const r = await handleTurn({ ...d, client: slow, clock: () => t }, body());
+    expect(c.models).toEqual(["claude-sonnet-5-5", "claude-haiku-5-5"]);
+    expect((r.json as { message: string }).message).toBe(safeLine(0).message);
+  });
+  it("§4.1 c + §4.14 e: 'k' then 'ko biết' → H4 jump, nan_jumps + 1, answered on Opus (nan)", async () => {
+    const c = scripted([confirmed], [true]);
+    const { d, repo } = deps(nanSeed, c);
+    const r = await handleTurn(d, body(1, "ko biết"));
+    expect(c.models[0]).toBe("claude-opus-5-5");
+    expect(repo.modelCalls[0]?.routeReason).toBe("nan");
+    expect([repo.problems[0]?.hintLevel, repo.problems[0]?.hintLevelMax, repo.problems[0]?.nanJumps]).toEqual([4, 4, 1]);
+    expect((r.json as { hintLevel: number }).hintLevel).toBe(4);
+  });
+  it("§4.2: three 'Chưa hiểu' presses in a row → nản", async () => {
+    const seed: Seed = { ...inProgress, messages: [
+      { problemId: "p1", role: "tutor", text: "giảng 1" },
+      { problemId: "p1", role: "child", text: BTN_NOT_UNDERSTOOD, inputKind: "button" }, { problemId: "p1", role: "tutor", text: "giảng 2" },
+      { problemId: "p1", role: "child", text: BTN_NOT_UNDERSTOOD, inputKind: "button" }, { problemId: "p1", role: "tutor", text: "giảng 3" }] };
+    const c = scripted([confirmed], [true]);
+    const { d, repo } = deps(seed, c);
+    await handleTurn(d, { ...body(1, BTN_NOT_UNDERSTOOD), kind: "button" });
+    expect(repo.modelCalls[0]?.routeReason).toBe("nan");
+    expect(repo.messages.filter((m) => m.role === "child").at(-1)?.inputKind).toBe("button");
+  });
+  it("⑥ tells the tutor the jumped level, nan and max_lines", async () => {
+    const { d, c } = deps(nanSeed, client([confirmed]));
+    await handleTurn(d, body(1, "ko biết"));
+    const sent = c.reqs[0]?.messages.at(-1)?.content ?? "";
+    expect(sent).toContain("muc_goi_y: H4");
+    expect(sent).toContain("nan: true");
+    expect(sent).toContain("max_lines: 6");
+  });
+  it("§4.1 a: H0 and the tutor marks the answer wrong → H1, wrong_count 1", async () => {
+    const wrong = JSON.stringify({ ...JSON.parse(confirmed), danh_gia_luot_em: "sai" });
+    const { d, repo } = deps(inProgress, scripted([wrong], [true]));
+    await handleTurn(d, body(1, "x = 5"));
+    expect([repo.problems[0]?.hintLevel, repo.problems[0]?.wrongCount]).toEqual([1, 1]);
+  });
+  it("§4.14 b: H3 → Opus (hint_h3)", async () => {
+    const c = scripted([confirmed], [true]);
+    const { d, repo } = deps({ problems: [{ id: "p1", childId: "c1", hintLevel: 3, hintLevelMax: 3 }] }, c);
+    await handleTurn(d, body());
+    expect([c.models[0], repo.modelCalls[0]?.routeReason]).toEqual(["claude-opus-5-5", "hint_h3"]);
+  });
+  it("§4.14 c: the last answer the child saw was flagged tutor_unsure → Opus", async () => {
+    const unsure = JSON.stringify({ ...JSON.parse(confirmed), flags: ["tutor_unsure"] });
+    const c = scripted([confirmed], [true]);
+    const { d, repo } = deps({ ...inProgress, calls: [{ problemId: "p1", raw: unsure, shown: true }] }, c);
+    await handleTurn(d, body());
+    expect(repo.modelCalls.at(-2)?.routeReason).toBe("tutor_unsure");
+  });
+  it("4.12 b: the tutor says self_solved on a submitted answer → still in_progress (no math_check in G2)", async () => {
+    const solved = JSON.stringify({ ...JSON.parse(confirmed), ket_qua_bai: "self_solved" });
+    const { d, repo, c } = deps(inProgress, client([solved]));
+    await handleTurn(d, { ...body(1, "x = 24, y = 48"), kind: "submit" });
+    expect(repo.problems[0]?.status).toBe("in_progress");
+    expect(c.reqs[0]?.messages.at(-1)?.content).toContain("da_nop_loi_giai: true");
+  });
+  it("§5: the third off-topic turn closes the problem", async () => {
+    const off = JSON.stringify({ ...JSON.parse(confirmed), flags: ["off_topic"] });
+    const { d, repo } = deps({ problems: [{ id: "p1", childId: "c1", offtopicCount: 2 }] }, client([off]));
+    const r = await handleTurn(d, body(1, "chơi game không cô"));
+    expect((r.json as { status: string }).status).toBe("closed_offtopic");
+    expect(repo.problems[0]?.offtopicCount).toBe(3);
+  });
+  it("D29: at 45 USD the month pauses Opus; a nản turn stays on Sonnet with reason opus_paused", async () => {
+    const c = scripted([confirmed], [true]);
+    const { d, repo } = deps({ ...nanSeed, usage: [{ month: "2026-11-01", costUsd: 45.2 }] }, c);
+    await handleTurn(d, body(1, "ko"));
+    expect(c.models[0]).toBe("claude-sonnet-5-5");
+    expect(repo.modelCalls[0]?.routeReason).toBe("opus_paused");
+    expect(repo.modes.get("f1|2026-11-01")).toBe("economy");
+  });
+  it("D29: paused month → a blocked answer is rewritten on Sonnet", async () => {
+    const c = scripted([confirm, confirmed], [false, true]);
+    const { d } = deps({ ...inProgress, usage: [{ month: "2026-11-01", costUsd: 1, mode: "economy" }] }, c);
+    await handleTurn(d, body());
+    expect(c.models).toEqual(["claude-sonnet-5-5", "claude-haiku-5-5", "claude-sonnet-5-5", "claude-haiku-5-5"]);
+  });
+});
+
+describe("saveForLater", () => {
+  it("closes the problem as saved_for_later; a resend is fine; a closed problem is refused", async () => {
+    const { d, repo } = deps(inProgress);
+    expect((await saveForLater(d, { problemId: "p1", clientMsgId: uuid(7) })).json).toEqual({ status: "saved_for_later" });
+    expect((await saveForLater(d, { problemId: "p1", clientMsgId: uuid(7) })).status).toBe(200);
+    expect((await saveForLater(d, { problemId: "p1", clientMsgId: uuid(8) })).status).toBe(409);
+    expect(repo.problems[0]?.status).toBe("saved_for_later");
+    expect(repo.messages.filter((m) => m.inputKind === "button")).toHaveLength(1);
+  });
+  it("401 for a parent; 404 for another child's problem; 400 on a bad body", async () => {
+    expect((await saveForLater(deps(inProgress, client([confirm]), { role: "parent", userId: "p", familyId: "f1" }).d,
+      { problemId: "p1", clientMsgId: uuid(7) })).status).toBe(401);
+    expect((await saveForLater(deps({ problems: [{ id: "p1", childId: "c2" }] }).d, { problemId: "p1", clientMsgId: uuid(7) })).status).toBe(404);
+    expect((await saveForLater(deps(inProgress).d, { problemId: "p1" })).status).toBe(400);
   });
 });

@@ -4,19 +4,21 @@ import { realClient } from "@/lib/anthropic";
 import { getActor } from "@/lib/auth";
 import { supabaseRepo } from "@/lib/db/supabaseRepo";
 import { serverEnv } from "@/lib/env";
+import { fakeAllowed, fakeClient } from "@/lib/tutor/fakeClient";
 import type { Deps } from "@/lib/tutor/handlers";
 import { loadLayers, promptVersion } from "@/lib/tutor/layers";
 
 export async function liveDeps(): Promise<Deps> {
   const env = serverEnv();
   return {
-    repo: supabaseRepo(),
-    client: realClient(env.ANTHROPIC_API_KEY),
+    repo: supabaseRepo(undefined, env.TUTOR_MODEL_STRONG),
+    // e2e only (TUTOR_FAKE_MODEL=1, never on Vercel): canned replies, no API call.
+    client: fakeAllowed(process.env) ? fakeClient() : realClient(env.ANTHROPIC_API_KEY),
     actor: await getActor(),
     now: new Date(),
     layers: loadLayers(),
     promptVersion: promptVersion(),
-    modelMain: env.TUTOR_MODEL_MAIN,
+    models: { main: env.TUTOR_MODEL_MAIN, strong: env.TUTOR_MODEL_STRONG, light: env.TUTOR_MODEL_LIGHT },
   };
 }
 
