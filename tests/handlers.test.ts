@@ -28,7 +28,7 @@ function client(texts: string[] | (() => never)) {
 
 function deps(seed: Seed = {}, c = client([confirm]), actor: Deps["actor"] = child) {
   const repo = memoryRepo(seed);
-  const d: Deps = { repo, client: c, actor, now: NOW, layers: { role: "①", rules: "②", method: "③" },
+  const d: Deps = { repo, client: c, actor, now: NOW, layers: { role: "①", rules: "②", method: "③", guard: "Em là bộ kiểm tra" },
     promptVersion: "v0.2", modelMain: "claude-sonnet-5-5" };
   return { d, repo, c };
 }

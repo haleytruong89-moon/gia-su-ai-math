@@ -2,14 +2,14 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-export interface Layers { role: string; rules: string; method: string }
+export interface Layers { role: string; rules: string; method: string; guard: string }
 
 const read = (file: string) => readFileSync(join(process.cwd(), "prompts", file), "utf8").trim();
 let cached: { layers: Layers; version: string } | null = null;
 
 function load() {
   cached ??= {
-    layers: { role: read("role.md"), rules: read("rules.md"), method: read("method.md") },
+    layers: { role: read("role.md"), rules: read("rules.md"), method: read("method.md"), guard: read("guard.md") },
     version: read("PROMPT_VERSION"),
   };
   return cached;
