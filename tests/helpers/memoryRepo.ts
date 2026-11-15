@@ -1,17 +1,19 @@
 // In-memory TutorRepo for the handler tests. Same contract as lib/db/supabaseRepo.ts.
 import { BTN_SAVE } from "@/lib/copy";
+import { deleteAfterVn } from "@/lib/rules/photo";
 import type { HintLevel } from "@/lib/rules/hints";
 import type { InputKind } from "@/lib/rules/events";
-import type { Msg } from "@/lib/tutor/assemble";
 import {
-  flagsOf, type FoundMessage, type ModelCallRecord, type ProblemRow, type ProblemStatus, type SaveReplyInput, type StoredReply,
+  flagsOf, type FoundMessage, type HistoryItem, type ModelCallRecord, type ProblemRow, type ProblemStatus, type SaveReplyInput, type StoredReply,
   type StuckKind, type TutorRepo,
 } from "@/lib/tutor/repo";
 
 interface Sess { id: string; childId: string; dateVn: string; status: "active" | "ended" | "abandoned"; device: string }
 interface Prob { id: string; childId: string; familyId: string; sessionId: string; status: ProblemStatus; turnCount: number;
   hintLevel: HintLevel; hintLevelMax: HintLevel; nanJumps: number; wrongCount: number; offtopicCount: number; uLevel: 0 | 1 | 2 | 3;
-  stuckKind: StuckKind | null; statementConfirmed: boolean }
+  stuckKind: StuckKind | null; statementConfirmed: boolean; confirmedStatement: string | null }
+interface ImageRow { id: string; problemId: string; messageId: string; childId: string; path: string; data: string; width: number;
+  height: number; deleteAfter: string }
 interface MsgRow { id: string; childId: string; problemId: string; role: "child" | "tutor"; text: string; buttons: string[];
   inputKind: InputKind; hintLevel: number | null; clientMsgId: string | null; at: Date; reply?: StoredReply }
 type CallRow = ModelCallRecord & { problemId: string; childMessageId: string; tutorMessageId: string | null; promptVersion: string };
@@ -23,6 +25,7 @@ export interface Seed {
   /** earlier model calls (e.g. a strong-model call, or the flags of the last answer) */
   calls?: (Partial<CallRow> & { problemId: string })[];
   usage?: { familyId?: string; month: string; costUsd: number; mode?: "normal" | "economy" }[];
+  images?: (Partial<ImageRow> & { problemId: string; messageId: string })[];
 }
 
 export function memoryRepo(seed: Seed = {}, strongModel = "claude-opus-5-5") {
@@ -30,12 +33,15 @@ export function memoryRepo(seed: Seed = {}, strongModel = "claude-opus-5-5") {
   const id = (p: string) => `${p}${++n}`;
   const sessions: Sess[] = (seed.sessions ?? []).map((s) => ({ id: id("s"), childId: "c1", dateVn: "2026-11-14", status: "active", device: "laptop", ...s }));
   const problems: Prob[] = (seed.problems ?? []).map((p) => ({ familyId: "f1", sessionId: "s0", status: "in_progress", turnCount: 0,
-    hintLevel: 0, hintLevelMax: 0, nanJumps: 0, wrongCount: 0, offtopicCount: 0, uLevel: 0, stuckKind: null, statementConfirmed: false, ...p }));
+    hintLevel: 0, hintLevelMax: 0, nanJumps: 0, wrongCount: 0, offtopicCount: 0, uLevel: 0, stuckKind: null, statementConfirmed: false,
+    confirmedStatement: null, ...p }));
   const messages: MsgRow[] = (seed.messages ?? []).map((m) => ({ id: id("m"), childId: "c1", buttons: [], clientMsgId: null,
     inputKind: "text", hintLevel: null, at: new Date("2026-11-14T10:00:00Z"), ...m }));
   const modelCalls: CallRow[] = (seed.calls ?? []).map((c) => ({ purpose: "tutor", model: "claude-sonnet-5-5", raw: "{}", costUsd: 0,
     tokens: { in: 0, cached: 0, out: 0 }, routeReason: null, guardResult: null, guardReasons: [], shown: true, childMessageId: "",
     tutorMessageId: "", promptVersion: "test", ...c }));
+  const images: ImageRow[] = (seed.images ?? []).map((i) => ({ id: id("i"), childId: "c1", path: "c1/x/y.jpg", data: "QUJD",
+    width: 10, height: 10, deleteAfter: "2027-01-01", ...i }));
   const usage = new Map<string, number>();
   const modes = new Map<string, "normal" | "economy">();
   for (const u of seed.usage ?? []) {
@@ -65,7 +71,7 @@ export function memoryRepo(seed: Seed = {}, strongModel = "claude-opus-5-5") {
     async createProblem(a) {
       const p: Prob = { id: id("p"), childId: a.actor.userId, familyId: a.actor.familyId, sessionId: a.sessionId, status: "in_progress",
         turnCount: 0, hintLevel: 0, hintLevelMax: 0, nanJumps: 0, wrongCount: 0, offtopicCount: 0, uLevel: 0, stuckKind: a.stuckKind,
-        statementConfirmed: false };
+        statementConfirmed: false, confirmedStatement: null };
       problems.push(p);
       return { id: p.id };
     },
@@ -79,14 +85,15 @@ export function memoryRepo(seed: Seed = {}, strongModel = "claude-opus-5-5") {
       const list = messages.filter((m) => m.problemId === p.id);
       const last = list[list.length - 1];
       const answered = last?.role === "child" ? list.slice(0, -1) : list;
-      const history: Msg[] = answered.map((m) => ({ role: m.role === "child" ? "user" : "assistant", content: m.text }));
+      const history: HistoryItem[] = answered.map((m) => ({ id: m.id, role: m.role === "child" ? "user" : "assistant", content: m.text }));
       const pending = last?.role === "child" ? { messageId: last.id, clientMsgId: last.clientMsgId, text: last.text, at: last.at } : null;
       const calls = modelCalls.filter((c) => c.problemId === p.id);
       const lastShown = calls.filter((c) => c.purpose === "tutor" && c.shown).at(-1);
       const row: ProblemRow = {
         id: p.id, childId: p.childId, familyId: p.familyId, sessionId: p.sessionId, status: p.status, turnCount: p.turnCount,
         hintLevel: p.hintLevel, hintLevelMax: p.hintLevelMax, nanJumps: p.nanJumps, wrongCount: p.wrongCount,
-        offtopicCount: p.offtopicCount, uLevel: p.uLevel, stuckKind: p.stuckKind, statementConfirmed: p.statementConfirmed, history,
+        offtopicCount: p.offtopicCount, uLevel: p.uLevel, stuckKind: p.stuckKind, statementConfirmed: p.statementConfirmed,
+        confirmedStatement: p.confirmedStatement, history, imageCount: images.filter((i) => i.problemId === p.id).length,
         thread: list.map((m) => ({ id: m.id, role: m.role, content: m.text, inputKind: m.inputKind })),
         statement: list.find((m) => m.role === "child")?.text ?? null,
         usedStrong: calls.some((c) => c.purpose === "tutor" && c.model === strongModel),
@@ -109,6 +116,21 @@ export function memoryRepo(seed: Seed = {}, strongModel = "claude-opus-5-5") {
     async deleteMessage(messageId) {
       const i = messages.findIndex((m) => m.id === messageId);
       if (i >= 0) messages.splice(i, 1);
+      for (let k = images.length - 1; k >= 0; k--) if (images[k]!.messageId === messageId) images.splice(k, 1);
+    },
+    async saveImage(a) {
+      images.push({ id: id("i"), problemId: a.problemId, messageId: a.messageId, childId: a.actor.userId,
+        path: `${a.actor.userId}/${a.problemId}/${id("f")}.jpg`, data: a.jpeg.toString("base64"), width: a.width, height: a.height,
+        deleteAfter: deleteAfterVn(a.now) });
+    },
+    async problemImages(problemId) {
+      return images.filter((i) => i.problemId === problemId).map((i) => ({ messageId: i.messageId, image: { mediaType: "image/jpeg" as const, data: i.data } }));
+    },
+    async abandonUnconfirmed(problemId, childId) {
+      const p = problems.find((x) => x.id === problemId && x.childId === childId);
+      if (!p || p.status !== "in_progress" || p.statementConfirmed) return false;
+      p.status = "abandoned";
+      return true;
     },
     async saveReply(a: SaveReplyInput) {
       const p = problems.find((x) => x.id === a.problem.id);
@@ -119,9 +141,11 @@ export function memoryRepo(seed: Seed = {}, strongModel = "claude-opus-5-5") {
       let t: MsgRow | null = null;
       let reply: StoredReply | null = null;
       if (!conflict) {
+        if (p.confirmedStatement === null && a.confirmedStatement) p.confirmedStatement = a.confirmedStatement;
         Object.assign(p, { turnCount: a.turn, status: a.status, statementConfirmed: a.statementConfirmed, hintLevel: a.hintLevel,
           hintLevelMax: a.hintLevelMax, nanJumps: a.nanJumps, wrongCount: a.wrongCount, offtopicCount: a.offtopicCount, uLevel: a.uLevel });
-        reply = { problemId: p.id, message: a.tutorText, buttons: a.buttons, hintLevel: a.replyHintLevel, status: p.status, turnCount: p.turnCount };
+        reply = { problemId: p.id, message: a.tutorText, buttons: a.buttons, hintLevel: a.replyHintLevel, status: p.status, turnCount: p.turnCount,
+          statementConfirmed: p.statementConfirmed };
         t = { id: id("m"), childId: p.childId, problemId: p.id, role: "tutor", text: a.tutorText, buttons: a.buttons, inputKind: "text",
           hintLevel: a.replyHintLevel, clientMsgId: null, at: a.now, reply };
         messages.push(t);
@@ -148,5 +172,5 @@ export function memoryRepo(seed: Seed = {}, strongModel = "claude-opus-5-5") {
       return "saved";
     },
   };
-  return Object.assign(repo, { sessions, problems, messages, modelCalls, usage, modes });
+  return Object.assign(repo, { sessions, problems, messages, modelCalls, usage, modes, images });
 }

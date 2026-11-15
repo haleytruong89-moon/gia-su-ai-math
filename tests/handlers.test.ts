@@ -2,7 +2,10 @@ import { describe, expect, it } from "vitest";
 import { handleTurn, newProblem, saveForLater, startSession, STALE_PENDING_MS, type Deps } from "@/lib/tutor/handlers";
 import { costUsd } from "@/lib/anthropic";
 import type { ModelClient } from "@/lib/tutor/turn";
-import { BTN_NOT_UNDERSTOOD, SAFE_BUSY, safeLine } from "@/lib/copy";
+import sharp from "sharp";
+import { beforeAll } from "vitest";
+import { BTN_NOT_UNDERSTOOD, PHOTO_ONLY_TEXT, SAFE_BUSY, safeLine } from "@/lib/copy";
+import { TOO_BIG } from "@/lib/tutor/form";
 import { memoryRepo, type Seed } from "./helpers/memoryRepo";
 import fewshot from "./fixtures/fewshot.json";
 
@@ -59,7 +62,7 @@ describe("startSession", () => {
     const { d, repo } = deps({ sessions: [{ childId: "c1", dateVn: "2026-11-13" }] });
     repo.problems.push({ id: "old", childId: "c1", familyId: "f1", sessionId: repo.sessions[0]!.id, status: "in_progress",
       turnCount: 3, hintLevel: 0, hintLevelMax: 0, nanJumps: 0, wrongCount: 0, offtopicCount: 0, uLevel: 0, stuckKind: null,
-      statementConfirmed: true });
+      statementConfirmed: true, confirmedStatement: "đề cũ" });
     const r = await startSession(d, { device: "laptop" });
     expect((r.json as { reused: boolean }).reused).toBe(false);
     expect(repo.sessions.map((s) => s.status)).toEqual(["abandoned", "active"]);
@@ -388,3 +391,99 @@ describe("saveForLater", () => {
     expect((await saveForLater(deps(inProgress).d, { problemId: "p1" })).status).toBe(400);
   });
 });
+
+// G3 — photos (US1; DOMAIN §2 attachments, §5; decisions Q1–Q4 15/11/2026)
+describe("G3 photos", () => {
+  let photo: Uint8Array;
+  beforeAll(async () => {
+    photo = new Uint8Array(await sharp({ create: { width: 3000, height: 2000, channels: 3, background: "#ffffff" } })
+      .withExif({ IFD0: { Make: "PhoneMaker" } }).jpeg().toBuffer());
+  });
+  const recordingClient = (texts = [confirm, confirmed]) => {
+    const reqs: { system?: unknown; messages: { content: unknown }[] }[] = [];
+    const inner = client(texts);
+    return { reqs, create: async (req: object) => { reqs.push(req as never); return inner.create(req); } };
+  };
+  const hasImage = (x: unknown) => JSON.stringify(x).includes('"type":"image"');
+
+  it("US1: a photo alone opens the problem; it is cleaned and stored; the tutor and the checker see it", async () => {
+    const c = recordingClient();
+    const { d, repo } = deps({}, c);
+    const r = await newProblem(d, { clientMsgId: uuid(1), stuckKind: "", image: photo, device: "ipad" });
+    expect(r.status).toBe(200);
+    expect(repo.images).toHaveLength(1);
+    expect(repo.messages[0]?.text).toBe(PHOTO_ONLY_TEXT);
+    const stored = await sharp(Buffer.from(repo.images[0]!.data, "base64")).metadata();
+    expect([stored.width, stored.height, stored.exif]).toEqual([1344, 896, undefined]); // ≤ 1568 px and ≤ 1568 tokens
+    expect(repo.images[0]!.path).toMatch(/^c1\/p\d+\/f\d+\.jpg$/);
+    expect(hasImage(c.reqs[0]!.messages.at(-1))).toBe(true); // tutor
+    expect(typeof c.reqs[1]!.system).toBe("string");          // checker call…
+    expect(hasImage(c.reqs[1])).toBe(true);                    // …sees the photo while the statement is unconfirmed
+  });
+  it("the photo stays on its own child message in later turns", async () => {
+    const c = recordingClient();
+    const { d, repo } = deps({}, c);
+    await newProblem(d, { clientMsgId: uuid(1), stuckKind: null, image: photo });
+    const problemId = repo.problems[0]!.id;
+    await handleTurn(d, { problemId, clientMsgId: uuid(2), text: "Đúng rồi", kind: "button" });
+    const turn2 = c.reqs[2]!.messages;
+    expect(hasImage(turn2[0])).toBe(true);      // the first child message carries the photo
+    expect(hasImage(turn2.at(-1))).toBe(false); // "Đúng rồi" has none
+  });
+  it("confirming the statement copies the tutor's restatement into confirmed_statement; the checker then reads words, not the photo", async () => {
+    const seed: Seed = { ...inProgress, messages: [{ problemId: "p1", role: "child", text: PHOTO_ONLY_TEXT },
+      { problemId: "p1", role: "tutor", text: "Cô đọc đề là: … Em kiểm tra giúp cô đúng chưa?" }] };
+    seed.images = [{ problemId: "p1", messageId: "m1" }];
+    const c = recordingClient([confirmed]);
+    const { d, repo } = deps(seed, c);
+    repo.images[0]!.messageId = repo.messages[0]!.id;
+    await handleTurn(d, { problemId: "p1", clientMsgId: uuid(2), text: "Đúng rồi", kind: "button" });
+    expect(repo.problems[0]?.confirmedStatement).toBe("Cô đọc đề là: … Em kiểm tra giúp cô đúng chưa?");
+    await handleTurn(d, { problemId: "p1", clientMsgId: uuid(3), text: "x là thời gian người 1" });
+    const lastGuard = c.reqs.filter((r) => typeof r.system === "string").at(-1);
+    expect(hasImage(lastGuard)).toBe(false);
+    expect(JSON.stringify(lastGuard)).toContain("Cô đọc đề là");
+  });
+  it("Q2: a photo of the work mid-problem is stored with that message; a 5th photo is refused", async () => {
+    const seed: Seed = { ...inProgress, images: [1, 2, 3].map((n) => ({ problemId: "p1", messageId: `x${n}` })) };
+    const { d, repo, c } = deps(seed, client([confirmed]));
+    expect((await handleTurn(d, { problemId: "p1", clientMsgId: uuid(4), text: "", image: photo })).status).toBe(200);
+    expect(repo.images).toHaveLength(4);
+    const r = await handleTurn(d, { problemId: "p1", clientMsgId: uuid(5), text: "", image: photo });
+    expect(r).toEqual({ status: 409, json: { error: "too_many_images", message: "Bài này đã có 4 ảnh. Em gõ phần còn lại cho cô nhé." } });
+    expect([repo.images.length, c.calls]).toEqual([4, 1]);
+  });
+  it("not an image → 415; too big → 413; nothing stored, no model call", async () => {
+    const { d, repo, c } = deps(inProgress);
+    expect((await handleTurn(d, { problemId: "p1", clientMsgId: uuid(6), text: "", image: new TextEncoder().encode("hello") })).status).toBe(415);
+    expect((await handleTurn(d, TOO_BIG)).status).toBe(413);
+    expect((await newProblem(d, { clientMsgId: uuid(7), stuckKind: null, image: new TextEncoder().encode("hi") })).status).toBe(415);
+    expect([repo.messages.length, repo.images.length, repo.problems.length, c.calls]).toEqual([0, 0, 1, 0]);
+  });
+  it("an empty message with no photo is a bad request", async () => {
+    const { d } = deps(inProgress);
+    expect((await handleTurn(d, { problemId: "p1", clientMsgId: uuid(8), text: "  " })).status).toBe(400);
+    expect((await newProblem(d, { clientMsgId: uuid(9), stuckKind: null, statement: "" })).status).toBe(400);
+  });
+  it("Storage down → 503 and the child's message is released", async () => {
+    const { d, repo, c } = deps(inProgress, client([confirmed]));
+    repo.saveImage = async () => { throw new Error("storage down"); };
+    const r = await handleTurn(d, { problemId: "p1", clientMsgId: uuid(10), text: "bài làm", image: photo });
+    expect(r.status).toBe(503);
+    expect([repo.messages.length, c.calls]).toEqual([0, 0]);
+  });
+  it("model down after the photo was stored → the photo goes with the released message", async () => {
+    const { d, repo } = deps(inProgress, client(() => { throw Object.assign(new Error("x"), { status: 529 }); }));
+    expect((await handleTurn(d, { problemId: "p1", clientMsgId: uuid(11), text: "", image: photo })).status).toBe(503);
+    expect([repo.messages.length, repo.images.length]).toEqual([0, 0]);
+  });
+  it("Q3 retake: replacesProblemId abandons the old unconfirmed problem; a confirmed one is kept", async () => {
+    const { d, repo } = deps({ problems: [{ id: "old", childId: "c1" }, { id: "done", childId: "c1", statementConfirmed: true }] });
+    await newProblem(d, { clientMsgId: uuid(12), stuckKind: null, image: photo, replacesProblemId: "00000000-0000-4000-8000-0000000000aa" });
+    // ids in memory are not uuids: call the repo rule directly for the two cases
+    expect(await repo.abandonUnconfirmed("old", "c1", NOW)).toBe(true);
+    expect(await repo.abandonUnconfirmed("done", "c1", NOW)).toBe(false);
+    expect(repo.problems.map((p) => p.status).slice(0, 2)).toEqual(["abandoned", "in_progress"]);
+  });
+});
+

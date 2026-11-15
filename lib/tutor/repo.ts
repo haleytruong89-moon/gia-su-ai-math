@@ -4,9 +4,11 @@ import type { Actor } from "@/lib/actor";
 import type { HintLevel } from "@/lib/rules/hints";
 import type { InputKind, StoredMsg } from "@/lib/rules/events";
 import type { RouteReason } from "@/lib/rules/model";
-import type { Msg } from "@/lib/tutor/assemble";
+import type { ImageData } from "@/lib/tutor/assemble";
 
 export type ChildActor = Extract<Actor, { role: "child" }>;
+/** An answered message of the problem; `id` lets the server put the message's photos back (never sent to the API). */
+export type HistoryItem = { id: string; role: "user" | "assistant"; content: string };
 export type Device = "ipad" | "boox" | "laptop";
 export const STUCK_KINDS = ["chua_hieu_de", "khong_biet_bat_dau", "lam_do_thi_tac", "ra_ket_qua_sai", "khong_hieu_buoc"] as const;
 export type StuckKind = (typeof STUCK_KINDS)[number];
@@ -31,8 +33,10 @@ export interface ProblemRow {
   uLevel: 0 | 1 | 2 | 3;
   stuckKind: StuckKind | null;
   statementConfirmed: boolean;
+  /** The tutor's restatement the child confirmed (G3); also what remains after the photo file is deleted. */
+  confirmedStatement: string | null;
   /** Answered turns only, oldest first (child = user, tutor = assistant). */
-  history: Msg[];
+  history: HistoryItem[];
   /** Every child/tutor message with how it was sent (for the nản rule, DOMAIN §4.2). */
   thread: StoredMsg[];
   /** The first child message: the problem as the child typed it (for the checker). */
@@ -41,6 +45,8 @@ export interface ProblemRow {
   usedStrong: boolean;
   /** `flags` of the last answer the child saw (from model_calls.raw_output). */
   lastTutorFlags: string[];
+  /** Photos already stored for this problem (at most MAX_IMAGES_PER_PROBLEM). */
+  imageCount: number;
   pending: PendingMessage | null;
 }
 
@@ -52,6 +58,7 @@ export interface StoredReply {
   hintLevel: number;
   status: ProblemStatus;
   turnCount: number;
+  statementConfirmed: boolean;
 }
 
 export interface FoundMessage { problemId: string; messageId: string; text: string; at: Date; reply: StoredReply | null }
@@ -77,6 +84,8 @@ export interface SaveReplyInput {
   turn: number;
   status: ProblemStatus;
   statementConfirmed: boolean;
+  /** written once, on the turn where statementConfirmed becomes true */
+  confirmedStatement: string | null;
   /** the level this answer was written at (after a nản jump); stored on the tutor message */
   replyHintLevel: HintLevel;
   /** the problem's level for the next turn (after the child's answer was judged) */
@@ -110,8 +119,15 @@ export interface TutorRepo {
   findByClientMsg(childId: string, clientMsgId: string): Promise<FoundMessage | null>;
   /** Inserts the child's message; `conflict` when the client id was already used (a resend in flight). */
   insertChildMessage(a: { actor: ChildActor; problemId: string; clientMsgId: string; text: string; inputKind: InputKind; now: Date }): Promise<{ messageId: string } | { conflict: true }>;
-  /** Frees a claimed child message when the model call failed, so the same resend can run again. */
+  /** Frees a claimed child message when the model call failed, so the same resend can run again (its photos go too). */
   deleteMessage(messageId: string): Promise<void>;
+  /** Stores a cleaned JPEG sent with a child message: Storage upload, then the attachments row. */
+  saveImage(a: { actor: ChildActor; problemId: string; messageId: string; jpeg: Buffer; width: number; height: number;
+    device: Device; now: Date }): Promise<void>;
+  /** Every photo of the problem, oldest first, with the child message it was sent with (base64 for the model). */
+  problemImages(problemId: string): Promise<{ messageId: string; image: ImageData }[]>;
+  /** Retake (G3 Q3): the replaced problem is abandoned only if it is this child's, open and not confirmed. */
+  abandonUnconfirmed(problemId: string, childId: string, now: Date): Promise<boolean>;
   /**
    * Problem counters first, guarded by the turn count read before the model call (optimistic lock):
    * `conflict` when another turn of this problem was saved meanwhile (two devices). Then the tutor

@@ -2,7 +2,7 @@
 // Problems are retyped from the outline; answers were checked by hand (and SymPy where it applies).
 // Not here yet: image cases (9.9; 9.11 runs as typed text) — real photos stay out of this public repo;
 // tool cases (9.16, 9.21, 9.23–9.25, math_check in 6.9) wait for G4; 9.19 (knowledge layer) waits for G5.
-import type { Msg, TurnStateBlock } from "@/lib/tutor/assemble";
+import type { Turn as Msg, TurnStateBlock } from "@/lib/tutor/assemble";
 import type { CheckSpec } from "./checks";
 
 export interface EvalCase {
