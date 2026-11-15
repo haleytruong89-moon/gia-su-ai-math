@@ -16,6 +16,9 @@ const serverSchema = publicSchema.extend({
   TUTOR_FAKE_MODEL: z.literal("1").optional(),
   // Required from G4 (cas) and G7 (notify, cron); G1 runs without them.
   CAS_URL: z.string().url().optional(),
+  // Injected by the Vercel service binding to the private cas service (vercel.json). Never set it by hand:
+  // a user-defined variable with this name overrides the binding.
+  CAS_SERVICE_URL: z.string().url().optional(),
   CAS_SECRET: z.string().min(1).optional(),
   LAUNCHER_URL: z.string().url().optional(),
   TUTOR_NOTIFY_SECRET: z.string().min(1).optional(),
@@ -33,3 +36,8 @@ export const publicEnv = () => publicSchema.parse({
   NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
 });
 export const serverEnv = () => parseServerEnv(process.env);
+
+/** Where math_check lives: an explicit CAS_URL (local dev, CI, fallback project) wins over the Vercel binding. */
+export function casUrl(env: ServerEnv): string | null {
+  return env.CAS_URL ?? env.CAS_SERVICE_URL ?? null;
+}

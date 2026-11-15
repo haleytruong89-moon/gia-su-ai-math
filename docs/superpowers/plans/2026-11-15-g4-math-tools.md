@@ -28,7 +28,7 @@
 - BO_TEST 9.16, 9.21, 9.22, 9.23, 9.24, 9.25, 6.9
 - Docs Vercel Services: `vercel.com/docs/services`, `vercel.com/kb/guide/full-stack-preview-deployments-on-vercel` (đọc 15/11/2026)
 
-## Quyết định cần phụ huynh xác nhận (đề xuất ✅ = plan viết theo hướng này)
+## Quyết định (phụ huynh chốt 15/11/2026: Q1–Q4 theo đề xuất ✅)
 
 | # | Câu hỏi | Đề xuất | Lý do |
 |---|---|---|---|

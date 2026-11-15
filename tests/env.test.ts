@@ -1,6 +1,6 @@
 // tests/env.test.ts
 import { describe, expect, it } from "vitest";
-import { parseServerEnv } from "@/lib/env";
+import { casUrl, parseServerEnv } from "@/lib/env";
 
 const base = {
   NEXT_PUBLIC_SUPABASE_URL: "https://x.supabase.co", NEXT_PUBLIC_SUPABASE_ANON_KEY: "anon",
@@ -28,5 +28,11 @@ describe("server env", () => {
     const e = parseServerEnv(base);
     expect(e.TUTOR_MODEL_STRONG).toBe("claude-opus-5-5");
     expect(e.TUTOR_FAKE_MODEL).toBeUndefined();
+  });
+  it("cas URL: CAS_URL wins, else the Vercel binding, else none", () => {
+    expect(casUrl(parseServerEnv({ ...base, CAS_SERVICE_URL: "https://b.example" }))).toBe("https://cas.internal");
+    const { CAS_URL: _d, ...noUrl } = base;
+    expect(casUrl(parseServerEnv({ ...noUrl, CAS_SERVICE_URL: "https://b.example" }))).toBe("https://b.example");
+    expect(casUrl(parseServerEnv(noUrl))).toBeNull();
   });
 });

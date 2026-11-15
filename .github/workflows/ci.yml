@@ -71,6 +71,17 @@ jobs:
           echo "SUPABASE_SERVICE_ROLE_KEY=$(get SERVICE_ROLE_KEY)" >> "$GITHUB_ENV"
           echo "ANTHROPIC_API_KEY=fake-not-used" >> "$GITHUB_ENV"
           echo "NEXT_TELEMETRY_DISABLED=1" >> "$GITHUB_ENV"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Start cas (private math checker, local)
+        run: |
+          pip install -q -r cas/requirements.txt uvicorn
+          secret="ci-$(openssl rand -hex 16)"
+          echo "CAS_SECRET=$secret" >> "$GITHUB_ENV"
+          echo "CAS_URL=http://127.0.0.1:8100" >> "$GITHUB_ENV"
+          (cd cas && CAS_SECRET="$secret" nohup uvicorn app.main:app --port 8100 > "$RUNNER_TEMP/cas.log" 2>&1 &)
+          for i in $(seq 1 30); do curl -fs http://127.0.0.1:8100/health && break; sleep 1; done
       - run: npx playwright install --with-deps chromium
       - run: npm run build
       - name: Run end-to-end tests
