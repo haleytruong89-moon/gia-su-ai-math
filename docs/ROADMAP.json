@@ -2,20 +2,55 @@
   "schema": 1,
   "project": "Gia sư AI Toán",
   "updated": "2026-11-16",
-  "updatedNote": "G4 PR A (#9) đã merge; PR B (#10) mở; thêm bản đồ lộ trình",
+  "updatedNote": "G4 xong: #10 và #11 đã merge; tiếp theo G5",
   "vision": {
     "oneLiner": "Một \"cô\" gia sư AI giúp 2 con tự học Toán buổi chiều: gỡ chỗ kẹt bằng câu hỏi gợi mở, không đưa lời giải bài gốc, tối bố mẹ đọc báo cáo 5 phút.",
     "problem": "Buổi chiều 2 con có nhiều thời gian tự học nhưng không có người lớn. Bố mẹ có khoảng 2 giờ buổi tối, gia sư người 2 buổi/tuần. Tốc độ tiến bộ do giờ tự học buổi chiều quyết định.",
     "users": [
-      { "who": "HS-9A (lớp 9)", "when": "Buổi chiều, một mình", "devices": "iPad, Boox, laptop", "focus": "Ôn vào 10: rút gọn, đồng dạng, hệ phương trình, hình chứng minh" },
-      { "who": "HS-6A (lớp 6)", "when": "Buổi chiều, một mình", "devices": "iPad, Boox, laptop", "focus": "Số học lớp 6: ƯCLN/BCNN, phân số, hình cơ bản" },
-      { "who": "Bố mẹ", "when": "Buổi tối, 5 phút", "devices": "iPhone, laptop", "focus": "Đọc báo cáo, góp ý thành luật dạy, giữ trần chi phí" },
-      { "who": "Gia sư người", "when": "2 buổi/tuần", "devices": "Không có tài khoản", "focus": "Xem bài để dành, bài hình chờ xem (bố mẹ chia sẻ)" }
+      {
+        "who": "HS-9A (lớp 9)",
+        "when": "Buổi chiều, một mình",
+        "devices": "iPad, Boox, laptop",
+        "focus": "Ôn vào 10: rút gọn, đồng dạng, hệ phương trình, hình chứng minh"
+      },
+      {
+        "who": "HS-6A (lớp 6)",
+        "when": "Buổi chiều, một mình",
+        "devices": "iPad, Boox, laptop",
+        "focus": "Số học lớp 6: ƯCLN/BCNN, phân số, hình cơ bản"
+      },
+      {
+        "who": "Bố mẹ",
+        "when": "Buổi tối, 5 phút",
+        "devices": "iPhone, laptop",
+        "focus": "Đọc báo cáo, góp ý thành luật dạy, giữ trần chi phí"
+      },
+      {
+        "who": "Gia sư người",
+        "when": "2 buổi/tuần",
+        "devices": "Không có tài khoản",
+        "focus": "Xem bài để dành, bài hình chờ xem (bố mẹ chia sẻ)"
+      }
     ],
     "flows": [
-      { "id": "F1", "name": "Con hỏi bài", "status": "building", "text": "Con chụp/gõ bài đang kẹt → cô xác nhận đề → hỏi gợi mở theo thang H0–H5 → con tự làm xong, hoặc để dành hỏi thầy." },
-      { "id": "F2", "name": "Bố mẹ cải thiện cô", "status": "planned", "text": "Con chấm cô 1 chạm → tối bố mẹ đọc báo cáo + nhật ký → góp ý thành luật dạy có hiệu lực từ buổi sau." },
-      { "id": "F3", "name": "Gói chủ đề (chẩn đoán → dạy → luyện tăng dần → kiểm lại)", "status": "later", "text": "Bố mẹ đưa chủ đề/đề cương → cô chẩn đoán, dạy phần yếu, luyện tăng dần, kiểm lại sau 7 ngày, báo cáo mức nắm vững. v1 vẫn soạn gói trong hub; đưa vào app ở v1.1." }
+      {
+        "id": "F1",
+        "name": "Con hỏi bài",
+        "status": "building",
+        "text": "Con chụp/gõ bài đang kẹt → cô xác nhận đề → hỏi gợi mở theo thang H0–H5 → con tự làm xong, hoặc để dành hỏi thầy."
+      },
+      {
+        "id": "F2",
+        "name": "Bố mẹ cải thiện cô",
+        "status": "planned",
+        "text": "Con chấm cô 1 chạm → tối bố mẹ đọc báo cáo + nhật ký → góp ý thành luật dạy có hiệu lực từ buổi sau."
+      },
+      {
+        "id": "F3",
+        "name": "Gói chủ đề (chẩn đoán → dạy → luyện tăng dần → kiểm lại)",
+        "status": "later",
+        "text": "Bố mẹ đưa chủ đề/đề cương → cô chẩn đoán, dạy phần yếu, luyện tăng dần, kiểm lại sau 7 ngày, báo cáo mức nắm vững. v1 vẫn soạn gói trong hub; đưa vào app ở v1.1."
+      }
     ],
     "principles": [
       "Không lộ lời giải bài gốc trước khi con nộp bài của mình",
@@ -40,11 +75,46 @@
   "architecture": {
     "summary": "Chạy dưới địa chỉ Study Launcher (/gia-su): con không đăng nhập lại. Một project Vercel có 2 service: web (Next.js) và cas (Python + SymPy, riêng tư). Dữ liệu trong Supabase của Launcher, schema tutor; SQL nằm ở repo Launcher.",
     "layers": [
-      { "name": "Trình duyệt con / bố mẹ", "items": ["Launcher → Góc học tập → thẻ \"Cô gia sư Toán\"", "Màn hỏi bài: chat, nút, ảnh", "Trang bố mẹ: hồ sơ dạy học, kiểm máy tính"] },
-      { "name": "web (Next.js 16, /gia-su)", "items": ["Route máy chủ: bắt đầu bài, lượt, để dành", "Luật thuần: mức gợi ý, nản, kết cục, chọn model, cổng tự làm xong", "Vòng công cụ ≤ 3 lần/câu", "Bộ kiểm tra Haiku + câu an toàn"] },
-      { "name": "cas (FastAPI + SymPy, riêng tư)", "items": ["Tương đương, rút gọn hết chưa, giải, thử nghiệm, tính, bất phương trình, điều kiện", "Hệ phương trình 2–3 ẩn, ƯCLN/BCNN"] },
-      { "name": "Supabase (schema tutor)", "items": ["Buổi, bài, tin nhắn, lời gọi model, lời gọi công cụ, chi phí tháng", "Ảnh private (bucket tutor-images)", "Con chỉ đọc qua RLS; mọi ghi qua máy chủ"] },
-      { "name": "Anthropic API", "items": ["Sonnet 5.5: cô chính", "Opus 5.5: khi nản, ≥ H3, bị chặn, cô chưa chắc", "Haiku 5.5: bộ kiểm tra"] }
+      {
+        "name": "Trình duyệt con / bố mẹ",
+        "items": [
+          "Launcher → Góc học tập → thẻ \"Cô gia sư Toán\"",
+          "Màn hỏi bài: chat, nút, ảnh",
+          "Trang bố mẹ: hồ sơ dạy học, kiểm máy tính"
+        ]
+      },
+      {
+        "name": "web (Next.js 16, /gia-su)",
+        "items": [
+          "Route máy chủ: bắt đầu bài, lượt, để dành",
+          "Luật thuần: mức gợi ý, nản, kết cục, chọn model, cổng tự làm xong",
+          "Vòng công cụ ≤ 3 lần/câu",
+          "Bộ kiểm tra Haiku + câu an toàn"
+        ]
+      },
+      {
+        "name": "cas (FastAPI + SymPy, riêng tư)",
+        "items": [
+          "Tương đương, rút gọn hết chưa, giải, thử nghiệm, tính, bất phương trình, điều kiện",
+          "Hệ phương trình 2–3 ẩn, ƯCLN/BCNN"
+        ]
+      },
+      {
+        "name": "Supabase (schema tutor)",
+        "items": [
+          "Buổi, bài, tin nhắn, lời gọi model, lời gọi công cụ, chi phí tháng",
+          "Ảnh private (bucket tutor-images)",
+          "Con chỉ đọc qua RLS; mọi ghi qua máy chủ"
+        ]
+      },
+      {
+        "name": "Anthropic API",
+        "items": [
+          "Sonnet 5.5: cô chính",
+          "Opus 5.5: khi nản, ≥ H3, bị chặn, cô chưa chắc",
+          "Haiku 5.5: bộ kiểm tra"
+        ]
+      }
     ],
     "turn": [
       "Xác định con (từ phiên), kiểm bài thuộc con",
@@ -60,202 +130,709 @@
   },
   "slices": [
     {
-      "id": "G0", "title": "Bộ test sư phạm, chọn model", "status": "done", "done": "2026-11-15",
+      "id": "G0",
+      "title": "Bộ test sư phạm, chọn model",
+      "status": "done",
+      "done": "2026-11-15",
       "goal": "Chạy cùng bộ tình huống trên Haiku/Sonnet/Opus, chấm tự động, chọn model.",
       "features": [
-        { "name": "Nút GitHub \"Bộ test sư phạm (G0)\", kết quả vào nhánh eval-results", "status": "done" },
-        { "name": "Chấm: lộ đáp số (cả trong nút), số dòng, cờ, kết quả bài + Haiku chấm phụ", "status": "done" },
-        { "name": "Ca có ảnh (9.9, 9.11) và ca công cụ (9.16, 9.21, 9.23–9.25, 6.9)", "status": "done" },
-        { "name": "Chạy lại trên Sonnet + Opus sau G2–G4", "status": "todo" }
+        {
+          "name": "Nút GitHub \"Bộ test sư phạm (G0)\", kết quả vào nhánh eval-results",
+          "status": "done"
+        },
+        {
+          "name": "Chấm: lộ đáp số (cả trong nút), số dòng, cờ, kết quả bài + Haiku chấm phụ",
+          "status": "done"
+        },
+        {
+          "name": "Ca có ảnh (9.9, 9.11) và ca công cụ (9.16, 9.21, 9.23–9.25, 6.9)",
+          "status": "done"
+        },
+        {
+          "name": "Chạy lại trên Sonnet + Opus sau G2–G4",
+          "status": "todo"
+        }
       ],
-      "acceptance": ["Bảng kết quả + chọn model (Sonnet chính, Opus theo dấu hiệu)"],
-      "prs": [{ "repo": "gia-su", "number": 2, "status": "merged" }, { "repo": "gia-su", "number": 3, "status": "merged" }, { "repo": "gia-su", "number": 4, "status": "merged" }, { "repo": "gia-su", "number": 5, "status": "merged" }],
+      "acceptance": [
+        "Bảng kết quả + chọn model (Sonnet chính, Opus theo dấu hiệu)"
+      ],
+      "prs": [
+        {
+          "repo": "gia-su",
+          "number": 2,
+          "status": "merged"
+        },
+        {
+          "repo": "gia-su",
+          "number": 3,
+          "status": "merged"
+        },
+        {
+          "repo": "gia-su",
+          "number": 4,
+          "status": "merged"
+        },
+        {
+          "repo": "gia-su",
+          "number": 5,
+          "status": "merged"
+        }
+      ],
       "notes": "Lần chạy 4: Sonnet 21/28 lộ 0, Opus 23/28 lộ 0, Haiku lộ 1 → Haiku không trả lời con."
     },
     {
-      "id": "L-0", "title": "Schema tutor bên Launcher", "status": "done", "done": "2026-11-14",
+      "id": "L-0",
+      "title": "Schema tutor bên Launcher",
+      "status": "done",
+      "done": "2026-11-14",
       "goal": "16 bảng + RLS trong Supabase của Launcher.",
-      "features": [{ "name": "SQL 0017 + test RLS", "status": "done" }],
-      "acceptance": ["CI Launcher xanh; phụ huynh merge"],
-      "prs": [{ "repo": "launcher", "number": 75, "status": "merged" }],
-      "sql": ["0017_tutor_schema.sql"]
+      "features": [
+        {
+          "name": "SQL 0017 + test RLS",
+          "status": "done"
+        }
+      ],
+      "acceptance": [
+        "CI Launcher xanh; phụ huynh merge"
+      ],
+      "prs": [
+        {
+          "repo": "launcher",
+          "number": 75,
+          "status": "merged"
+        }
+      ],
+      "sql": [
+        "0017_tutor_schema.sql"
+      ]
     },
     {
-      "id": "G1", "title": "Khung app chạy xuyên suốt", "status": "done", "done": "2026-11-15",
+      "id": "G1",
+      "title": "Khung app chạy xuyên suốt",
+      "status": "done",
+      "done": "2026-11-15",
       "goal": "Con đăng nhập qua Launcher, gõ đề, cô xác nhận đề.",
       "features": [
-        { "name": "Next.js dưới /gia-su, đọc phiên Launcher", "status": "done" },
-        { "name": "Con chọn chỗ kẹt + gõ đề → cô xác nhận đề", "status": "done" },
-        { "name": "Ghi buổi, bài, tin nhắn, lời gọi model, chi phí tháng", "status": "done" },
-        { "name": "Trang Hồ sơ dạy học cho bố mẹ", "status": "done" }
+        {
+          "name": "Next.js dưới /gia-su, đọc phiên Launcher",
+          "status": "done"
+        },
+        {
+          "name": "Con chọn chỗ kẹt + gõ đề → cô xác nhận đề",
+          "status": "done"
+        },
+        {
+          "name": "Ghi buổi, bài, tin nhắn, lời gọi model, chi phí tháng",
+          "status": "done"
+        },
+        {
+          "name": "Trang Hồ sơ dạy học cho bố mẹ",
+          "status": "done"
+        }
       ],
-      "acceptance": ["Con thật vào từ Launcher không đăng nhập lại, nhận lượt xác nhận đề"],
-      "prs": [{ "repo": "gia-su", "number": 1, "status": "merged" }]
+      "acceptance": [
+        "Con thật vào từ Launcher không đăng nhập lại, nhận lượt xác nhận đề"
+      ],
+      "prs": [
+        {
+          "repo": "gia-su",
+          "number": 1,
+          "status": "merged"
+        }
+      ]
     },
     {
-      "id": "L-1", "title": "Cửa vào trong Góc học tập", "status": "done", "done": "2026-11-15",
+      "id": "L-1",
+      "title": "Cửa vào trong Góc học tập",
+      "status": "done",
+      "done": "2026-11-15",
       "goal": "Launcher chuyển tiếp /gia-su; thẻ \"Cô gia sư Toán\" + nút \"Em kẹt bài này? Hỏi cô\".",
-      "features": [{ "name": "Rewrite /gia-su + 2 cửa vào", "status": "done" }],
-      "acceptance": ["Bấm thẻ mở được gia sư, không đăng nhập lại"],
-      "prs": [{ "repo": "launcher", "number": 77, "status": "merged" }]
+      "features": [
+        {
+          "name": "Rewrite /gia-su + 2 cửa vào",
+          "status": "done"
+        }
+      ],
+      "acceptance": [
+        "Bấm thẻ mở được gia sư, không đăng nhập lại"
+      ],
+      "prs": [
+        {
+          "repo": "launcher",
+          "number": 77,
+          "status": "merged"
+        }
+      ]
     },
     {
-      "id": "G2", "title": "Luật máy chủ", "status": "done", "done": "2026-11-15",
+      "id": "G2",
+      "title": "Luật máy chủ",
+      "status": "done",
+      "done": "2026-11-15",
       "goal": "Máy chủ tính mức gợi ý, nản, chọn model; bộ kiểm tra Haiku chấm mọi câu.",
       "features": [
-        { "name": "Mức gợi ý H0–H5; nản (gõ ngắn 2 lần / \"Chưa hiểu\" 3 lần) → H4", "status": "done" },
-        { "name": "Chọn model mỗi lượt: Sonnet → Opus theo dấu hiệu; ~45 USD tạm ngừng Opus", "status": "done" },
-        { "name": "Bộ kiểm tra Haiku, viết lại 1 lần, câu an toàn", "status": "done" },
-        { "name": "Nút \"Chưa hiểu\", \"Để dành hỏi thầy\", đánh dấu bài làm cuối", "status": "done" },
-        { "name": "Tối đa 20 lượt/bài, chống gửi trùng", "status": "done" },
-        { "name": "e2e Playwright trên Supabase tạm + model giả", "status": "done" }
+        {
+          "name": "Mức gợi ý H0–H5; nản (gõ ngắn 2 lần / \"Chưa hiểu\" 3 lần) → H4",
+          "status": "done"
+        },
+        {
+          "name": "Chọn model mỗi lượt: Sonnet → Opus theo dấu hiệu; ~45 USD tạm ngừng Opus",
+          "status": "done"
+        },
+        {
+          "name": "Bộ kiểm tra Haiku, viết lại 1 lần, câu an toàn",
+          "status": "done"
+        },
+        {
+          "name": "Nút \"Chưa hiểu\", \"Để dành hỏi thầy\", đánh dấu bài làm cuối",
+          "status": "done"
+        },
+        {
+          "name": "Tối đa 20 lượt/bài, chống gửi trùng",
+          "status": "done"
+        },
+        {
+          "name": "e2e Playwright trên Supabase tạm + model giả",
+          "status": "done"
+        }
       ],
-      "acceptance": ["DOMAIN §4.1–4.4, §4.14 có test theo ví dụ chuẩn", "e2e xanh"],
-      "prs": [{ "repo": "launcher", "number": 80, "status": "merged" }, { "repo": "gia-su", "number": 6, "status": "merged" }, { "repo": "gia-su", "number": 7, "status": "merged" }],
-      "sql": ["0018_tutor_g2.sql"]
+      "acceptance": [
+        "DOMAIN §4.1–4.4, §4.14 có test theo ví dụ chuẩn",
+        "e2e xanh"
+      ],
+      "prs": [
+        {
+          "repo": "launcher",
+          "number": 80,
+          "status": "merged"
+        },
+        {
+          "repo": "gia-su",
+          "number": 6,
+          "status": "merged"
+        },
+        {
+          "repo": "gia-su",
+          "number": 7,
+          "status": "merged"
+        }
+      ],
+      "sql": [
+        "0018_tutor_g2.sql"
+      ]
     },
     {
-      "id": "G3", "title": "Ảnh đề + ảnh bài làm", "status": "done", "done": "2026-11-15",
+      "id": "G3",
+      "title": "Ảnh đề + ảnh bài làm",
+      "status": "done",
+      "done": "2026-11-15",
       "goal": "Con chụp/chọn ảnh đề và ảnh bài làm; xóa vị trí GPS, thu nhỏ, lưu riêng tư.",
       "features": [
-        { "name": "Chụp hoặc chọn ảnh đề (≤ 3 thao tác)", "status": "done" },
-        { "name": "Ảnh bài làm giữa bài, tối đa 4 ảnh/bài", "status": "done" },
-        { "name": "Xóa EXIF/GPS, thu về ≤ 1568 px, Storage private", "status": "done" },
-        { "name": "Cô đọc sai đề → chụp lại mở bài mới", "status": "done" }
+        {
+          "name": "Chụp hoặc chọn ảnh đề (≤ 3 thao tác)",
+          "status": "done"
+        },
+        {
+          "name": "Ảnh bài làm giữa bài, tối đa 4 ảnh/bài",
+          "status": "done"
+        },
+        {
+          "name": "Xóa EXIF/GPS, thu về ≤ 1568 px, Storage private",
+          "status": "done"
+        },
+        {
+          "name": "Cô đọc sai đề → chụp lại mở bài mới",
+          "status": "done"
+        }
       ],
-      "acceptance": ["US1", "Ca 9.9, 9.11"],
-      "prs": [{ "repo": "launcher", "number": 81, "status": "merged" }, { "repo": "gia-su", "number": 8, "status": "merged" }],
-      "sql": ["0019_tutor_images.sql"]
+      "acceptance": [
+        "US1",
+        "Ca 9.9, 9.11"
+      ],
+      "prs": [
+        {
+          "repo": "launcher",
+          "number": 81,
+          "status": "merged"
+        },
+        {
+          "repo": "gia-su",
+          "number": 8,
+          "status": "merged"
+        }
+      ],
+      "sql": [
+        "0019_tutor_images.sql"
+      ]
     },
     {
-      "id": "G4", "title": "Máy tính đại số, \"tự làm xong\", bài anh em", "status": "in_progress",
+      "id": "G4",
+      "title": "Máy tính đại số, \"tự làm xong\", bài anh em",
+      "status": "done",
       "goal": "Cô kiểm phép tính bằng máy trước khi nói đúng/sai; chỉ công nhận tự làm xong khi máy xác nhận; ở H4 giải bài anh em đã kiểm.",
       "features": [
-        { "name": "cas chạy riêng tư trên Vercel Services + trang kiểm cho bố mẹ", "status": "done" },
-        { "name": "cas: hệ phương trình, thử nghiệm, ƯCLN/BCNN", "status": "review" },
-        { "name": "Vòng công cụ ≤ 3 lần/câu (math_check, make_sibling)", "status": "review" },
-        { "name": "Cổng \"tự làm xong\": đã nộp + máy xác nhận + rút gọn hết + lớp 9 có checklist", "status": "review" },
-        { "name": "Bài anh em: máy kiểm đáp số, số khác đề gốc; sau đó vẫn sai → H5", "status": "review" },
-        { "name": "Bộ kiểm tra thấy kết quả máy tính", "status": "review" }
+        {
+          "name": "cas chạy riêng tư trên Vercel Services + trang kiểm cho bố mẹ",
+          "status": "done"
+        },
+        {
+          "name": "cas: hệ phương trình, thử nghiệm, ƯCLN/BCNN",
+          "status": "done"
+        },
+        {
+          "name": "Vòng công cụ ≤ 3 lần/câu (math_check, make_sibling)",
+          "status": "done"
+        },
+        {
+          "name": "Cổng \"tự làm xong\": đã nộp + máy xác nhận + rút gọn hết + lớp 9 có checklist",
+          "status": "done"
+        },
+        {
+          "name": "Bài anh em: máy kiểm đáp số, số khác đề gốc; sau đó vẫn sai → H5",
+          "status": "done"
+        },
+        {
+          "name": "Bộ kiểm tra thấy kết quả máy tính",
+          "status": "done"
+        }
       ],
-      "acceptance": ["DOMAIN §4.12 a–c", "Ca 9.16, 9.21, 9.23–9.25, 6.9 trên model thật"],
-      "prs": [{ "repo": "gia-su", "number": 9, "status": "merged" }, { "repo": "gia-su", "number": 10, "status": "open" }],
-      "notes": "Rủi ro cần G0 xác nhận: công cụ + khuôn JSON + suy nghĩ trong cùng lời gọi."
+      "acceptance": [
+        "DOMAIN §4.12 a–c",
+        "Ca 9.16, 9.21, 9.23–9.25, 6.9 trên model thật"
+      ],
+      "prs": [
+        {
+          "repo": "gia-su",
+          "number": 9,
+          "status": "merged"
+        },
+        {
+          "repo": "gia-su",
+          "number": 10,
+          "status": "merged"
+        }
+      ],
+      "notes": "Còn kiểm trên model thật: chạy G0 các ca công cụ (công cụ + khuôn JSON + suy nghĩ trong cùng lời gọi).",
+      "done": "2026-11-16"
     },
     {
-      "id": "G5", "title": "Kho kiến thức + dạy bù nền", "status": "next",
+      "id": "G5",
+      "title": "Kho kiến thức + dạy bù nền",
+      "status": "next",
       "goal": "Cô tra được bản đồ chương trình và hộp công cụ; nhận ra lỗ hổng lớp dưới và dạy bù ngắn.",
       "features": [
-        { "name": "knowledge/*.json sinh từ md đã duyệt trong hub (D25)", "status": "todo" },
-        { "name": "Công cụ lookup thẻ kiến thức", "status": "todo" },
-        { "name": "Haiku phân loại dạng bài (ku_code)", "status": "todo" },
-        { "name": "Dạy bù nền ≤ 2 lượt, ghi prereq_gaps", "status": "todo" },
-        { "name": "Checklist theo dạng bài cho lớp 6", "status": "todo" },
-        { "name": "Opus cho hình chứng minh lớp 9 và ý chặn đề vào 10", "status": "todo" }
+        {
+          "name": "knowledge/*.json sinh từ md đã duyệt trong hub (D25)",
+          "status": "todo"
+        },
+        {
+          "name": "Công cụ lookup thẻ kiến thức",
+          "status": "todo"
+        },
+        {
+          "name": "Haiku phân loại dạng bài (ku_code)",
+          "status": "todo"
+        },
+        {
+          "name": "Dạy bù nền ≤ 2 lượt, ghi prereq_gaps",
+          "status": "todo"
+        },
+        {
+          "name": "Checklist theo dạng bài cho lớp 6",
+          "status": "todo"
+        },
+        {
+          "name": "Opus cho hình chứng minh lớp 9 và ý chặn đề vào 10",
+          "status": "todo"
+        }
       ],
-      "acceptance": ["US14, US16", "Ca 9.17–9.19", "check-knowledge trong CI"],
-      "depends": ["G4"]
+      "acceptance": [
+        "US14, US16",
+        "Ca 9.17–9.19",
+        "check-knowledge trong CI"
+      ],
+      "depends": [
+        "G4"
+      ]
     },
     {
-      "id": "G6", "title": "Ôn cách quãng đầu buổi", "status": "planned",
+      "id": "G6",
+      "title": "Ôn cách quãng đầu buổi",
+      "status": "planned",
       "goal": "Đầu buổi ôn lại tối đa 2 chỗ từng vướng; lịch 1 → 3 → 7 ngày.",
-      "features": [{ "name": "Câu ôn, nút \"Để sau\", đúng 3 lần liền thì thôi", "status": "todo" }],
-      "acceptance": ["US15", "DOMAIN §4.11 a–f"],
-      "depends": ["G5"]
+      "features": [
+        {
+          "name": "Câu ôn, nút \"Để sau\", đúng 3 lần liền thì thôi",
+          "status": "todo"
+        }
+      ],
+      "acceptance": [
+        "US15",
+        "DOMAIN §4.11 a–f"
+      ],
+      "depends": [
+        "G5"
+      ]
     },
     {
-      "id": "G7", "title": "Báo cáo bố mẹ + góp ý thành luật dạy", "status": "planned",
+      "id": "G7",
+      "title": "Báo cáo bố mẹ + góp ý thành luật dạy",
+      "status": "planned",
       "goal": "Tối bố mẹ đọc báo cáo 5 phút, góp ý thành luật dạy; báo chi phí.",
       "features": [
-        { "name": "Con chấm cô 1 chạm", "status": "todo" },
-        { "name": "Báo cáo tối gộp 2 con, cờ ⚠️, kiến thức nền bị hổng, ý chặn", "status": "todo" },
-        { "name": "Góp ý → luật dạy (đề xuất → duyệt → hiệu lực buổi sau)", "status": "todo" },
-        { "name": "Lời giải tham khảo sau khi con tự làm xong (Q3 G4)", "status": "todo" },
-        { "name": "Báo khi máy tính lỗi ≥ 2 lần/ngày; báo khi ~45 USD", "status": "todo" },
-        { "name": "L-2 thông báo đẩy qua Launcher; L-3 thẻ \"Xem gộp\"", "status": "todo" }
+        {
+          "name": "Con chấm cô 1 chạm",
+          "status": "todo"
+        },
+        {
+          "name": "Báo cáo tối gộp 2 con, cờ ⚠️, kiến thức nền bị hổng, ý chặn",
+          "status": "todo"
+        },
+        {
+          "name": "Góp ý → luật dạy (đề xuất → duyệt → hiệu lực buổi sau)",
+          "status": "todo"
+        },
+        {
+          "name": "Lời giải tham khảo sau khi con tự làm xong (Q3 G4)",
+          "status": "todo"
+        },
+        {
+          "name": "Báo khi máy tính lỗi ≥ 2 lần/ngày; báo khi ~45 USD",
+          "status": "todo"
+        },
+        {
+          "name": "L-2 thông báo đẩy qua Launcher; L-3 thẻ \"Xem gộp\"",
+          "status": "todo"
+        }
       ],
-      "acceptance": ["US6–US8, US12", "DOMAIN §4.5, §4.7"],
-      "depends": ["G2"]
+      "acceptance": [
+        "US6–US8, US12",
+        "DOMAIN §4.5, §4.7"
+      ],
+      "depends": [
+        "G2"
+      ]
     },
     {
-      "id": "G8", "title": "Boox, xóa dữ liệu, trang tuần cho gia sư", "status": "planned",
+      "id": "G8",
+      "title": "Boox, xóa dữ liệu, trang tuần cho gia sư",
+      "status": "planned",
       "goal": "Dùng tốt trên Boox e-ink; bố mẹ xóa được dữ liệu; tự dọn ảnh; gia sư người xem điểm nghẽn tuần.",
       "features": [
-        { "name": "Chế độ e-ink (không animation, nút ≥ 48px, phân trang)", "status": "todo" },
-        { "name": "Xóa dữ liệu theo yêu cầu, cron dọn ảnh quá hạn", "status": "todo" },
-        { "name": "Trang tuần lọc theo con, gốc lỗi, dạng bài", "status": "todo" }
+        {
+          "name": "Chế độ e-ink (không animation, nút ≥ 48px, phân trang)",
+          "status": "todo"
+        },
+        {
+          "name": "Xóa dữ liệu theo yêu cầu, cron dọn ảnh quá hạn",
+          "status": "todo"
+        },
+        {
+          "name": "Trang tuần lọc theo con, gốc lỗi, dạng bài",
+          "status": "todo"
+        }
       ],
-      "acceptance": ["US10, US11", "DOMAIN §4.8"],
-      "depends": ["G7"]
+      "acceptance": [
+        "US10, US11",
+        "DOMAIN §4.8"
+      ],
+      "depends": [
+        "G7"
+      ]
     },
     {
-      "id": "G9", "title": "Chạy toàn bộ test → mở cho 2 con", "status": "planned",
+      "id": "G9",
+      "title": "Chạy toàn bộ test → mở cho 2 con",
+      "status": "planned",
       "goal": "Toàn bộ bộ test sư phạm đạt trên model đã chọn rồi mới cho 2 con dùng thật, bắt đầu thí điểm 2 tuần.",
-      "features": [{ "name": "0 lộ lời giải; tiêu chí BO_TEST §1", "status": "todo" }, { "name": "Thí điểm 2 tuần + go/no-go", "status": "todo" }],
-      "acceptance": ["0 lộ lời giải bài gốc", "Tiêu chí go/no-go"],
-      "depends": ["G4", "G5", "G6", "G7", "G8"]
+      "features": [
+        {
+          "name": "0 lộ lời giải; tiêu chí BO_TEST §1",
+          "status": "todo"
+        },
+        {
+          "name": "Thí điểm 2 tuần + go/no-go",
+          "status": "todo"
+        }
+      ],
+      "acceptance": [
+        "0 lộ lời giải bài gốc",
+        "Tiêu chí go/no-go"
+      ],
+      "depends": [
+        "G4",
+        "G5",
+        "G6",
+        "G7",
+        "G8"
+      ]
     },
     {
-      "id": "v1.1", "title": "Sau v1", "status": "later",
+      "id": "v1.1",
+      "title": "Sau v1",
+      "status": "later",
       "goal": "Những việc đã bàn nhưng để sau thí điểm.",
       "features": [
-        { "name": "Gói chủ đề trong app: chẩn đoán → dạy → luyện 4 mức → kiểm lại D+7 (luồng 3)", "status": "todo" },
-        { "name": "Mức nắm vững M0–M4 trong app", "status": "todo" },
-        { "name": "Vẽ hình (C2)", "status": "todo" },
-        { "name": "Thêm môn trong cùng app: Anh, Văn, KHTN", "status": "todo" }
+        {
+          "name": "Gói chủ đề trong app: chẩn đoán → dạy → luyện 4 mức → kiểm lại D+7 (luồng 3)",
+          "status": "todo"
+        },
+        {
+          "name": "Mức nắm vững M0–M4 trong app",
+          "status": "todo"
+        },
+        {
+          "name": "Vẽ hình (C2)",
+          "status": "todo"
+        },
+        {
+          "name": "Thêm môn trong cùng app: Anh, Văn, KHTN",
+          "status": "todo"
+        }
       ],
       "acceptance": [],
-      "depends": ["G9"]
+      "depends": [
+        "G9"
+      ]
     }
   ],
   "decisions": [
-    { "id": "T1", "text": "Gửi ảnh/bài làm/câu trả lời sang Anthropic API; không gửi họ tên, trường", "status": "confirmed", "date": "2026-11-14" },
-    { "id": "T2", "text": "Chung Supabase study-launcher, schema riêng tutor", "status": "confirmed", "date": "2026-11-14" },
-    { "id": "T3", "text": "Repo riêng, deploy riêng trên Vercel (sin1)", "status": "confirmed", "date": "2026-11-14" },
-    { "id": "D8", "text": "Trần 50 USD/tháng; Sonnet chính, Haiku kiểm tra, Opus phần khó", "status": "confirmed", "date": "2026-11-15" },
-    { "id": "D10", "text": "Con nản → nhảy thẳng H4 (bài anh em)", "status": "confirmed", "date": "2026-11-14" },
-    { "id": "D11", "text": "Buổi 30–45 phút, nhiều bài", "status": "confirmed", "date": "2026-11-14" },
-    { "id": "D12", "text": "Không giới hạn giờ/buổi/ngày, chỉ trần tháng", "status": "confirmed", "date": "2026-11-14" },
-    { "id": "D15", "text": "Tối đa 20 lượt/bài; lượt 18 cô đề nghị để dành", "status": "confirmed", "date": "2026-11-14" },
-    { "id": "D18", "text": "Bài chứng minh hình nộp xong → chờ thầy xem", "status": "confirmed", "date": "2026-11-14" },
-    { "id": "D19", "text": "API key + workspace riêng (key hết hạn 31/10/2027)", "status": "confirmed", "date": "2026-11-14" },
-    { "id": "D20", "text": "Chạy dưới địa chỉ Launcher /gia-su", "status": "confirmed", "date": "2026-11-14" },
-    { "id": "D21", "text": "SQL schema tutor nằm ở repo Launcher", "status": "confirmed", "date": "2026-11-14" },
-    { "id": "D22", "text": "Mở schema tutor cho Data API; con chỉ đọc", "status": "confirmed", "date": "2026-11-14" },
-    { "id": "D23", "text": "Thông báo đẩy cho bố mẹ qua route nội bộ của Launcher", "status": "proposed", "date": "2026-11-14" },
-    { "id": "D24", "text": "Máy tính đại số Python + SymPy, riêng tư, Vercel Services", "status": "confirmed", "date": "2026-11-15" },
-    { "id": "D25", "text": "Kho kiến thức knowledge/*.json sinh từ md đã duyệt trong hub", "status": "proposed", "date": "2026-11-14" },
-    { "id": "D26", "text": "Ôn đầu buổi tối đa 2 câu, lịch 1 → 3 → 7 ngày", "status": "proposed", "date": "2026-11-14" },
-    { "id": "D27", "text": "Gắn nhãn ý đề vào 10 (exam_slot) cho bài luyện", "status": "proposed", "date": "2026-11-14" },
-    { "id": "D28", "text": "Máy chủ chọn model mỗi lượt: Sonnet → Opus theo dấu hiệu, giữ đến hết bài", "status": "confirmed", "date": "2026-11-15" },
-    { "id": "D29", "text": "Không có chế độ tiết kiệm; ~45 USD tạm ngừng Opus + báo bố mẹ", "status": "confirmed", "date": "2026-11-15" },
-    { "id": "G4-Q2", "text": "\"Tự làm xong\" cần máy xác nhận; lớp 9 thêm ≥ 1 mục checklist; lớp 6 chưa bắt", "status": "confirmed", "date": "2026-11-15" },
-    { "id": "G4-Q3", "text": "Lời giải tham khảo sau khi xong → để G7", "status": "confirmed", "date": "2026-11-15" },
-    { "id": "D13", "text": "Gần trần tự chuyển Haiku (bỏ: Haiku lộ đáp số trong G0)", "status": "dropped", "date": "2026-11-15" }
+    {
+      "id": "T1",
+      "text": "Gửi ảnh/bài làm/câu trả lời sang Anthropic API; không gửi họ tên, trường",
+      "status": "confirmed",
+      "date": "2026-11-14"
+    },
+    {
+      "id": "T2",
+      "text": "Chung Supabase study-launcher, schema riêng tutor",
+      "status": "confirmed",
+      "date": "2026-11-14"
+    },
+    {
+      "id": "T3",
+      "text": "Repo riêng, deploy riêng trên Vercel (sin1)",
+      "status": "confirmed",
+      "date": "2026-11-14"
+    },
+    {
+      "id": "D8",
+      "text": "Trần 50 USD/tháng; Sonnet chính, Haiku kiểm tra, Opus phần khó",
+      "status": "confirmed",
+      "date": "2026-11-15"
+    },
+    {
+      "id": "D10",
+      "text": "Con nản → nhảy thẳng H4 (bài anh em)",
+      "status": "confirmed",
+      "date": "2026-11-14"
+    },
+    {
+      "id": "D11",
+      "text": "Buổi 30–45 phút, nhiều bài",
+      "status": "confirmed",
+      "date": "2026-11-14"
+    },
+    {
+      "id": "D12",
+      "text": "Không giới hạn giờ/buổi/ngày, chỉ trần tháng",
+      "status": "confirmed",
+      "date": "2026-11-14"
+    },
+    {
+      "id": "D15",
+      "text": "Tối đa 20 lượt/bài; lượt 18 cô đề nghị để dành",
+      "status": "confirmed",
+      "date": "2026-11-14"
+    },
+    {
+      "id": "D18",
+      "text": "Bài chứng minh hình nộp xong → chờ thầy xem",
+      "status": "confirmed",
+      "date": "2026-11-14"
+    },
+    {
+      "id": "D19",
+      "text": "API key + workspace riêng (key hết hạn 31/10/2027)",
+      "status": "confirmed",
+      "date": "2026-11-14"
+    },
+    {
+      "id": "D20",
+      "text": "Chạy dưới địa chỉ Launcher /gia-su",
+      "status": "confirmed",
+      "date": "2026-11-14"
+    },
+    {
+      "id": "D21",
+      "text": "SQL schema tutor nằm ở repo Launcher",
+      "status": "confirmed",
+      "date": "2026-11-14"
+    },
+    {
+      "id": "D22",
+      "text": "Mở schema tutor cho Data API; con chỉ đọc",
+      "status": "confirmed",
+      "date": "2026-11-14"
+    },
+    {
+      "id": "D23",
+      "text": "Thông báo đẩy cho bố mẹ qua route nội bộ của Launcher",
+      "status": "proposed",
+      "date": "2026-11-14"
+    },
+    {
+      "id": "D24",
+      "text": "Máy tính đại số Python + SymPy, riêng tư, Vercel Services",
+      "status": "confirmed",
+      "date": "2026-11-15"
+    },
+    {
+      "id": "D25",
+      "text": "Kho kiến thức knowledge/*.json sinh từ md đã duyệt trong hub",
+      "status": "proposed",
+      "date": "2026-11-14"
+    },
+    {
+      "id": "D26",
+      "text": "Ôn đầu buổi tối đa 2 câu, lịch 1 → 3 → 7 ngày",
+      "status": "proposed",
+      "date": "2026-11-14"
+    },
+    {
+      "id": "D27",
+      "text": "Gắn nhãn ý đề vào 10 (exam_slot) cho bài luyện",
+      "status": "proposed",
+      "date": "2026-11-14"
+    },
+    {
+      "id": "D28",
+      "text": "Máy chủ chọn model mỗi lượt: Sonnet → Opus theo dấu hiệu, giữ đến hết bài",
+      "status": "confirmed",
+      "date": "2026-11-15"
+    },
+    {
+      "id": "D29",
+      "text": "Không có chế độ tiết kiệm; ~45 USD tạm ngừng Opus + báo bố mẹ",
+      "status": "confirmed",
+      "date": "2026-11-15"
+    },
+    {
+      "id": "G4-Q2",
+      "text": "\"Tự làm xong\" cần máy xác nhận; lớp 9 thêm ≥ 1 mục checklist; lớp 6 chưa bắt",
+      "status": "confirmed",
+      "date": "2026-11-15"
+    },
+    {
+      "id": "G4-Q3",
+      "text": "Lời giải tham khảo sau khi xong → để G7",
+      "status": "confirmed",
+      "date": "2026-11-15"
+    },
+    {
+      "id": "D13",
+      "text": "Gần trần tự chuyển Haiku (bỏ: Haiku lộ đáp số trong G0)",
+      "status": "dropped",
+      "date": "2026-11-15"
+    }
   ],
   "parentTodo": [
-    { "text": "Merge PR #10 (G4 · PR B), không có SQL", "slice": "G4", "status": "open" },
-    { "text": "Sau merge: chạy G0 các ca 9.16, 9.21, 9.23, 9.24, 9.25, 6.9, 9.3, 6.3 trên Sonnet + Opus (~0,3–0,5 USD)", "slice": "G4", "status": "open" },
-    { "text": "Thử tay trên link chính thức: rút gọn 9.16 → nộp → chưa xong → nộp đúng → xong; \"k\", \"ko biết\" → bài anh em", "slice": "G4", "status": "open" },
-    { "text": "Thử G2 (\"Chưa hiểu\", \"Để dành hỏi thầy\") và G3 (ảnh thật trên iPad)", "slice": "G3", "status": "open" },
-    { "text": "Chốt D23, D25, D26, D27", "slice": "G5", "status": "open" },
-    { "text": "Thay API key trên Vercel trước 31/10/2027", "slice": "G9", "status": "open" },
-    { "text": "Đổi Framework Preset = Services, thêm CAS_SECRET, kiểm cas-health", "slice": "G4", "status": "done" }
+    {
+      "text": "Sau merge: chạy G0 các ca 9.16, 9.21, 9.23, 9.24, 9.25, 6.9, 9.3, 6.3 trên Sonnet + Opus (~0,3–0,5 USD)",
+      "slice": "G4",
+      "status": "open"
+    },
+    {
+      "text": "Thử tay trên link chính thức: rút gọn 9.16 → nộp → chưa xong → nộp đúng → xong; \"k\", \"ko biết\" → bài anh em",
+      "slice": "G4",
+      "status": "open"
+    },
+    {
+      "text": "Thử G2 (\"Chưa hiểu\", \"Để dành hỏi thầy\") và G3 (ảnh thật trên iPad)",
+      "slice": "G3",
+      "status": "open"
+    },
+    {
+      "text": "Chốt D23, D25, D26, D27",
+      "slice": "G5",
+      "status": "open"
+    },
+    {
+      "text": "Thay API key trên Vercel trước 31/10/2027",
+      "slice": "G9",
+      "status": "open"
+    },
+    {
+      "text": "Merge PR #10 (G4 · PR B), không có SQL",
+      "slice": "G4",
+      "status": "done"
+    },
+    {
+      "text": "Đổi Framework Preset = Services, thêm CAS_SECRET, kiểm cas-health",
+      "slice": "G4",
+      "status": "done"
+    }
   ],
   "risks": [
-    { "text": "Công cụ + khuôn JSON + chế độ suy nghĩ trong cùng lời gọi chưa thử với model thật", "mitigation": "G0 ca 9.16 ngay sau merge #10; lỗi thì chỉ dùng khuôn JSON ở vòng cuối", "status": "open" },
-    { "text": "Vercel Services đang beta", "mitigation": "Dự phòng: project riêng cho cas + biến CAS_URL (code đã hỗ trợ)", "status": "open" },
-    { "text": "Một lượt có thể chạm hạn 240 s khi có 3 vòng công cụ + bài anh em + viết lại", "mitigation": "Vòng công cụ chỉ chạy khi còn ≥ 70 s, bài anh em khi còn ≥ 90 s", "status": "open" },
-    { "text": "Repo công khai", "mitigation": "Chỉ mã HS-9A/HS-6A, dữ liệu giả; tài liệu thật ở hub riêng tư", "status": "open" }
+    {
+      "text": "Công cụ + khuôn JSON + chế độ suy nghĩ trong cùng lời gọi chưa thử với model thật",
+      "mitigation": "G0 ca 9.16 ngay sau merge #10; lỗi thì chỉ dùng khuôn JSON ở vòng cuối",
+      "status": "open"
+    },
+    {
+      "text": "Vercel Services đang beta",
+      "mitigation": "Dự phòng: project riêng cho cas + biến CAS_URL (code đã hỗ trợ)",
+      "status": "open"
+    },
+    {
+      "text": "Một lượt có thể chạm hạn 240 s khi có 3 vòng công cụ + bài anh em + viết lại",
+      "mitigation": "Vòng công cụ chỉ chạy khi còn ≥ 70 s, bài anh em khi còn ≥ 90 s",
+      "status": "open"
+    },
+    {
+      "text": "Repo công khai",
+      "mitigation": "Chỉ mã HS-9A/HS-6A, dữ liệu giả; tài liệu thật ở hub riêng tư",
+      "status": "open"
+    }
   ],
-  "metrics": { "vitest": 228, "pytest": 20, "e2e": "xanh", "g0": "Lần 4 (15/11): Sonnet 21/28 lộ 0 · Opus 23/28 lộ 0" },
+  "metrics": {
+    "vitest": 232,
+    "pytest": 20,
+    "e2e": "xanh",
+    "g0": "Lần 4 (15/11): Sonnet 21/28 lộ 0 · Opus 23/28 lộ 0"
+  },
   "log": [
-    { "date": "2026-11-14", "text": "Chốt T1–T3, D7–D22; repo công khai; L-0 schema tutor merge" },
-    { "date": "2026-11-15", "text": "G1 + L-1 merge: con vào từ Launcher, gõ đề, cô xác nhận đề" },
-    { "date": "2026-11-15", "text": "G0 chạy 4 lần (sửa schema, sửa token suy nghĩ, prompt v0.3); chốt Sonnet chính + Opus theo dấu hiệu" },
-    { "date": "2026-11-15", "text": "G2 merge: mức gợi ý, nản, chọn model, bộ kiểm tra Haiku, e2e" },
-    { "date": "2026-11-15", "text": "G3 merge: ảnh đề + ảnh bài làm" },
-    { "date": "2026-11-16", "text": "G4 PR A merge: máy tính đại số riêng tư trên Vercel Services" },
-    { "date": "2026-11-16", "text": "G4 PR B mở (#10); thêm bản đồ lộ trình (docs/ROADMAP.json)" }
+    {
+      "date": "2026-11-14",
+      "text": "Chốt T1–T3, D7–D22; repo công khai; L-0 schema tutor merge"
+    },
+    {
+      "date": "2026-11-15",
+      "text": "G1 + L-1 merge: con vào từ Launcher, gõ đề, cô xác nhận đề"
+    },
+    {
+      "date": "2026-11-15",
+      "text": "G0 chạy 4 lần (sửa schema, sửa token suy nghĩ, prompt v0.3); chốt Sonnet chính + Opus theo dấu hiệu"
+    },
+    {
+      "date": "2026-11-15",
+      "text": "G2 merge: mức gợi ý, nản, chọn model, bộ kiểm tra Haiku, e2e"
+    },
+    {
+      "date": "2026-11-15",
+      "text": "G3 merge: ảnh đề + ảnh bài làm"
+    },
+    {
+      "date": "2026-11-16",
+      "text": "G4 PR A merge: máy tính đại số riêng tư trên Vercel Services"
+    },
+    {
+      "date": "2026-11-16",
+      "text": "G4 PR B mở (#10); thêm bản đồ lộ trình (docs/ROADMAP.json)"
+    },
+    {
+      "date": "2026-11-16",
+      "text": "G4 xong: #10 (vòng công cụ, cổng tự làm xong, bài anh em) và #11 (bản đồ lộ trình) đã merge"
+    }
   ]
 }
