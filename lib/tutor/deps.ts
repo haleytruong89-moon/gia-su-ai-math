@@ -3,7 +3,8 @@ import "server-only";
 import { realClient } from "@/lib/anthropic";
 import { getActor } from "@/lib/auth";
 import { supabaseRepo } from "@/lib/db/supabaseRepo";
-import { serverEnv } from "@/lib/env";
+import { casUrl, serverEnv } from "@/lib/env";
+import { httpCas } from "@/lib/tools/casClient";
 import { fakeAllowed, fakeClient } from "@/lib/tutor/fakeClient";
 import { readBody } from "@/lib/tutor/form";
 import type { Deps } from "@/lib/tutor/handlers";
@@ -19,6 +20,8 @@ export async function liveDeps(): Promise<Deps> {
     now: new Date(),
     layers: loadLayers(),
     promptVersion: promptVersion(),
+    // The private math checker: Vercel binding (CAS_SERVICE_URL) or CAS_URL, with the shared secret.
+    cas: (() => { const url = casUrl(env); return url && env.CAS_SECRET ? httpCas(url, env.CAS_SECRET) : null; })(),
     models: { main: env.TUTOR_MODEL_MAIN, strong: env.TUTOR_MODEL_STRONG, light: env.TUTOR_MODEL_LIGHT },
   };
 }

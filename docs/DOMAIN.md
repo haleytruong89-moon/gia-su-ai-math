@@ -312,12 +312,13 @@ Gia sư AI chỉ hỏi những mục **liên quan đến dạng bài** (vd bài 
 - Bài tính toán (không phải chứng minh hình) chỉ chuyển `self_solved` khi máy chủ có **ít nhất một lần gọi `math_check` đạt** cho đáp số cuối của con trong bài đó (đối chiếu với lời giải tham khảo nếu có, hoặc thay ngược vào đề).
 - Bài anh em (H4, C3) chỉ gửi cho con khi `math_check` xác nhận đáp số bài anh em, và các số trong đề bài anh em khác đề gốc.
 - `math_check` lỗi/hết giờ → gia sư AI không khẳng định đúng/sai; nói "cô kiểm lại rồi báo em nhé", cờ `tutor_unsure`.
+- *(G4, phụ huynh chốt Q2 15/11/2026; TODO(rule-unconfirmed) tới khi hub DOMAIN v0.6 ghi lại)* **Lớp 9:** trước `self_solved` cô phải đã hỏi ≥ 1 mục checklist §4.10 trong bài. **Lớp 6:** chưa bắt checklist (chờ G5). "Máy chủ tự gọi C1" (b) = máy chủ gửi lại câu trả lời 1 lần, yêu cầu cô gọi `math_check` trước khi kết luận (model 5.5 luôn suy nghĩ nên không ép được công cụ cụ thể). `math_check` có thêm `solve_system`, `check_solution` (hệ ≤ 3 ẩn) và `gcd`/`lcm` (Q4).
 
 | # | Tình huống | Kết quả | |
 |---|---|---|---|
-| a | Con nộp P = 3/(3 − √x), model đánh `dung`, C1 xác nhận tương đương | Được `self_solved` (sau checklist) | Đề xuất |
-| b | Model đánh `dung` nhưng không gọi C1 | Máy chủ chưa cho `self_solved`; tự gọi C1 rồi mới quyết | Đề xuất |
-| c | Con nộp (−3√x − 9)/(x − 9): C1 báo **tương đương nhưng còn nhân tử chung** | Không `self_solved`; hỏi mục 7 checklist "còn rút gọn tiếp được không?"; chẩn đoán `careful`, `ku_code = T9.9` | Đề xuất |
+| a | Con nộp P = 3/(3 − √x), model đánh `dung`, C1 xác nhận tương đương | Được `self_solved` (sau checklist) | ✅ (15/11, G4 Q2) |
+| b | Model đánh `dung` nhưng không gọi C1 | Máy chủ chưa cho `self_solved`; tự gọi C1 rồi mới quyết | ✅ (15/11, G4 Q2) |
+| c | Con nộp (−3√x − 9)/(x − 9): C1 báo **tương đương nhưng còn nhân tử chung** | Không `self_solved`; hỏi mục 7 checklist "còn rút gọn tiếp được không?"; chẩn đoán `careful`, `ku_code = T9.9` | ✅ (15/11, G4 Q2) |
 
 ### 4.13. Dạy bù kiến thức nền — *v0.4*
 - Khi con vướng đúng KU nền (vd không viết được x − 9 = (√x − 3)(√x + 3)), gia sư AI được dạy bù **ngắn** (≤ 2 lượt) phần nền rồi quay lại bài; ghi `prereq_gaps` += mã KU nền và chẩn đoán `concept` có `ku_code` nền.

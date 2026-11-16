@@ -4,6 +4,7 @@ import type { Actor } from "@/lib/actor";
 import type { HintLevel } from "@/lib/rules/hints";
 import type { InputKind, StoredMsg } from "@/lib/rules/events";
 import type { RouteReason } from "@/lib/rules/model";
+import type { ToolRecord } from "@/lib/tools/defs";
 import type { ImageData } from "@/lib/tutor/assemble";
 
 export type ChildActor = Extract<Actor, { role: "child" }>;
@@ -47,6 +48,10 @@ export interface ProblemRow {
   lastTutorFlags: string[];
   /** Photos already stored for this problem (at most MAX_IMAGES_PER_PROBLEM). */
   imageCount: number;
+  /** A machine-checked sibling problem was part of an answer the child saw (G4: H4 → H5, DOMAIN §3.3). */
+  siblingShown: boolean;
+  /** Checklist items (§4.10) asked in the answers the child saw (G4 Q2). */
+  checklistAsked: number[];
   pending: PendingMessage | null;
 }
 
@@ -65,7 +70,7 @@ export interface FoundMessage { problemId: string; messageId: string; text: stri
 
 /** One model call of a turn: the tutor answer(s) and the checker verdict(s). */
 export interface ModelCallRecord {
-  purpose: "tutor" | "guard";
+  purpose: "tutor" | "guard" | "sibling";
   model: string;
   raw: string;
   costUsd: number;
@@ -98,6 +103,8 @@ export interface SaveReplyInput {
   tutorText: string;
   buttons: string[];
   calls: ModelCallRecord[];
+  /** tools run for the answers of this turn; `callIndex` = index in `calls` of the answer (final call) they served */
+  tools: (ToolRecord & { callIndex: number })[];
   promptVersion: string;
   now: Date;
 }
@@ -153,3 +160,19 @@ export function flagsOf(raw: string): string[] {
     return [];
   }
 }
+
+/** checklist_da_hoi of a stored tutor answer; [] when it is not readable. */
+export function checklistOf(raw: string): number[] {
+  try {
+    const c = (JSON.parse(raw) as { checklist_da_hoi?: unknown }).checklist_da_hoi;
+    return Array.isArray(c) ? c.filter((n): n is number => Number.isInteger(n)) : [];
+  } catch {
+    return [];
+  }
+}
+
+/** A make_sibling result the tutor may use: machine-checked and with different numbers. */
+export const usableSibling = (output: unknown): boolean => {
+  const o = output as { verified?: unknown; numbers_differ?: unknown } | null;
+  return o?.verified === true && o?.numbers_differ === true;
+};

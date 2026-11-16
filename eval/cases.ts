@@ -1,7 +1,8 @@
 // eval/cases.ts — the text cases of the pedagogy test set (hub BO_TEST v0.2 §2), written out in full.
 // Problems are retyped from the outline; answers were checked by hand (and SymPy where it applies).
 // Photo cases (9.9, 9.11) use made-up printed sheets drawn by eval/images.ts — real photos stay out of this public repo;
-// tool cases (9.16, 9.21, 9.23–9.25, math_check in 6.9) wait for G4; 9.19 (knowledge layer) waits for G5.
+// Tool cases (G4): 9.16, 9.21, 9.23, 6.9 need a running cas (CAS_URL, CAS_SECRET); 9.24, 9.25 test the checker
+// alone (GUARD_CASES). 9.19 (knowledge layer) waits for G5.
 import type { Turn as Msg, TurnStateBlock } from "@/lib/tutor/assemble";
 import type { CheckSpec } from "./checks";
 
@@ -38,6 +39,8 @@ const HOA = "Một người bán hoa có số bông hoa trong khoảng từ 200 
 const TAU = "Ba tàu cùng cập cảng hôm nay. Tàu thứ nhất cứ 10 ngày cập cảng một lần, tàu thứ hai cứ 12 ngày, tàu thứ ba cứ 15 ngày. Hỏi sau ít nhất bao nhiêu ngày thì cả ba tàu lại cùng cập cảng?";
 const NHOM = "Một lớp có 24 bạn nữ và 16 bạn nam. Cô giáo muốn chia lớp thành các nhóm sao cho số bạn nữ ở các nhóm bằng nhau và số bạn nam ở các nhóm bằng nhau. Có thể chia nhiều nhất bao nhiêu nhóm? Khi đó mỗi nhóm có bao nhiêu bạn nữ, bao nhiêu bạn nam?";
 const RUY_BANG = "Có ba sợi ruy băng dài 140 cm, 168 cm và 210 cm. Bạn Mai muốn cắt cả ba sợi thành các đoạn dài bằng nhau, không thừa, và mỗi đoạn dài nhất có thể. Mỗi đoạn dài bao nhiêu xăng-ti-mét? Cắt được tất cả bao nhiêu đoạn?";
+const RUT_GON = "Cho biểu thức P = √x/(√x − 3) + 2√x/(√x + 3) − (3x + 9)/(x − 9) với x ≥ 0, x ≠ 9. Rút gọn P.";
+const P_NGUYEN = "Cho P = 3/(3 − √x) với x ≥ 0, x ≠ 9. Tìm các giá trị nguyên của x để P nhận giá trị nguyên.";
 const CAY = "Số cây của một vườn trong khoảng từ 100 đến 200 cây. Nếu trồng thành hàng 8 cây hay hàng 9 cây thì đều vừa đủ. Hỏi vườn có bao nhiêu cây?";
 
 /** The problem was typed, the tutor restated it and the child confirmed: the usual start of a later turn. */
@@ -65,8 +68,8 @@ export const CASES: EvalCase[] = [
   { id: "9.3", grade: 9, title: "Nản (k → ko biết), H4",
     history: started(THO, [{ role: "user", content: "k" }, { role: "assistant", content: "Không sao. Nếu người thứ nhất làm một mình hết x giờ thì 1 giờ người đó làm được bao nhiêu phần công việc?" }]),
     childText: "ko biết", state: { ...confirmed, hintLevel: 4, nan: true, wrongCount: 2, turn: 4 }, forbid: ["24", "48"], answer: THO_ANS,
-    // TODO(G4): with make_sibling the rubric becomes "a verified sibling problem, solved in full, then back to the original".
-    rubric: "Động viên em, không giải bài gốc; đưa một bước rất nhỏ, dễ (cô CHƯA có công cụ tạo bài anh em nên không được tự nghĩ bài anh em)." },
+    expect: { toolsInclude: ["make_sibling:verified"] },
+    rubric: "Động viên em; giải trọn một BÀI ANH EM (số khác đề gốc, máy đã kiểm) từng bước có \"vì sao\", rồi mời em quay lại tự làm bài gốc; không giải bài gốc." },
   { id: "9.4", grade: 9, title: "Nộp đúng nhưng thiếu điều kiện ẩn và kết luận", history: started(THO),
     childText: "Em làm xong rồi: 1/x + 1/y = 1/16, 3/x + 6/y = 1/4. Giải ra x = 24, y = 48",
     state: { submitted: true, hintLevel: 1, turn: 5 }, answer: THO_ANS, expect: { notSelfSolved: true },
@@ -121,6 +124,18 @@ export const CASES: EvalCase[] = [
     state: { ...confirmed, hintLevel: 3, wrongCount: 3, turn: 18 }, forbid: ["24", "48"], answer: THO_ANS,
     expect: { buttonMatches: /để dành/i },
     rubric: "Tóm tắt ngắn chỗ em đã làm được, đề nghị em để dành bài hỏi thầy (luật 12)." },
+  { id: "9.16", grade: 9, title: "Nộp rút gọn còn nhân tử chung (cần math_check)", history: started(RUT_GON),
+    childText: "P = (−3√x − 9)/(x − 9)", state: { submitted: true, hintLevel: 1, turn: 5 }, forbid: ["3/(3 − √x)", "3/(3-√x)", "3/(3 - √x)"],
+    answer: "P = 3/(3 − √x)", expect: { notSelfSolved: true, verdictIn: ["dung"], toolsInclude: ["math_check:simplify_check"] },
+    rubric: "Ghi nhận em biến đổi đúng; hỏi em \"còn rút gọn tiếp được không?\" (mục 7 checklist); không viết ra kết quả rút gọn cuối." },
+  { id: "9.21", grade: 9, title: "Thiếu ước âm (x nguyên để P nguyên)", history: started(P_NGUYEN),
+    childText: "x ∈ {0; 4}", state: { submitted: true, hintLevel: 1, turn: 5 }, forbid: ["16", "36"],
+    answer: "x ∈ {0; 4; 16; 36}", expect: { notSelfSolved: true, toolsInclude: ["math_check"] },
+    rubric: "Hỏi lại về các ước âm của 3 (3 − √x có thể âm không?); không liệt kê 16, 36." },
+  { id: "9.23", grade: 9, title: "Nản (nan=true) ở H4 → bài anh em đã kiểm", history: started(THO),
+    childText: "thôi em chịu", state: { ...confirmed, hintLevel: 4, nan: true, wrongCount: 2, turn: 6 }, forbid: ["24", "48"], answer: THO_ANS,
+    expect: { toolsInclude: ["make_sibling:verified"] },
+    rubric: "Có bài anh em số khác đề gốc, giải trọn từng bước, rồi mời em làm lại bài gốc; không có 24, 48." },
   { id: "9.17", grade: 9, title: "HK II: Viète (em tự hỏi)", history: [], childText: VIETE,
     state: { hintLevel: 0, turn: 1, stuckKind: "khong_biet_bat_dau" }, forbid: ["19"], answer: "x₁² + x₂² = 19",
     expect: { statementConfirmed: false },
@@ -147,8 +162,8 @@ export const CASES: EvalCase[] = [
     history: started(TAU, [{ role: "user", content: "Chưa hiểu" }, { role: "assistant", content: "Mình đếm thử nhé: tàu thứ nhất cập cảng vào ngày 10, 20, 30… Em viết tiếp vài ngày nữa nhé?" },
       { role: "user", content: "Chưa hiểu" }, { role: "assistant", content: "Không sao. Ngày cả ba tàu cùng đến phải chia hết cho 10, cho 12 và cho 15. Em thấy số nào chia hết cho cả 10 và 12 không?" }]),
     childText: "Chưa hiểu", state: { ...confirmed, hintLevel: 4, nan: true, wrongCount: 2, turn: 5 }, forbid: ["60"], answer: "60 ngày",
-    // TODO(G4): sibling via make_sibling with a different answer (e.g. 3, 4, 6 days → 12; NOT 4, 6, 10 → 60 like the original).
-    rubric: "Động viên em bằng câu ngắn, đưa một bước rất nhỏ (dạng nút); không giải bài gốc; không có số 60 ở lời hay ở nút." },
+    expect: { toolsInclude: ["make_sibling:verified"] },
+    rubric: "Động viên em bằng câu ngắn; giải một BÀI ANH EM dễ hơn (số khác, đáp số khác 60) thật ngắn, rồi mời em quay lại bài gốc; không có số 60 ở lời hay ở nút." },
   { id: "6.4", grade: 6, title: "Nộp thiếu ý (8 nhóm)", history: started(NHOM), childText: "8 nhóm",
     state: { submitted: true, hintLevel: 1, turn: 4 }, forbid: ["3 bạn nữ", "2 bạn nam", "3 nữ", "2 nam", "nữ 3", "nam 2"],
     answer: "8 nhóm; mỗi nhóm 3 nữ, 2 nam", expect: { notSelfSolved: true },
@@ -170,9 +185,19 @@ export const CASES: EvalCase[] = [
     rubric: "Một gợi ý nhỏ, câu ngắn, kết thúc bằng câu hỏi; không lộ đáp số." },
   { id: "6.9", grade: 6, title: "Lỗi thật: 120 thay vì 60", history: started(TAU),
     childText: "120 ngày vì 120 chia được cho 10, 12, 15", state: { submitted: true, hintLevel: 1, turn: 4 }, forbid: ["60"],
-    answer: "60 ngày", expect: { notSelfSolved: true },
+    answer: "60 ngày", expect: { toolsInclude: ["math_check"], notSelfSolved: true },
     rubric: "Hỏi em: đề hỏi ÍT NHẤT — có số nào nhỏ hơn 120 cũng chia hết cho cả ba không? Không nói 60." },
   { id: "6.10", grade: 6, title: "Lỗi thật: 72, quên điều kiện khoảng", history: started(CAY), childText: "72 cây",
     state: { submitted: true, hintLevel: 1, turn: 4 }, forbid: ["144"], answer: "144 cây", expect: { notSelfSolved: true },
     rubric: "Hỏi em xem lại điều kiện 'trong khoảng 100 đến 200' của đề; không nói 144." },
+];
+
+/** Checker-only cases (BO_TEST 9.24, 9.25): a fake tutor answer goes straight to the Haiku guard, which must FAIL it. */
+export interface GuardCase { id: string; title: string; statement: string; message: string; toolsCalled: string[]; mustFailWith: string }
+export const GUARD_CASES: GuardCase[] = [
+  { id: "9.24", title: "Khẳng định đúng mà không có math_check", statement: PT,
+    message: "Em làm đúng rồi, x = −2 là nghiệm của phương trình. Em viết câu kết luận nhé?", toolsCalled: [], mustFailWith: "6" },
+  { id: "9.25", title: "Bài anh em không qua make_sibling", statement: THO,
+    message: "Cô làm bài anh em nhé: hai vòi cùng chảy 12 giờ đầy bể; vòi I chảy 2 giờ, vòi II chảy 4 giờ được 25% bể. Gọi x, y là số giờ…\nGiờ em làm lại bài của em nhé?",
+    toolsCalled: [], mustFailWith: "7" },
 ];

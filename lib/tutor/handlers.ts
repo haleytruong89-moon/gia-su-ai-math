@@ -14,9 +14,14 @@ import { childEvents, type InputKind } from "@/lib/rules/events";
 import { applyPreTurn, nextHintLevel } from "@/lib/rules/hints";
 import { pickModel, rewriteRoute, strongPaused, type ModelTier, type RouteReason } from "@/lib/rules/model";
 import { isNanSignal } from "@/lib/rules/nan";
-import { decideOutcome } from "@/lib/rules/outcome";
+import { checksFrom, decideOutcome } from "@/lib/rules/outcome";
+import type { CasClient } from "@/lib/tools/casClient";
+import type { ToolRecord } from "@/lib/tools/defs";
+import { runMathCheck } from "@/lib/tools/mathCheck";
+import { makeSibling, type SiblingCall, type SiblingInput } from "@/lib/tools/makeSibling";
+import { runToolLoop, type LoopResult } from "@/lib/tutor/toolLoop";
 import { dateVn } from "@/lib/time";
-import { assemble, type ImageData, type Msg, type SystemBlock, type Turn } from "@/lib/tutor/assemble";
+import { assemble, type ImageData, type Msg, type Turn } from "@/lib/tutor/assemble";
 import { runGuard, type GuardResult } from "@/lib/tutor/guard";
 import type { Layers } from "@/lib/tutor/layers";
 import {
@@ -36,6 +41,8 @@ export const STALE_PENDING_MS = 330_000;
 /** Time a checker call / a rewrite + its check needs to be worth starting. */
 const GUARD_NEEDS_MS = 60_000;
 const REWRITE_NEEDS_MS = 110_000;
+/** make_sibling = 1–2 model calls + cas: only started with this much time left. */
+const SIBLING_NEEDS_MS = 90_000;
 
 export interface Deps {
   repo: TutorRepo;
@@ -48,6 +55,8 @@ export interface Deps {
   models: { main: string; strong: string; light: string };
   /** wall clock in ms, for the turn budget (tests move it) */
   clock?: () => number;
+  /** the private math checker (G4); null when not configured → math_check answers an error */
+  cas: CasClient | null;
 }
 type Result = { status: number; json: unknown };
 
@@ -210,9 +219,29 @@ async function runTurn(d: Deps, actor: ChildActor, problem: ProblemRow, clientMs
 }
 
 type Answer = Awaited<ReturnType<typeof runTutorTurn>>;
+type TurnTool = ToolRecord & { callIndex: number };
+
+/** What the checker is told about the tools of an answer (guard rules 6–7 need the results, not just names). */
+export function toolSummary(t: ToolRecord): string {
+  const out = t.output as { ok?: boolean; error?: string; result?: Record<string, unknown> } & Record<string, unknown>;
+  if (t.tool === "math_check") {
+    const mode = (t.input as { mode?: string } | null)?.mode ?? "?";
+    if (!out?.ok) return `math_check(${mode} → error: ${out?.error ?? "unknown"})`;
+    const r = Object.entries(out.result ?? {}).filter(([, v]) => typeof v === "boolean").map(([k, v]) => `${k}=${v}`).join(", ");
+    return `math_check(${mode} → ${r || "ok"})`;
+  }
+  if (t.tool === "make_sibling") return `make_sibling(verified=${out?.verified === true}, numbers_differ=${out?.numbers_differ === true})`;
+  return `${t.tool}(error)`;
+}
+const confirmsAnswer = (tools: readonly ToolRecord[]) =>
+  checksFrom(tools).some((c) => c.ok && (c.result?.equivalent === true || c.result?.is_root === true || c.result?.satisfies === true));
 
 const tutorRec = (model: string, a: Answer, reason: RouteReason | null): ModelCallRecord => ({
   purpose: "tutor", model, raw: a.raw, costUsd: a.costUsd, tokens: a.tokens, routeReason: reason,
+  guardResult: null, guardReasons: [], shown: false,
+});
+const siblingRec = (c: SiblingCall): ModelCallRecord => ({
+  purpose: "sibling", model: c.model, raw: c.raw, costUsd: c.costUsd, tokens: c.tokens, routeReason: null,
   guardResult: null, guardReasons: [], shown: false,
 });
 const guardRec = (g: GuardResult): ModelCallRecord => ({
@@ -232,8 +261,9 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
     ? problem.thread
     : [...problem.thread, { id: messageId, role: "child" as const, content: text, inputKind: kind }];
   const nan = isNanSignal(childEvents(thread));
-  // 2. Hint level before the call: nản jumps to H4 (§4.1 c). TODO(G4): afterSibling from the sibling problem (make_sibling).
-  const pre = applyPreTurn({ hintLevel: problem.hintLevel, hintLevelMax: problem.hintLevelMax, nanJumps: problem.nanJumps, afterSibling: false }, { nan });
+  // 2. Hint level before the call: nản jumps to H4 (§4.1 c). After a sibling was shown, wrong again at H4 → H5 (§3.3).
+  const pre = applyPreTurn({ hintLevel: problem.hintLevel, hintLevelMax: problem.hintLevelMax, nanJumps: problem.nanJumps,
+    afterSibling: problem.siblingShown }, { nan });
   const level = pre.state.hintLevel;
 
   // 3. Which model (§4.14, D28) — paused at 45 USD/month (D29).
@@ -265,59 +295,87 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
       maxLines: actor.maxLines,
     },
   });
-  const ask = (tier: ModelTier, msgs: Msg[], sys: SystemBlock[] = system) =>
-    runTutorTurn(d.client, { model: d.models[tier], system: sys, messages: msgs });
-  // Out of time counts as not passed (fail-closed).
-  const check = async (o: TutorOutput): Promise<GuardResult | null> => left() < GUARD_NEEDS_MS ? null : runGuard(d.client, d.models.light, d.layers.guard, {
-    statement: guardStatement, images: guardImages, hintLevel: level, submitted, maxLines: actor.maxLines, output: o, toolsCalled: [],
-  });
+  // Out of time counts as not passed (fail-closed). The checker sees which tools ran and what they said (rules 6–7).
+  const check = async (o: TutorOutput, tools: readonly ToolRecord[]): Promise<GuardResult | null> => left() < GUARD_NEEDS_MS ? null
+    : runGuard(d.client, d.models.light, d.layers.guard, {
+      statement: guardStatement, images: guardImages, hintLevel: level, submitted, maxLines: actor.maxLines, output: o,
+      toolsCalled: tools.map(toolSummary),
+    });
   const noTime = ["out_of_time"];
 
-  // 4. The answer. A failed call releases the child's message so the same resend can run again.
+  // 4. An answer = the tool loop (math_check, make_sibling; ≤ 3 rounds). DOMAIN §4.12 b: a self_solved proposal
+  //    on a submitted answer without a confirming math_check is sent back once to call it.
   const calls: ModelCallRecord[] = [];
-  let first: Answer;
+  const turnTools: TurnTool[] = [];
+  const review = (o: TutorOutput | null, tools: readonly ToolRecord[]) =>
+    submitted && o?.ket_qua_bai === "self_solved" && !confirmsAnswer(tools)
+      ? "Em đã nộp bài. Cô gọi math_check cho đáp số cuối của em trước khi kết luận (không nói đáp số ra)." : null;
+  async function answer(tier: ModelTier, reason: RouteReason | null, msgs: Msg[]):
+    Promise<{ loop: LoopResult; finalRec: ModelCallRecord }> {
+    const siblingCalls: SiblingCall[] = [];
+    const run = async (name: string, input: unknown) => {
+      if (name === "math_check") return runMathCheck(d.cas, input);
+      if (name === "make_sibling") {
+        if (left() < SIBLING_NEEDS_MS) return { ok: false, output: { error: "no_time" } };
+        const r = await makeSibling({ client: d.client, model: d.models.main, prompt: d.layers.sibling, cas: d.cas }, input as SiblingInput);
+        siblingCalls.push(...r.calls);
+        return { ok: true, output: r.output };
+      }
+      return { ok: false, output: { error: "unknown_tool" } };
+    };
+    const loop = await runToolLoop(d.client, { model: d.models[tier], system, messages: msgs, run, timeLeft: left, review });
+    const recs = loop.calls.map((c) => tutorRec(d.models[tier], c, reason));
+    calls.push(...recs);
+    const finalIndex = calls.length - 1;
+    calls.push(...siblingCalls.map(siblingRec));
+    turnTools.push(...loop.tools.map((t) => ({ ...t, callIndex: finalIndex })));
+    return { loop, finalRec: recs.at(-1)! };
+  }
+
+  let first: Awaited<ReturnType<typeof answer>>;
   try {
-    first = await ask(route.tier, messages);
+    first = await answer(route.tier, route.reason, messages);
   } catch (e) {
     console.error("tutor model call failed", e instanceof Error ? e.message : "unknown"); // never the child's text
     await d.repo.deleteMessage(messageId);
     return busy;
   }
-  const firstRec = tutorRec(d.models[route.tier], first, route.reason);
-  calls.push(firstRec);
 
   // 5. The checker (fail-closed), one rewrite on the strong model, else a safe line (§5).
   let shown: TutorOutput | null = null;
-  const g1 = first.output ? await check(first.output) : null;
+  let shownTools: readonly ToolRecord[] = [];
+  const firstOut = first.loop.final.output;
+  const g1 = firstOut ? await check(firstOut, first.loop.tools) : null;
   if (g1) calls.push(guardRec(g1));
-  if (first.output && g1?.pass) {
-    shown = first.output;
-    Object.assign(firstRec, { guardResult: "pass", shown: true });
+  if (firstOut && g1?.pass) {
+    shown = firstOut;
+    shownTools = first.loop.tools;
+    Object.assign(first.finalRec, { guardResult: "pass", shown: true });
   } else {
-    firstRec.guardResult = "blocked";
-    firstRec.guardReasons = g1?.reasons ?? (first.output ? noTime : ["unreadable_output"]);
+    first.finalRec.guardResult = "blocked";
+    first.finalRec.guardReasons = g1?.reasons ?? (firstOut ? noTime : ["unreadable_output"]);
     const rw = rewriteRoute(paused);
     const why = (g1?.reasons.length ? g1.reasons : ["câu trả lời không đúng khuôn JSON"]).join("; ");
-    const retry: Msg[] = [...messages, { role: "assistant", content: first.raw || "(trống)" },
+    const retry: Msg[] = [...messages, { role: "assistant", content: first.loop.final.raw || "(trống)" },
       { role: "user", content: `[BỘ KIỂM TRA CỦA APP] Câu trả lời vừa rồi chưa gửi được cho em vì: ${why}. Cô viết lại lượt này, giữ đúng luật cứng.` }];
-    let second: Answer | null = null;
+    let second: Awaited<ReturnType<typeof answer>> | null = null;
     if (left() >= REWRITE_NEEDS_MS) {
       try {
-        second = await ask(rw.tier, retry);
+        second = await answer(rw.tier, rw.reason, retry);
       } catch (e) {
         console.error("tutor rewrite failed", e instanceof Error ? e.message : "unknown");
       }
     }
     if (second) {
-      const secondRec = tutorRec(d.models[rw.tier], second, rw.reason);
-      calls.push(secondRec);
-      const g2 = second.output ? await check(second.output) : null;
+      const out2 = second.loop.final.output;
+      const g2 = out2 ? await check(out2, second.loop.tools) : null;
       if (g2) calls.push(guardRec(g2));
-      if (second.output && g2?.pass) {
-        shown = second.output;
-        Object.assign(secondRec, { guardResult: "rewritten", shown: true });
+      if (out2 && g2?.pass) {
+        shown = out2;
+        shownTools = second.loop.tools;
+        Object.assign(second.finalRec, { guardResult: "rewritten", shown: true });
       } else {
-        Object.assign(secondRec, { guardResult: "blocked", guardReasons: g2?.reasons ?? (second.output ? noTime : ["unreadable_output"]) });
+        Object.assign(second.finalRec, { guardResult: "blocked", guardReasons: g2?.reasons ?? (out2 ? noTime : ["unreadable_output"]) });
       }
     }
   }
@@ -325,7 +383,11 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
   // 6. Server rules after the answer: next hint level (§4.1), outcome (§4.12 gate, §5 off-topic, D15).
   const verdict = shown?.danh_gia_luot_em ?? "khong_ap_dung";
   const next = nextHintLevel(pre.state, verdict);
-  const outcome = decideOutcome({ turn, output: shown, submitted, offtopicCount: problem.offtopicCount });
+  const outcome = decideOutcome({ turn, output: shown, submitted, offtopicCount: problem.offtopicCount,
+    checks: checksFrom(shownTools),
+    // TODO(rule-unconfirmed) until DOMAIN v0.6 records Q2 (phụ huynh chốt 15/11): grade 9 needs a checklist item first.
+    checklistRequired: actor.grade === 9,
+    checklistAsked: [...new Set([...problem.checklistAsked, ...(shown?.checklist_da_hoi ?? [])])] });
   const safe = safeLine(level);
   const saved = await d.repo.saveReply({
     actor, problem, childMessageId: messageId, turn,
@@ -344,6 +406,7 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
     tutorText: shown?.message ?? safe.message,
     buttons: shown?.buttons ?? safe.buttons,
     calls,
+    tools: turnTools,
     promptVersion: d.promptVersion,
     now: d.now,
   });

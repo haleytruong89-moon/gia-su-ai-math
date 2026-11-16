@@ -111,9 +111,10 @@ Chi phí mỗi lời gọi: `cost = (in − cached) × giá_in + cached × giá_
 ## 5. Công cụ
 | Tên | Ở đâu | Ghi chú |
 |---|---|---|
-| `math_check` | `lib/tools/mathCheck.ts` → HTTP `CAS_URL/check` (header `x-cas-secret`), timeout 5 s | Các mode: equivalent, simplify_check, solve, check_root, evaluate, inequality, domain (xem `cas/app/mathcheck.py`) |
+| `math_check` | `lib/tools/mathCheck.ts` + `casClient.ts` → HTTP `<CAS_URL hoặc CAS_SERVICE_URL>/check` (header `x-cas-secret`), timeout 5 s. `cas` là service **riêng tư** trong cùng project Vercel (Vercel Services, `vercel.json`; không có rewrite nên không có đường công khai; `web` gọi qua binding) | Các mode: equivalent, simplify_check, solve, check_root, evaluate, inequality, domain, **solve_system, check_solution** (G4); biểu thức có `gcd`/`lcm` |
 | `lookup` | `lib/tools/lookup.ts` đọc `knowledge/` trong bộ nhớ | Trả thẻ KU rút gọn ≤ 1.500 ký tự |
-| `make_sibling` | `lib/tools/makeSibling.ts`: gọi Sonnet (purpose=sibling) sinh đề + lời giải + đáp số dạng SymPy → `math_check` kiểm đáp số → so tập số trong đề với đề gốc | `verified=false` → thử lại 1 lần |
+| `make_sibling` | `lib/tools/makeSibling.ts` + `prompts/sibling.md`: gọi Sonnet (purpose=sibling) sinh đề + lời giải + đáp số + **lệnh kiểm** (`check_solution` / `check_root` / `equivalent`) → máy chạy lệnh kiểm → so tập số với đề gốc (trùng ≤ 1 số, không trùng hết) | Không đạt → thử lại 1 lần; vẫn không → `verified=false` |
+| *(vòng)* | `lib/tutor/toolLoop.ts`: ≤ 3 vòng công cụ mỗi câu trả lời, giữ nguyên khối thinking; vòng chỉ chạy khi lượt còn ≥ 70 s; hết vòng/giờ → `tool_choice: none`; câu đề nghị `self_solved` chưa có `math_check` xác nhận → nhắc 1 lần | `tool_calls.model_call_id` = câu trả lời mà công cụ phục vụ |
 
 ## 6. Kho kiến thức
 `scripts/build-knowledge.ts` đọc các file md đã duyệt (chép từ hub vào `knowledge/src/`: BAN_DO_CHUONG_TRINH_TOAN9, TOAN6, HOP_CONG_CU_HINH_9, HOP_CONG_CU_RUT_GON_9) → parse các bảng markdown → `knowledge/ku/T9.9.json` …, `knowledge/toolbox/*.json`; `KNOWLEDGE_VERSION` = ngày + hash nội dung. `check-knowledge.ts` chạy trong CI: zod, mọi mã nền tồn tại, mọi `exam_slot` đúng mẫu.

@@ -8,7 +8,7 @@ import { BTN_SAVE } from "@/lib/copy";
 import type { InputKind } from "@/lib/rules/events";
 import type { HintLevel } from "@/lib/rules/hints";
 import { deleteAfterVn } from "@/lib/rules/photo";
-import { flagsOf, type FoundMessage, type HistoryItem, type ProblemRow, type ProblemStatus, type StoredReply, type StuckKind, type TutorRepo } from "@/lib/tutor/repo";
+import { checklistOf, flagsOf, usableSibling, type FoundMessage, type HistoryItem, type ProblemRow, type ProblemStatus, type StoredReply, type StuckKind, type TutorRepo } from "@/lib/tutor/repo";
 
 const UNIQUE_VIOLATION = "23505";
 
@@ -97,10 +97,16 @@ export function supabaseRepo(db: SupabaseClient = createAdminClient(), strongMod
       const { count: strongCalls, error: e3 } = await t().from("model_calls").select("id", { count: "exact", head: true })
         .eq("problem_id", p.id).eq("purpose", "tutor").eq("model", strongModel);
       if (e3) fail("getProblem.strong", e3);
-      const { data: lastCall, error: e4 } = await t().from("model_calls").select("raw_output")
+      // The answers the child saw (message_id set), newest first: flags of the last one, checklist items of all.
+      const { data: shownCalls, error: e4 } = await t().from("model_calls").select("id, raw_output")
         .eq("problem_id", p.id).eq("purpose", "tutor").not("message_id", "is", null)
-        .order("created_at", { ascending: false }).limit(1).maybeSingle();
-      if (e4) fail("getProblem.lastCall", e4);
+        .order("created_at", { ascending: false }).returns<{ id: string; raw_output: string }[]>();
+      if (e4) fail("getProblem.shownCalls", e4);
+      const shown = shownCalls ?? [];
+      const { data: siblings, error: e6 } = await t().from("tool_calls").select("model_call_id, ok, output")
+        .eq("problem_id", p.id).eq("tool", "make_sibling").eq("ok", true);
+      if (e6) fail("getProblem.siblings", e6);
+      const shownIds = new Set(shown.map((c) => c.id));
       const { count: photos, error: e5 } = await t().from("attachments").select("id", { count: "exact", head: true }).eq("problem_id", p.id);
       if (e5) fail("getProblem.photos", e5);
 
@@ -112,7 +118,9 @@ export function supabaseRepo(db: SupabaseClient = createAdminClient(), strongMod
         thread: list.map((m) => ({ id: m.id, role: m.role, content: m.content, inputKind: m.input_kind })),
         statement: list.find((m) => m.role === "child")?.content ?? null,
         usedStrong: (strongCalls ?? 0) > 0,
-        lastTutorFlags: lastCall?.raw_output ? flagsOf(String(lastCall.raw_output)) : [],
+        lastTutorFlags: shown[0] ? flagsOf(shown[0].raw_output) : [],
+        siblingShown: (siblings ?? []).some((x) => shownIds.has(x.model_call_id as string) && usableSibling(x.output)),
+        checklistAsked: [...new Set(shown.flatMap((c) => checklistOf(c.raw_output)))],
         pending: last?.role === "child" ? { messageId: last.id, clientMsgId: last.client_msg_id, text: last.content, at: new Date(last.created_at) } : null,
       };
       return row;
@@ -183,13 +191,21 @@ export function supabaseRepo(db: SupabaseClient = createAdminClient(), strongMod
       if (e2) fail("saveReply.message", e2);
 
       if (a.calls.length) {
-        const { error: e3 } = await t().from("model_calls").insert(a.calls.map((c) => ({
+        const { data: inserted, error: e3 } = await t().from("model_calls").insert(a.calls.map((c) => ({
           family_id: a.actor.familyId, child_id: a.actor.userId, message_id: c.shown ? (msg?.id ?? null) : null,
           problem_id: a.problem.id, purpose: c.purpose, model: c.model, prompt_version: a.promptVersion, raw_output: c.raw,
           tokens_in: c.tokens.in, tokens_cached: c.tokens.cached, tokens_out: c.tokens.out, cost_usd: c.costUsd,
           route_reason: c.routeReason, guard_result: c.guardResult, guard_reasons: c.guardReasons,
-        })));
+        }))).select("id");
         if (e3) fail("saveReply.model_calls", e3);
+        const ids = (inserted ?? []).map((r) => r.id as string);
+        if (a.tools.length) {
+          const { error: e5 } = await t().from("tool_calls").insert(a.tools.map((tr) => ({
+            family_id: a.actor.familyId, child_id: a.actor.userId, problem_id: a.problem.id, model_call_id: ids[tr.callIndex] ?? null,
+            tool: tr.tool, input: tr.input ?? {}, output: tr.output ?? null, ok: tr.ok, ms: tr.ms,
+          })));
+          if (e5) fail("saveReply.tool_calls", e5);
+        }
       }
       if (!p || !msg) return { conflict: true as const };
 

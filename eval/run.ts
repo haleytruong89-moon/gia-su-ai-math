@@ -8,14 +8,25 @@ import { z } from "zod";
 import { costUsd, withRetry } from "@/lib/anthropic";
 import { assemble, type TurnStateBlock } from "@/lib/tutor/assemble";
 import { loadLayers, promptVersion } from "@/lib/tutor/layers";
-import { runTutorTurn, type Effort, type ModelClient } from "@/lib/tutor/turn";
+import { type Effort, type ModelClient } from "@/lib/tutor/turn";
+import { runToolLoop } from "@/lib/tutor/toolLoop";
+import { runGuard } from "@/lib/tutor/guard";
+import { toolSummary } from "@/lib/tutor/handlers";
+import { httpCas } from "@/lib/tools/casClient";
+import { runMathCheck } from "@/lib/tools/mathCheck";
+import { makeSibling, type SiblingInput } from "@/lib/tools/makeSibling";
+import type { ToolRecord } from "@/lib/tools/defs";
 import fewshot from "../tests/fixtures/fewshot.json";
-import { CASES, type EvalCase } from "./cases";
-import { checkOutput } from "./checks";
+import { CASES, GUARD_CASES, type EvalCase, type GuardCase } from "./cases";
+import { checkOutput, toolKeys } from "./checks";
 import { sheet } from "./images";
 import { TEST_PROFILES } from "./profiles";
 
 const JUDGE_MODEL = "claude-haiku-5-5";
+const GUARD_MODEL = "claude-haiku-5-5";
+const SIBLING_MODEL = "claude-sonnet-5-5";
+// G4: the tool cases need cas running next to the eval (the workflow starts it). Without it math_check answers an error.
+const cas = process.env.CAS_URL && process.env.CAS_SECRET ? httpCas(process.env.CAS_URL, process.env.CAS_SECRET) : null;
 const effort = (process.env.EFFORT as Effort | undefined) || "medium";
 const arg = (name: string) => process.argv.find((a) => a.startsWith(`--${name}=`))?.split("=")[1];
 const models = (arg("models") || "claude-haiku-5-5,claude-sonnet-5-5,claude-opus-5-5").split(",").filter(Boolean);
@@ -25,8 +36,8 @@ const outDir = arg("out") ?? join("eval", "results", new Date().toISOString().sl
 // EVAL_FAKE=1: no API call, canned replies — checks the pipeline and the summary for free.
 const fake: ModelClient = {
   async create(req) {
-    const r = req as { messages: { content: string }[] };
-    const isJudge = r.messages[0]?.content.startsWith("Em chấm");
+    const r = req as { messages: { content: unknown }[] };
+    const isJudge = typeof r.messages[0]?.content === "string" && (r.messages[0].content as string).startsWith("Em chấm");
     const text = isJudge
       ? JSON.stringify({ leaks_original_answer: false, ends_with_question_or_small_task: true, rubric_met: true, reason: "giả lập" })
       : JSON.stringify((fewshot as object[])[1]);
@@ -49,7 +60,7 @@ const verdict = z.object({
 }).strict();
 const verdictSchema = { ...z.toJSONSchema(verdict, { target: "draft-2020-12" }), additionalProperties: false };
 
-async function judge(c: EvalCase, message: string, buttons: string[]) {
+async function judge(c: EvalCase, message: string, buttons: string[], tools: readonly ToolRecord[] = []) {
   const prompt = [
     "Em chấm một lượt trả lời của một gia sư Toán AI cho học sinh. Gia sư KHÔNG được đưa lời giải hay đáp số của bài gốc trước khi học sinh tự làm ra.",
     `Lớp ${c.grade}. Tình huống: ${c.title}.`,
@@ -58,6 +69,7 @@ async function judge(c: EvalCase, message: string, buttons: string[]) {
     ...(c.image ? [`Học sinh gửi kèm ảnh; chữ trong ảnh:\n${c.image.lines.join("\n")}`] : []),
     `Lượt trả lời của gia sư:\n<<<\n${message}\n>>>`,
     `Nút bấm gia sư đưa cho học sinh: ${buttons.length ? buttons.map((b) => `[${b}]`).join(" ") : "(không có)"}`,
+    `Công cụ gia sư đã gọi (máy kiểm): ${tools.length ? tools.map(toolSummary).join("; ") : "(không có)"}. Bài anh em có make_sibling verified=true là bài khác đề gốc, giải trọn được, KHÔNG tính là lộ.`,
     `Yêu cầu riêng của tình huống: ${c.rubric}`,
     "Chấm cả lời lẫn nút bấm. leaks_original_answer = gia sư nói ra, xác nhận, hoặc đặt sẵn trong nút / danh sách gợi ý đáp số hay lời giải trọn của bài gốc mà học sinh chưa tự đưa ra. KHÔNG tính là lộ: số liệu có sẵn trong đề; tên phương pháp (vd «lập hệ phương trình»); các lựa chọn cho bước nhỏ đang hỏi, miễn không phải đáp số cuối của bài gốc. ends_with_question_or_small_task = lượt kết thúc bằng câu hỏi hoặc một bước nhỏ cho em tự làm. rubric_met = đạt yêu cầu riêng. reason = một câu tiếng Việt.",
   ].join("\n\n");
@@ -88,10 +100,22 @@ async function runCase(model: string, c: EvalCase) {
   });
   const started = Date.now();
   try {
-    const r = await runTutorTurn(client, { model, system, messages, effort });
+    let siblingCost = 0;
+    const run = async (name: string, input: unknown) => {
+      if (name === "math_check") return runMathCheck(cas, input);
+      if (name === "make_sibling") {
+        const sib = await makeSibling({ client, model: SIBLING_MODEL, prompt: loadLayers().sibling, cas }, input as SiblingInput);
+        siblingCost += sib.calls.reduce((t, x) => t + x.costUsd, 0);
+        return { ok: true, output: sib.output };
+      }
+      return { ok: false, output: { error: "unknown_tool" } };
+    };
+    const loop = await runToolLoop(client, { model, system, messages, run, timeLeft: () => 240_000 });
+    const r = { ...loop.final, costUsd: loop.calls.reduce((t, x) => t + x.costUsd, 0) + siblingCost };
     const ms = Date.now() - started;
-    const auto = checkOutput(r.output, { maxLines: profile.maxLines, forbid: c.forbid, expect: c.expect });
-    const j = r.output ? await judge(c, r.output.message, r.output.buttons) : { verdict: null, costUsd: 0 };
+    const toolsRun = loop.tools.flatMap(toolKeys);
+    const auto = checkOutput(r.output, { maxLines: profile.maxLines, forbid: c.forbid, expect: c.expect, tools: toolsRun });
+    const j = r.output ? await judge(c, r.output.message, r.output.buttons, loop.tools) : { verdict: null, costUsd: 0 };
     const failures = [...auto.failures];
     if (j.verdict?.leaks_original_answer) failures.push("judge:leak");
     if (j.verdict && !j.verdict.ends_with_question_or_small_task) failures.push("judge:no_question");
@@ -102,7 +126,7 @@ async function runCase(model: string, c: EvalCase) {
       lengthOk: !auto.failures.some((f) => f.startsWith("lines:")),
       endsOk: j.verdict?.ends_with_question_or_small_task ?? false,
       judgeReason: j.verdict?.reason ?? null, output: r.output, raw: r.output ? undefined : r.raw, stopReason: r.stopReason,
-      costUsd: r.costUsd, judgeCostUsd: j.costUsd, ms, tokens: r.tokens };
+      costUsd: r.costUsd, judgeCostUsd: j.costUsd, ms, tokens: r.tokens, tools: loop.tools.map(toolSummary), modelCalls: loop.calls.length };
   } catch (e) {
     return { model, id: c.id, title: c.title, pass: false, failures: [`error:${e instanceof Error ? e.message.slice(0, 400) : "unknown"}`],
       leak: false, lengthOk: false, endsOk: false, judgeReason: null, output: null, costUsd: 0, judgeCostUsd: 0, ms: Date.now() - started };
@@ -151,8 +175,20 @@ function summary(rows: Row[], caseCount: number): string {
   return lines.join("\n") + "\n";
 }
 
+/** BO_TEST 9.24, 9.25: the checker alone must FAIL a fake answer with the right rule. */
+async function runGuardCase(g: GuardCase) {
+  const base = (fewshot as unknown as Record<string, unknown>[])[1]!;
+  const output = { ...base, message: g.message, buttons: [], danh_gia_luot_em: "dung" } as never;
+  const r = await runGuard(client, GUARD_MODEL, loadLayers().guard,
+    { statement: g.statement, hintLevel: 4, submitted: false, maxLines: 6, output, toolsCalled: g.toolsCalled });
+  const pass = !r.pass && r.reasons.some((x) => x.trim().startsWith(g.mustFailWith));
+  return { model: "guard:" + GUARD_MODEL, id: g.id, title: g.title, pass, failures: pass ? [] : [`guard:${r.pass ? "passed" : r.reasons.join("/")}`],
+    leak: false, lengthOk: true, endsOk: true, judgeReason: r.reasons.join("; "), output: null, costUsd: r.costUsd, judgeCostUsd: 0, ms: 0 };
+}
+
 async function main() {
   const cases = only ? CASES.filter((c) => only.includes(c.id)) : CASES;
+  const guardCases = only ? GUARD_CASES.filter((g) => only.includes(g.id)) : GUARD_CASES;
   mkdirSync(outDir, { recursive: true });
   const jobs = models.flatMap((m) => cases.map((c) => ({ m, c })));
   console.log(`Running ${jobs.length} turns (${models.join(", ")}) → ${outDir}`);
@@ -163,7 +199,13 @@ async function main() {
   });
   for (const m of models)
     writeFileSync(join(outDir, `${m}.jsonl`), rows.filter((r) => r.model === m).map((r) => JSON.stringify(r)).join("\n") + "\n");
-  const md = summary(rows, cases.length);
+  const guardRows = process.env.EVAL_FAKE ? [] : await Promise.all(guardCases.map(runGuardCase));
+  for (const g of guardRows) console.log(`${g.pass ? "PASS" : "FAIL"} ${g.model} ${g.id} ${g.failures.join(",")}`);
+  if (guardRows.length) writeFileSync(join(outDir, "guard.jsonl"), guardRows.map((r) => JSON.stringify(r)).join("\n") + "\n");
+  const md = summary(rows, cases.length) + (guardRows.length
+    ? ["", "## Bộ kiểm tra (9.24, 9.25)", "", "| # | Tình huống | Kết quả | Lý do |", "|---|---|---|---|",
+       ...guardRows.map((g) => `| ${g.id} | ${g.title} | ${g.pass ? "✅" : "❌"} | ${(g.judgeReason ?? "").replace(/\|/g, "/")} |`), ""].join("\n")
+    : "");
   writeFileSync(join(outDir, "SUMMARY.md"), md);
   if (process.env.GITHUB_STEP_SUMMARY) writeFileSync(process.env.GITHUB_STEP_SUMMARY, md, { flag: "a" });
   console.log(md);
