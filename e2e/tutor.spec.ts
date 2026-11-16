@@ -64,6 +64,12 @@ test("'Để dành hỏi thầy' asks first, then closes the problem as saved_fo
   expect(data?.status).toBe("saved_for_later");
 });
 
+test("parent: the private math checker answers through the server (G4)", async ({ page, context }) => {
+  await signIn(context, "parent");
+  const r = await page.request.get("/gia-su/api/admin/cas-health");
+  expect(await r.json()).toMatchObject({ health: true, sample: { ok: true, result: { is_root: true } } });
+});
+
 test("parent: the teaching profile page shows the child and the current profile", async ({ page, context }) => {
   await signIn(context, "parent");
   await page.goto("/gia-su/bo-me");
