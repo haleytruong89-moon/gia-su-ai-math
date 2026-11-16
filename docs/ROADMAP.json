@@ -2,7 +2,7 @@
   "schema": 1,
   "project": "Gia sư AI Toán",
   "updated": "2026-11-16",
-  "updatedNote": "G4 xong: #10 và #11 đã merge; tiếp theo G5",
+  "updatedNote": "G5 bắt đầu: PR A kho kiến thức (bản sạch) mở",
   "vision": {
     "oneLiner": "Một \"cô\" gia sư AI giúp 2 con tự học Toán buổi chiều: gỡ chỗ kẹt bằng câu hỏi gợi mở, không đưa lời giải bài gốc, tối bố mẹ đọc báo cáo 5 phút.",
     "problem": "Buổi chiều 2 con có nhiều thời gian tự học nhưng không có người lớn. Bố mẹ có khoảng 2 giờ buổi tối, gia sư người 2 buổi/tuần. Tốc độ tiến bộ do giờ tự học buổi chiều quyết định.",
@@ -418,27 +418,27 @@
     {
       "id": "G5",
       "title": "Kho kiến thức + dạy bù nền",
-      "status": "next",
+      "status": "in_progress",
       "goal": "Cô tra được bản đồ chương trình và hộp công cụ; nhận ra lỗ hổng lớp dưới và dạy bù ngắn.",
       "features": [
         {
-          "name": "knowledge/*.json sinh từ md đã duyệt trong hub (D25)",
+          "name": "Kho kiến thức: 4 file hub làm sạch (repo công khai) + bảng nối KU → checklist, hộp công cụ; knowledge.json + CI kiểm",
+          "status": "review"
+        },
+        {
+          "name": "Thẻ kiến thức (lớp ⑤) + công cụ lookup",
           "status": "todo"
         },
         {
-          "name": "Công cụ lookup thẻ kiến thức",
+          "name": "Haiku phân loại bài SGK, ý đề vào 10 (D27), bài hình chứng minh",
           "status": "todo"
         },
         {
-          "name": "Haiku phân loại dạng bài (ku_code)",
+          "name": "Dạy bù nền ≤ 2 lượt, ghi prereq_gaps + chẩn đoán",
           "status": "todo"
         },
         {
-          "name": "Dạy bù nền ≤ 2 lượt, ghi prereq_gaps",
-          "status": "todo"
-        },
-        {
-          "name": "Checklist theo dạng bài cho lớp 6",
+          "name": "Checklist lớp 6 (5 mục, chờ chốt §4.10b)",
           "status": "todo"
         },
         {
@@ -453,7 +453,15 @@
       ],
       "depends": [
         "G4"
-      ]
+      ],
+      "prs": [
+        {
+          "repo": "gia-su",
+          "number": 13,
+          "status": "open"
+        }
+      ],
+      "notes": "Plan: docs/superpowers/plans/2026-11-16-g5-knowledge.md (phụ huynh chốt Q1–Q4 16/11)."
     },
     {
       "id": "G6",
@@ -690,8 +698,8 @@
     {
       "id": "D25",
       "text": "Kho kiến thức knowledge/*.json sinh từ md đã duyệt trong hub",
-      "status": "proposed",
-      "date": "2026-11-14"
+      "status": "confirmed",
+      "date": "2026-11-16"
     },
     {
       "id": "D26",
@@ -702,8 +710,8 @@
     {
       "id": "D27",
       "text": "Gắn nhãn ý đề vào 10 (exam_slot) cho bài luyện",
-      "status": "proposed",
-      "date": "2026-11-14"
+      "status": "confirmed",
+      "date": "2026-11-16"
     },
     {
       "id": "D28",
@@ -734,9 +742,30 @@
       "text": "Gần trần tự chuyển Haiku (bỏ: Haiku lộ đáp số trong G0)",
       "status": "dropped",
       "date": "2026-11-15"
+    },
+    {
+      "id": "G5-Q3",
+      "text": "Checklist lớp 6: 5 mục chung, bắt buộc như lớp 9 (đề xuất, chờ chốt §4.10b)",
+      "status": "proposed",
+      "date": "2026-11-16"
     }
   ],
   "parentTodo": [
+    {
+      "text": "Thêm GitHub Secret PRIVATE_TERMS (tên thật 2 con, trường, thầy cô; cách nhau dấu phẩy) trước khi merge PR G5-A",
+      "slice": "G5",
+      "status": "open"
+    },
+    {
+      "text": "Đọc knowledge/src/*.md trong PR G5-A rồi merge; chép phần riêng (file hub G5_PHAN_RIENG_HO_SO) vào Hồ sơ dạy học",
+      "slice": "G5",
+      "status": "open"
+    },
+    {
+      "text": "Chốt checklist lớp 6 (DOMAIN §4.10b) và D23, D26",
+      "slice": "G5",
+      "status": "open"
+    },
     {
       "text": "Sau merge: chạy G0 các ca 9.16, 9.21, 9.23, 9.24, 9.25, 6.9, 9.3, 6.3 trên Sonnet + Opus (~0,3–0,5 USD)",
       "slice": "G4",
@@ -750,11 +779,6 @@
     {
       "text": "Thử G2 (\"Chưa hiểu\", \"Để dành hỏi thầy\") và G3 (ảnh thật trên iPad)",
       "slice": "G3",
-      "status": "open"
-    },
-    {
-      "text": "Chốt D23, D25, D26, D27",
-      "slice": "G5",
       "status": "open"
     },
     {
@@ -833,6 +857,10 @@
     {
       "date": "2026-11-16",
       "text": "G4 xong: #10 (vòng công cụ, cổng tự làm xong, bài anh em) và #11 (bản đồ lộ trình) đã merge"
+    },
+    {
+      "date": "2026-11-16",
+      "text": "G5 lên kế hoạch (chốt Q1–Q4: bản sạch, D25, checklist lớp 6, D27); PR A kho kiến thức mở"
     }
   ]
 }
