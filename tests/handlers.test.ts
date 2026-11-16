@@ -39,7 +39,7 @@ function client(texts: string[] | (() => never)) {
 function deps<C extends ModelClient = ReturnType<typeof client>>(seed: Seed = {}, c: C = client([confirm]) as unknown as C,
   actor: Deps["actor"] = child) {
   const repo = memoryRepo(seed);
-  const d: Deps = { repo, client: c, actor, now: NOW, layers: { role: "①", rules: "②", method: "③", guard: "Em là bộ kiểm tra", sibling: "Em là người soạn BÀI ANH EM" },
+  const d: Deps = { repo, client: c, actor, now: NOW, layers: { role: "①", rules: "②", method: "③", guard: "Em là bộ kiểm tra", sibling: "Em là người soạn BÀI ANH EM", classify: "Em là bộ phân loại" },
     promptVersion: "v0.2", models: MODELS, cas: null };
   return { d, repo, c };
 }
