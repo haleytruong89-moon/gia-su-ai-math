@@ -18,6 +18,10 @@ import { checksFrom, decideOutcome } from "@/lib/rules/outcome";
 import type { CasClient } from "@/lib/tools/casClient";
 import type { ToolRecord } from "@/lib/tools/defs";
 import { runMathCheck } from "@/lib/tools/mathCheck";
+import { runLookup } from "@/lib/tools/lookup";
+import { knowledgeCard } from "@/lib/knowledge/card";
+import { codeFitsGrade, knowledgeVersion } from "@/lib/knowledge/load";
+import { classifyProblem, EMPTY, type Classification } from "@/lib/tutor/classify";
 import { makeSibling, type SiblingCall, type SiblingInput } from "@/lib/tools/makeSibling";
 import { runToolLoop, type LoopResult } from "@/lib/tutor/toolLoop";
 import { dateVn } from "@/lib/time";
@@ -25,7 +29,7 @@ import { assemble, type ImageData, type Msg, type Turn } from "@/lib/tutor/assem
 import { runGuard, type GuardResult } from "@/lib/tutor/guard";
 import type { Layers } from "@/lib/tutor/layers";
 import {
-  STUCK_KINDS, type ChildActor, type Device, type ModelCallRecord, type PendingMessage, type ProblemRow, type ProblemStatus, type TutorRepo,
+  STUCK_KINDS, type ChildActor, type Device, type Diagnosis, type ModelCallRecord, type PendingMessage, type ProblemRow, type ProblemStatus, type TutorRepo,
 } from "@/lib/tutor/repo";
 import type { TutorOutput } from "@/lib/tutor/schema";
 import { runTutorTurn, type ModelClient } from "@/lib/tutor/turn";
@@ -43,6 +47,8 @@ const GUARD_NEEDS_MS = 60_000;
 const REWRITE_NEEDS_MS = 110_000;
 /** make_sibling = 1–2 model calls + cas: only started with this much time left. */
 const SIBLING_NEEDS_MS = 90_000;
+/** G5: the classifier (Haiku, first turn of a problem) only runs with plenty of turn left. */
+const CLASSIFY_NEEDS_MS = 200_000;
 
 export interface Deps {
   repo: TutorRepo;
@@ -57,6 +63,8 @@ export interface Deps {
   clock?: () => number;
   /** the private math checker (G4); null when not configured → math_check answers an error */
   cas: CasClient | null;
+  /** G5: classify the first turn of each problem (knowledge card, Opus signals). Off in tests that do not test it. */
+  classify?: boolean;
 }
 type Result = { status: number; json: unknown };
 
@@ -274,11 +282,31 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
   const usage = await d.repo.monthUsage(actor.familyId, d.now);
   const paused = strongPaused(usage);
   if (paused && usage.mode === "normal") await d.repo.pauseStrong(actor.familyId, d.now); // TODO(G7): tell the parents (D23)
-  const route = pickModel({ grade: actor.grade, hintLevel: level, nan, prevTutorUnsure: problem.lastTutorFlags.includes("tutor_unsure"),
-    problemUsedStrong: problem.usedStrong, strongPaused: paused });
-
   // Photos of this problem go back on the child messages they were sent with (G3); later turns read them from the cache.
   const photos = problem.imageCount > 0 ? await d.repo.problemImages(problem.id) : [];
+
+  // 3a. G5: first turn of a problem — SGK lesson, grade 10 exam item (D27), geometry proof. Never blocks the turn.
+  const calls: ModelCallRecord[] = [];
+  let cls: Classification = EMPTY;
+  if (d.classify && problem.kuCode === null && turn === 1 && left() >= CLASSIFY_NEEDS_MS) {
+    const r = await classifyProblem(d.client, { model: d.models.light, prompt: d.layers.classify },
+      { grade: actor.grade, statement: text !== PHOTO_ONLY_TEXT ? text : null, image: photos[0]?.image });
+    cls = r.output;
+    if (r.call) calls.push({ purpose: "classify", model: r.call.model, raw: r.call.raw, costUsd: r.call.costUsd, tokens: r.call.tokens,
+      routeReason: null, guardResult: null, guardReasons: [], shown: false });
+    try {
+      await d.repo.setClassification(problem.id, { kuCode: cls.ku_code, examSlot: cls.exam_slot, knowledgeVersion });
+    } catch (e) {
+      console.error("setClassification failed", e instanceof Error ? e.message : "unknown");
+    }
+  }
+  const kuCode = problem.kuCode ?? cls.ku_code;
+  const examSlot = problem.examSlot ?? cls.exam_slot;
+
+  const route = pickModel({ grade: actor.grade, hintLevel: level, nan, prevTutorUnsure: problem.lastTutorFlags.includes("tutor_unsure"),
+    problemUsedStrong: problem.usedStrong, strongPaused: paused,
+    geometryProof: cls.geometry_proof || problem.lastTutorFlags.includes("geometry_proof"), examSlot });
+
   const photosOf = (id: string): ImageData[] => photos.filter((p) => p.messageId === id).map((p) => p.image);
   const history: Turn[] = problem.history.map((h) => ({ role: h.role, content: h.content, images: photosOf(h.id) }));
   // The checker needs the problem: the confirmed restatement, else the typed text, else the first photo.
@@ -289,14 +317,14 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
   const { system, messages } = assemble({
     layers: d.layers,
     profileText: actor.profileText,
-    knowledgeCard: null,
+    knowledgeCard: knowledgeCard(kuCode, actor.grade),
     history,
     childText: text,
     childImages: photosOf(messageId),
     state: {
       grade: actor.grade, hintLevel: level, wrongCount: problem.wrongCount, nan, idle: false, submitted,
-      mode: "thuong", minutesLeft: 45, turn, stuckKind: problem.stuckKind, kuCode: null, examSlot: null,
-      maxLines: actor.maxLines,
+      mode: "thuong", minutesLeft: 45, turn, stuckKind: problem.stuckKind, kuCode, examSlot,
+      maxLines: actor.maxLines, bridgeTurns: problem.bridgeTurns,
     },
   });
   // Out of time counts as not passed (fail-closed). The checker sees which tools ran and what they said (rules 6–7).
@@ -309,7 +337,6 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
 
   // 4. An answer = the tool loop (math_check, make_sibling; ≤ 3 rounds). DOMAIN §4.12 b: a self_solved proposal
   //    on a submitted answer without a confirming math_check is sent back once to call it.
-  const calls: ModelCallRecord[] = [];
   const turnTools: TurnTool[] = [];
   const review = (o: TutorOutput | null, tools: readonly ToolRecord[]) =>
     submitted && o?.ket_qua_bai === "self_solved" && !confirmsAnswer(tools)
@@ -319,6 +346,7 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
     const siblingCalls: SiblingCall[] = [];
     const run = async (name: string, input: unknown) => {
       if (name === "math_check") return runMathCheck(d.cas, input);
+      if (name === "lookup") return runLookup(input);
       if (name === "make_sibling") {
         if (left() < SIBLING_NEEDS_MS) return { ok: false, output: { error: "no_time" } };
         const r = await makeSibling({ client: d.client, model: d.models.main, prompt: d.layers.sibling, cas: d.cas }, input as SiblingInput);
@@ -389,10 +417,18 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
   const next = nextHintLevel(pre.state, verdict);
   const outcome = decideOutcome({ turn, output: shown, submitted, offtopicCount: problem.offtopicCount,
     checks: checksFrom(shownTools),
-    // TODO(rule-unconfirmed) until DOMAIN v0.6 records Q2 (phụ huynh chốt 15/11): grade 9 needs a checklist item first.
-    checklistRequired: actor.grade === 9,
+    // Grade 9: G4 Q2 (phụ huynh chốt 15/11). Grade 6: TODO(rule-unconfirmed) DOMAIN §4.10b (Đề xuất 16/11, G5 Q3).
+    checklistRequired: true,
     checklistAsked: [...new Set([...problem.checklistAsked, ...(shown?.checklist_da_hoi ?? [])])] });
   const safe = safeLine(level);
+  // G5: the lesson code may change when the tutor confirms the statement (or when it was unknown); background gaps (§4.13).
+  const confirmsNow = !problem.statementConfirmed && shown?.de_da_xac_nhan === true;
+  const proposed = shown?.ku_code_de_xuat ?? null;
+  const newKu = proposed && proposed !== kuCode && codeFitsGrade(proposed, actor.grade) && (kuCode === null || confirmsNow) ? proposed : kuCode;
+  const gap = shown?.prereq_gap && codeFitsGrade(shown.prereq_gap, actor.grade) ? shown.prereq_gap : null;
+  const diagnoses: Diagnosis[] = [];
+  if (gap) diagnoses.push({ root: "concept", source: shown?.goc_loi_da_kiem_tra ? "verified" : "self_reported", kuCode: gap });
+  else if (shown?.goc_loi_da_kiem_tra && shown.goc_loi_du_doan) diagnoses.push({ root: shown.goc_loi_du_doan, source: "verified", kuCode: newKu });
   const saved = await d.repo.saveReply({
     actor, problem, childMessageId: messageId, turn,
     status: outcome.status,
@@ -411,6 +447,9 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
     buttons: shown?.buttons ?? safe.buttons,
     calls,
     tools: turnTools,
+    kuCode: newKu,
+    prereqGaps: gap && !problem.prereqGaps.includes(gap) ? [...problem.prereqGaps, gap] : problem.prereqGaps,
+    diagnoses,
     promptVersion: d.promptVersion,
     now: d.now,
   });
