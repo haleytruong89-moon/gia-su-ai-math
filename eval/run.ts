@@ -14,6 +14,9 @@ import { runGuard } from "@/lib/tutor/guard";
 import { toolSummary } from "@/lib/tutor/handlers";
 import { httpCas } from "@/lib/tools/casClient";
 import { runMathCheck } from "@/lib/tools/mathCheck";
+import { runLookup } from "@/lib/tools/lookup";
+import { knowledgeCard } from "@/lib/knowledge/card";
+import { classifyProblem, EMPTY, type Classification } from "@/lib/tutor/classify";
 import { makeSibling, type SiblingInput } from "@/lib/tools/makeSibling";
 import type { ToolRecord } from "@/lib/tools/defs";
 import fewshot from "../tests/fixtures/fewshot.json";
@@ -25,6 +28,7 @@ import { TEST_PROFILES } from "./profiles";
 const JUDGE_MODEL = "claude-haiku-5-5";
 const GUARD_MODEL = "claude-haiku-5-5";
 const SIBLING_MODEL = "claude-sonnet-5-5";
+const CLASSIFY_MODEL = "claude-haiku-5-5";
 // G4: the tool cases need cas running next to the eval (the workflow starts it). Without it math_check answers an error.
 const cas = process.env.CAS_URL && process.env.CAS_SECRET ? httpCas(process.env.CAS_URL, process.env.CAS_SECRET) : null;
 const effort = (process.env.EFFORT as Effort | undefined) || "medium";
@@ -91,18 +95,37 @@ async function judge(c: EvalCase, message: string, buttons: string[], tools: rea
 const baseState: TurnStateBlock = { grade: 9, hintLevel: 0, wrongCount: 0, nan: false, idle: false, submitted: false,
   mode: "thuong", minutesLeft: 30, turn: 1, stuckKind: null, kuCode: null, examSlot: null, maxLines: 6 };
 
+/** G5: the lesson of a case — given, or what the classifier finds from the problem statement (cached per case). */
+const classified = new Map<string, Promise<{ output: Classification; costUsd: number }>>();
+function classifyCase(c: EvalCase) {
+  if (c.kuCode) return Promise.resolve({ output: { ...EMPTY, ku_code: c.kuCode }, costUsd: 0 });
+  let p = classified.get(c.id);
+  if (!p) {
+    const statement = c.history.find((m) => m.role === "user")?.content ?? c.childText;
+    p = (async () => {
+      const image = c.image && !c.history.length ? await sheet(c.image.lines, { rotate: c.image.rotate }) : undefined;
+      const r = await classifyProblem(client, { model: CLASSIFY_MODEL, prompt: loadLayers().classify }, { grade: c.grade, statement, image });
+      return { output: r.output, costUsd: r.call?.costUsd ?? 0 };
+    })();
+    classified.set(c.id, p);
+  }
+  return p;
+}
+
 async function runCase(model: string, c: EvalCase) {
   const profile = TEST_PROFILES[c.grade];
+  const cls = await classifyCase(c);
   const { system, messages } = assemble({
-    layers: loadLayers(), profileText: profile.text, knowledgeCard: null, history: c.history, childText: c.childText,
-    childImages: c.image ? [await sheet(c.image.lines, { rotate: c.image.rotate })] : undefined,
-    state: { ...baseState, grade: c.grade, maxLines: profile.maxLines, ...c.state },
+    layers: loadLayers(), profileText: profile.text, knowledgeCard: knowledgeCard(cls.output.ku_code, c.grade), history: c.history,
+    childText: c.childText, childImages: c.image ? [await sheet(c.image.lines, { rotate: c.image.rotate })] : undefined,
+    state: { ...baseState, grade: c.grade, maxLines: profile.maxLines, kuCode: cls.output.ku_code, examSlot: cls.output.exam_slot, ...c.state },
   });
   const started = Date.now();
   try {
     let siblingCost = 0;
     const run = async (name: string, input: unknown) => {
       if (name === "math_check") return runMathCheck(cas, input);
+      if (name === "lookup") return runLookup(input);
       if (name === "make_sibling") {
         const sib = await makeSibling({ client, model: SIBLING_MODEL, prompt: loadLayers().sibling, cas }, input as SiblingInput);
         siblingCost += sib.calls.reduce((t, x) => t + x.costUsd, 0);
@@ -117,6 +140,8 @@ async function runCase(model: string, c: EvalCase) {
     const auto = checkOutput(r.output, { maxLines: profile.maxLines, forbid: c.forbid, expect: c.expect, tools: toolsRun });
     const j = r.output ? await judge(c, r.output.message, r.output.buttons, loop.tools) : { verdict: null, costUsd: 0 };
     const failures = [...auto.failures];
+    if (c.classify?.ku && cls.output.ku_code !== c.classify.ku) failures.push(`classify:ku=${cls.output.ku_code ?? "null"}`);
+    if (c.classify?.proof !== undefined && cls.output.geometry_proof !== c.classify.proof) failures.push(`classify:proof=${cls.output.geometry_proof}`);
     if (j.verdict?.leaks_original_answer) failures.push("judge:leak");
     if (j.verdict && !j.verdict.ends_with_question_or_small_task) failures.push("judge:no_question");
     if (j.verdict && !j.verdict.rubric_met) failures.push("judge:rubric");
@@ -126,7 +151,8 @@ async function runCase(model: string, c: EvalCase) {
       lengthOk: !auto.failures.some((f) => f.startsWith("lines:")),
       endsOk: j.verdict?.ends_with_question_or_small_task ?? false,
       judgeReason: j.verdict?.reason ?? null, output: r.output, raw: r.output ? undefined : r.raw, stopReason: r.stopReason,
-      costUsd: r.costUsd, judgeCostUsd: j.costUsd, ms, tokens: r.tokens, tools: loop.tools.map(toolSummary), modelCalls: loop.calls.length };
+      costUsd: r.costUsd + cls.costUsd, judgeCostUsd: j.costUsd, ms, tokens: r.tokens, tools: loop.tools.map(toolSummary), modelCalls: loop.calls.length,
+      classification: cls.output };
   } catch (e) {
     return { model, id: c.id, title: c.title, pass: false, failures: [`error:${e instanceof Error ? e.message.slice(0, 400) : "unknown"}`],
       leak: false, lengthOk: false, endsOk: false, judgeReason: null, output: null, costUsd: 0, judgeCostUsd: 0, ms: Date.now() - started };

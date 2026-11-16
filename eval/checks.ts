@@ -14,6 +14,9 @@ export interface Expect {
   statementConfirmed?: boolean;
   /** G4: tools the answer must have used, as keys of toolKeys() — e.g. "math_check", "make_sibling:verified" */
   toolsInclude?: string[];
+  /** G5: the teaching technique must be one of these; the background gap must be this code. */
+  kyThuat?: TutorOutput["ky_thuat"][];
+  prereqGap?: string;
 }
 export interface CheckSpec { maxLines: number; forbid?: string[]; expect?: Expect; tools?: string[] }
 
@@ -60,5 +63,7 @@ export function checkOutput(o: TutorOutput | null, spec: CheckSpec): { failures:
   if (e.buttonMatches && !o.buttons.some((b) => e.buttonMatches!.test(b))) f.push(`button_missing:${e.buttonMatches}`);
   if (e.statementConfirmed !== undefined && o.de_da_xac_nhan !== e.statementConfirmed) f.push(`de_da_xac_nhan:${o.de_da_xac_nhan}`);
   for (const k of e.toolsInclude ?? []) if (!(spec.tools ?? []).includes(k)) f.push(`tool_missing:${k}`);
+  if (e.kyThuat && !e.kyThuat.includes(o.ky_thuat)) f.push(`ky_thuat:${o.ky_thuat}`);
+  if (e.prereqGap !== undefined && o.prereq_gap !== e.prereqGap) f.push(`prereq_gap:${o.prereq_gap ?? "null"}`);
   return { failures: f, leak: leaks.length > 0 };
 }

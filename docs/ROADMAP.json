@@ -2,7 +2,7 @@
   "schema": 1,
   "project": "Gia sư AI Toán",
   "updated": "2026-11-16",
-  "updatedNote": "G5 bắt đầu: PR A kho kiến thức (bản sạch) mở",
+  "updatedNote": "G5 PR B (cô dùng kho kiến thức) xong code, mở sau khi #13 merge",
   "vision": {
     "oneLiner": "Một \"cô\" gia sư AI giúp 2 con tự học Toán buổi chiều: gỡ chỗ kẹt bằng câu hỏi gợi mở, không đưa lời giải bài gốc, tối bố mẹ đọc báo cáo 5 phút.",
     "problem": "Buổi chiều 2 con có nhiều thời gian tự học nhưng không có người lớn. Bố mẹ có khoảng 2 giờ buổi tối, gia sư người 2 buổi/tuần. Tốc độ tiến bộ do giờ tự học buổi chiều quyết định.",
@@ -427,23 +427,23 @@
         },
         {
           "name": "Thẻ kiến thức (lớp ⑤) + công cụ lookup",
-          "status": "todo"
+          "status": "review"
         },
         {
           "name": "Haiku phân loại bài SGK, ý đề vào 10 (D27), bài hình chứng minh",
-          "status": "todo"
+          "status": "review"
         },
         {
           "name": "Dạy bù nền ≤ 2 lượt, ghi prereq_gaps + chẩn đoán",
-          "status": "todo"
+          "status": "review"
         },
         {
           "name": "Checklist lớp 6 (5 mục, chờ chốt §4.10b)",
-          "status": "todo"
+          "status": "review"
         },
         {
           "name": "Opus cho hình chứng minh lớp 9 và ý chặn đề vào 10",
-          "status": "todo"
+          "status": "review"
         }
       ],
       "acceptance": [
@@ -762,6 +762,11 @@
       "status": "open"
     },
     {
+      "text": "Sau khi merge G5: chạy G0 cases 9.16,9.17,9.18,9.19,6.11,9.3 (Sonnet + Opus); thử bài rút gọn + bài hình lớp 9, bài BCNN lớp 6 trên link chính thức",
+      "slice": "G5",
+      "status": "open"
+    },
+    {
       "text": "Chốt checklist lớp 6 (DOMAIN §4.10b) và D23, D26",
       "slice": "G5",
       "status": "open"
@@ -820,7 +825,7 @@
     }
   ],
   "metrics": {
-    "vitest": 232,
+    "vitest": 265,
     "pytest": 20,
     "e2e": "xanh",
     "g0": "Lần 4 (15/11): Sonnet 21/28 lộ 0 · Opus 23/28 lộ 0"
@@ -861,6 +866,10 @@
     {
       "date": "2026-11-16",
       "text": "G5 lên kế hoạch (chốt Q1–Q4: bản sạch, D25, checklist lớp 6, D27); PR A kho kiến thức mở"
+    },
+    {
+      "date": "2026-11-16",
+      "text": "G5 PR B code xong: phân loại Haiku, thẻ ⑤ + lookup, dạy bù ≤ 2 lượt, checklist lớp 6, Opus cho hình/ý chặn; bộ test 9.17–9.19, 6.11"
     }
   ]
 }

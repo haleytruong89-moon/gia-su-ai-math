@@ -2,7 +2,8 @@
 // Problems are retyped from the outline; answers were checked by hand (and SymPy where it applies).
 // Photo cases (9.9, 9.11) use made-up printed sheets drawn by eval/images.ts — real photos stay out of this public repo;
 // Tool cases (G4): 9.16, 9.21, 9.23, 6.9 need a running cas (CAS_URL, CAS_SECRET); 9.24, 9.25 test the checker
-// alone (GUARD_CASES). 9.19 (knowledge layer) waits for G5.
+// alone (GUARD_CASES). G5: every case gets the knowledge card ⑤ of its lesson (`kuCode`, else the Haiku classifier on
+// the problem statement); `classify` states what the classifier must find.
 import type { Turn as Msg, TurnStateBlock } from "@/lib/tutor/assemble";
 import type { CheckSpec } from "./checks";
 
@@ -22,6 +23,10 @@ export interface EvalCase {
   answer: string;
   /** G3: the child sends a photo of a made-up printed sheet with these lines (eval/images.ts). */
   image?: { lines: string[]; rotate?: number };
+  /** G5: the lesson of the problem (skips the classifier). */
+  kuCode?: string;
+  /** G5: what the classifier must find (only when `kuCode` is not given). */
+  classify?: { ku?: string; proof?: boolean };
 }
 
 // ---------- problems ----------
@@ -137,13 +142,19 @@ export const CASES: EvalCase[] = [
     expect: { toolsInclude: ["make_sibling:verified"] },
     rubric: "Có bài anh em số khác đề gốc, giải trọn từng bước, rồi mời em làm lại bài gốc; không có 24, 48." },
   { id: "9.17", grade: 9, title: "HK II: Viète (em tự hỏi)", history: [], childText: VIETE,
-    state: { hintLevel: 0, turn: 1, stuckKind: "khong_biet_bat_dau" }, forbid: ["19"], answer: "x₁² + x₂² = 19",
-    expect: { statementConfirmed: false },
+    state: { hintLevel: 0, turn: 1, stuckKind: "khong_biet_bat_dau" }, forbid: ["19", "ngoài phạm vi", "chưa học"], answer: "x₁² + x₂² = 19",
+    expect: { statementConfirmed: false }, classify: { ku: "T9.20", proof: false },
     rubric: "Chép lại đề và hỏi xác nhận; KHÔNG nói bài này ngoài chương trình hay chưa học." },
   { id: "9.18", grade: 9, title: "Hình: không biết bắt đầu (phân tích ngược)", history: started(DUONG_CAO),
     childText: "em không biết bắt đầu", state: { ...confirmed, hintLevel: 1, turn: 3 }, answer: "(chứng minh qua △AEB ∽ △AFC)",
-    expect: { flags: ["geometry_proof"], buttonMatches: /đồng dạng/i },
+    expect: { flags: ["geometry_proof"], buttonMatches: /đồng dạng/i, kyThuat: ["phan_tich_nguoc", "hop_cong_cu"] },
+    classify: { proof: true },
     rubric: "Dùng phân tích ngược: từ đẳng thức cần chứng minh hỏi em nghĩ tới tỉ số / tam giác đồng dạng; chỉ gợi đúng một mắt xích." },
+  { id: "9.19", grade: 9, title: "Hổng nền: không tách được x − 9 (dạy bù N8.02)", history: started(RUT_GON),
+    childText: "em không biết x − 9 tách thế nào", state: { ...confirmed, hintLevel: 2, turn: 3 }, kuCode: "T9.9",
+    forbid: ["3/(3 − √x)", "3/(3-√x)", "(√x − 3)(√x + 3)", "(√x-3)(√x+3)"], answer: "P = 3/(3 − √x)",
+    expect: { kyThuat: ["day_bu_nen"], prereqGap: "N8.02" },
+    rubric: "Dạy bù ngắn hằng đẳng thức a² − b² (có thể bằng ví dụ khác số, vd x − 4), để em tự tách x − 9; nói sẽ quay lại bài; không viết sẵn (√x − 3)(√x + 3)." },
   { id: "9.20", grade: 9, title: "Kết quả không hợp lý (20,75 km/h)", history: started(OTO),
     childText: "Em ra vận tốc xe thứ hai là 20,75 km/h", state: { submitted: true, hintLevel: 1, turn: 5 }, forbid: ["60", "75"],
     answer: "Xe thứ nhất 75 km/h, xe thứ hai 60 km/h", expect: { notSelfSolved: true },
@@ -190,6 +201,10 @@ export const CASES: EvalCase[] = [
   { id: "6.10", grade: 6, title: "Lỗi thật: 72, quên điều kiện khoảng", history: started(CAY), childText: "72 cây",
     state: { submitted: true, hintLevel: 1, turn: 4 }, forbid: ["144"], answer: "144 cây", expect: { notSelfSolved: true },
     rubric: "Hỏi em xem lại điều kiện 'trong khoảng 100 đến 200' của đề; không nói 144." },
+  { id: "6.11", grade: 6, title: "Nộp đúng (BC trong khoảng) → hỏi checklist trước khi chốt", history: started(HOA),
+    childText: "BCNN(3, 5, 7) = 105, bội trong khoảng 200 đến 300 là 210. Vậy có 210 bông.", kuCode: "T6.12",
+    state: { submitted: true, hintLevel: 0, turn: 4 }, answer: "210 bông", expect: { notSelfSolved: true, toolsInclude: ["math_check"] },
+    rubric: "Ghi nhận em làm đúng; trước khi chốt hỏi em tự soát một mục checklist lớp 6 (đối chiếu điều kiện trong khoảng, hoặc câu trả lời có đơn vị); chưa coi là xong ở lượt này." },
 ];
 
 /** Checker-only cases (BO_TEST 9.24, 9.25): a fake tutor answer goes straight to the Haiku guard, which must FAIL it. */
