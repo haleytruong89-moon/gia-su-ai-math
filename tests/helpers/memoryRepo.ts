@@ -4,14 +4,15 @@ import { deleteAfterVn } from "@/lib/rules/photo";
 import type { HintLevel } from "@/lib/rules/hints";
 import type { InputKind } from "@/lib/rules/events";
 import {
-  checklistOf, flagsOf, usableSibling, type FoundMessage, type HistoryItem, type ModelCallRecord, type ProblemRow, type ProblemStatus, type SaveReplyInput, type StoredReply,
+  bridgeTurnsOf, checklistOf, flagsOf, usableSibling, type Diagnosis, type FoundMessage, type HistoryItem, type ModelCallRecord, type ProblemRow, type ProblemStatus, type SaveReplyInput, type StoredReply,
   type StuckKind, type TutorRepo,
 } from "@/lib/tutor/repo";
 
 interface Sess { id: string; childId: string; dateVn: string; status: "active" | "ended" | "abandoned"; device: string }
 interface Prob { id: string; childId: string; familyId: string; sessionId: string; status: ProblemStatus; turnCount: number;
   hintLevel: HintLevel; hintLevelMax: HintLevel; nanJumps: number; wrongCount: number; offtopicCount: number; uLevel: 0 | 1 | 2 | 3;
-  stuckKind: StuckKind | null; statementConfirmed: boolean; confirmedStatement: string | null }
+  stuckKind: StuckKind | null; statementConfirmed: boolean; confirmedStatement: string | null;
+  kuCode: string | null; examSlot: string | null; prereqGaps: string[]; knowledgeVersion: string | null }
 interface ImageRow { id: string; problemId: string; messageId: string; childId: string; path: string; data: string; width: number;
   height: number; deleteAfter: string }
 interface MsgRow { id: string; childId: string; problemId: string; role: "child" | "tutor"; text: string; buttons: string[];
@@ -35,7 +36,7 @@ export function memoryRepo(seed: Seed = {}, strongModel = "claude-opus-5-5") {
   const sessions: Sess[] = (seed.sessions ?? []).map((s) => ({ id: id("s"), childId: "c1", dateVn: "2026-11-14", status: "active", device: "laptop", ...s }));
   const problems: Prob[] = (seed.problems ?? []).map((p) => ({ familyId: "f1", sessionId: "s0", status: "in_progress", turnCount: 0,
     hintLevel: 0, hintLevelMax: 0, nanJumps: 0, wrongCount: 0, offtopicCount: 0, uLevel: 0, stuckKind: null, statementConfirmed: false,
-    confirmedStatement: null, ...p }));
+    confirmedStatement: null, kuCode: null, examSlot: null, prereqGaps: [], knowledgeVersion: null, ...p }));
   const messages: MsgRow[] = (seed.messages ?? []).map((m) => ({ id: id("m"), childId: "c1", buttons: [], clientMsgId: null,
     inputKind: "text", hintLevel: null, at: new Date("2026-11-14T10:00:00Z"), ...m }));
   const modelCalls: CallRow[] = (seed.calls ?? []).map((c) => ({ purpose: "tutor", model: "claude-sonnet-5-5", raw: "{}", costUsd: 0,
@@ -44,6 +45,7 @@ export function memoryRepo(seed: Seed = {}, strongModel = "claude-opus-5-5") {
   const images: ImageRow[] = (seed.images ?? []).map((i) => ({ id: id("i"), childId: "c1", path: "c1/x/y.jpg", data: "QUJD",
     width: 10, height: 10, deleteAfter: "2027-01-01", ...i }));
   const toolCalls: ToolRow[] = [];
+  const diagnoses: (Diagnosis & { problemId: string; childId: string })[] = [];
   const usage = new Map<string, number>();
   const modes = new Map<string, "normal" | "economy">();
   for (const u of seed.usage ?? []) {
@@ -73,13 +75,17 @@ export function memoryRepo(seed: Seed = {}, strongModel = "claude-opus-5-5") {
     async createProblem(a) {
       const p: Prob = { id: id("p"), childId: a.actor.userId, familyId: a.actor.familyId, sessionId: a.sessionId, status: "in_progress",
         turnCount: 0, hintLevel: 0, hintLevelMax: 0, nanJumps: 0, wrongCount: 0, offtopicCount: 0, uLevel: 0, stuckKind: a.stuckKind,
-        statementConfirmed: false, confirmedStatement: null };
+        statementConfirmed: false, confirmedStatement: null, kuCode: null, examSlot: null, prereqGaps: [], knowledgeVersion: null };
       problems.push(p);
       return { id: p.id };
     },
     async setProblemStatus(problemId, status) {
       const p = problems.find((x) => x.id === problemId);
       if (p) p.status = status;
+    },
+    async setClassification(problemId, c) {
+      const p = problems.find((x) => x.id === problemId);
+      if (p) Object.assign(p, { kuCode: c.kuCode, examSlot: c.examSlot, knowledgeVersion: c.knowledgeVersion });
     },
     async getProblemForChild(problemId, childId) {
       const p = problems.find((x) => x.id === problemId && x.childId === childId);
@@ -103,6 +109,8 @@ export function memoryRepo(seed: Seed = {}, strongModel = "claude-opus-5-5") {
         siblingShown: toolCalls.some((t) => t.problemId === p.id && t.tool === "make_sibling" && t.ok && usableSibling(t.output)
           && modelCalls[t.callRow]?.shown === true),
         checklistAsked: [...new Set(calls.filter((c) => c.purpose === "tutor" && c.shown).flatMap((c) => checklistOf(c.raw)))],
+        kuCode: p.kuCode, examSlot: p.examSlot, prereqGaps: [...p.prereqGaps],
+        bridgeTurns: bridgeTurnsOf(calls.filter((c) => c.purpose === "tutor" && c.shown).map((c) => c.raw).reverse()),
         pending,
       };
       return row;
@@ -148,7 +156,9 @@ export function memoryRepo(seed: Seed = {}, strongModel = "claude-opus-5-5") {
       if (!conflict) {
         if (p.confirmedStatement === null && a.confirmedStatement) p.confirmedStatement = a.confirmedStatement;
         Object.assign(p, { turnCount: a.turn, status: a.status, statementConfirmed: a.statementConfirmed, hintLevel: a.hintLevel,
-          hintLevelMax: a.hintLevelMax, nanJumps: a.nanJumps, wrongCount: a.wrongCount, offtopicCount: a.offtopicCount, uLevel: a.uLevel });
+          hintLevelMax: a.hintLevelMax, nanJumps: a.nanJumps, wrongCount: a.wrongCount, offtopicCount: a.offtopicCount, uLevel: a.uLevel,
+          kuCode: a.kuCode, prereqGaps: [...a.prereqGaps] });
+        for (const dg of a.diagnoses) diagnoses.push({ ...dg, problemId: p.id, childId: p.childId });
         reply = { problemId: p.id, message: a.tutorText, buttons: a.buttons, hintLevel: a.replyHintLevel, status: p.status, turnCount: p.turnCount,
           statementConfirmed: p.statementConfirmed };
         t = { id: id("m"), childId: p.childId, problemId: p.id, role: "tutor", text: a.tutorText, buttons: a.buttons, inputKind: "text",
@@ -180,5 +190,5 @@ export function memoryRepo(seed: Seed = {}, strongModel = "claude-opus-5-5") {
       return "saved";
     },
   };
-  return Object.assign(repo, { sessions, problems, messages, modelCalls, usage, modes, images, toolCalls });
+  return Object.assign(repo, { sessions, problems, messages, modelCalls, usage, modes, images, toolCalls, diagnoses });
 }
