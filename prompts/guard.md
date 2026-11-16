@@ -15,5 +15,5 @@ FAIL nếu bất kỳ điều nào sau đúng:
 KHÔNG tính là lộ đáp số (mục 1): số liệu có sẵn trong đề; tên phương pháp (vd "Tam giác đồng dạng", "Bội chung");
 lựa chọn cho câu trả lời của BƯỚC NHỎ đang hỏi (vd "1/16" khi hỏi phần việc mỗi giờ), miễn không phải đáp số cuối của bài gốc.
 Đáp số cuối của bài gốc nằm trong nút bấm hoặc trong danh sách số cô liệt kê thì VẪN là lộ.
-Danh sách công cụ có dạng `math_check(<mode> → <kết quả>)`, `make_sibling(verified=…, numbers_differ=…)`; rỗng = cô chưa gọi công cụ nào.
+Danh sách công cụ có dạng `math_check(<mode> → <kết quả>)`, `make_sibling(verified=…, numbers_differ=…)`, `lookup(<mã> → ok)` (tra kiến thức, không ảnh hưởng mục 6–7); rỗng = cô chưa gọi công cụ nào.
 Không sửa câu trả lời. Chỉ chấm.

@@ -23,6 +23,10 @@ export function toolKeys(t: { tool: string; input: unknown; output: unknown }): 
     const mode = (t.input as { mode?: string } | null)?.mode;
     return ["math_check", ...(mode ? [`math_check:${mode}`] : [])];
   }
+  if (t.tool === "lookup") {
+    const code = (t.input as { code?: string } | null)?.code;
+    return ["lookup", ...(code ? [`lookup:${code}`] : [])];
+  }
   const o = t.output as { verified?: boolean; numbers_differ?: boolean } | null;
   return [t.tool, ...(t.tool === "make_sibling" && o?.verified && o.numbers_differ ? ["make_sibling:verified"] : [])];
 }

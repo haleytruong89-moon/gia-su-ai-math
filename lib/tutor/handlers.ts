@@ -231,6 +231,10 @@ export function toolSummary(t: ToolRecord): string {
     return `math_check(${mode} → ${r || "ok"})`;
   }
   if (t.tool === "make_sibling") return `make_sibling(verified=${out?.verified === true}, numbers_differ=${out?.numbers_differ === true})`;
+  if (t.tool === "lookup") {
+    const code = (t.input as { code?: string } | null)?.code ?? "?";
+    return `lookup(${code} → ${t.ok ? "ok" : `error: ${out?.error ?? "unknown"}`})`;
+  }
   return `${t.tool}(error)`;
 }
 const confirmsAnswer = (tools: readonly ToolRecord[]) =>
