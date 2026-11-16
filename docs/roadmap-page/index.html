@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bản đồ lộ trình Gia sư AI Toán</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Lexend:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: one column; a "metro line" of slices G0→v1.1 on top, the selected slice's card below; tabs for overview, architecture, decisions, parent tasks, log. */
+:root {
+  --bg: #F4F5F0;
+  --surface: #FFFFFF;
+  --ink: #1C1F1D;
+  --muted: #5E6662;
+  --line: #D9DDD6;
+  --accent: #2B5D4F;
+  --accent-soft: #E1ECE7;
+  --ok: #2B5D4F;
+  --warn: #A8650F;
+  --warn-soft: #FBEFD9;
+  --next: #2F5D9E;
+  --next-soft: #E3EBF6;
+  --font-display: "Lexend", "Be Vietnam Pro", system-ui, sans-serif;
+  --font-body: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #141816; --surface: #1D2220; --ink: #E7ECE9; --muted: #A2ABA6; --line: #333B37;
+    --accent: #7FC3AE; --accent-soft: #23332D; --ok: #7FC3AE; --warn: #E6A852; --warn-soft: #3A2E1A;
+    --next: #8DB2E8; --next-soft: #1F2A3A; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #141816; --surface: #1D2220; --ink: #E7ECE9; --muted: #A2ABA6; --line: #333B37;
+  --accent: #7FC3AE; --accent-soft: #23332D; --ok: #7FC3AE; --warn: #E6A852; --warn-soft: #3A2E1A;
+  --next: #8DB2E8; --next-soft: #1F2A3A; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.55 var(--font-body); }
+a { color: var(--accent); }
+a:focus-visible, button:focus-visible { outline: 3px solid var(--next); outline-offset: 2px; }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 24px 16px 48px; display: grid; gap: 20px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; letter-spacing: -0.01em; }
+h1 { font-size: 26px; }
+h2 { font-size: 19px; }
+h3 { font-size: 16px; }
+.sub { color: var(--muted); margin: 4px 0 0; max-width: 68ch; }
+header { display: grid; gap: 14px; }
+.stamp { font-size: 13px; color: var(--muted); }
+.stamp b { color: var(--ink); font-weight: 600; }
+.summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.tile { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: grid; gap: 4px; }
+.tile .k { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.tile .v { font-family: var(--font-display); font-size: 20px; font-variant-numeric: tabular-nums; }
+.tile .v small { font-size: 13px; color: var(--muted); font-family: var(--font-body); }
+.bar { height: 8px; border-radius: 99px; background: var(--line); overflow: hidden; display: flex; }
+.bar span { display: block; height: 100%; }
+.tile.todo { border-left: 4px solid var(--warn); }
+.tile.todo .v { font-size: 15px; font-family: var(--font-body); font-weight: 600; line-height: 1.4; }
+
+nav.tabs { display: flex; flex-wrap: wrap; gap: 6px; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
+nav.tabs a { text-decoration: none; color: var(--muted); padding: 8px 12px; border-radius: 8px; font-weight: 500; min-height: 40px; display: inline-flex; align-items: center; }
+nav.tabs a[aria-current="page"] { background: var(--accent); color: var(--surface); }
+nav.tabs a:hover:not([aria-current="page"]) { background: var(--accent-soft); color: var(--ink); }
+
+/* Metro line */
+.metro { overflow-x: auto; padding: 4px 2px 10px; }
+.metro ol { list-style: none; margin: 0; padding: 0; display: flex; min-width: 900px; }
+.metro li { flex: 1; position: relative; display: flex; flex-direction: column; align-items: center; }
+.metro li::before { content: ""; position: absolute; top: 21px; left: -50%; right: 50%; height: 4px; background: var(--line); z-index: 0; }
+.metro li:first-child::before { display: none; }
+.metro li.s-done::before, .metro li.s-in_progress::before { background: var(--ok); }
+.metro button { all: unset; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px; z-index: 1; padding: 0 4px; text-align: center; border-radius: 8px; }
+.dot { width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; font: 600 13px var(--font-display); border: 3px solid var(--line); background: var(--surface); color: var(--muted); }
+.s-done .dot { background: var(--ok); border-color: var(--ok); color: var(--surface); }
+.s-in_progress .dot { background: var(--warn-soft); border-color: var(--warn); color: var(--warn); box-shadow: 0 0 0 5px var(--warn-soft); }
+.s-next .dot { border-color: var(--next); color: var(--next); }
+.s-later .dot { border-style: dashed; }
+.metro .t { font-size: 12.5px; line-height: 1.3; max-width: 13ch; color: var(--muted); }
+.metro li.sel .t { color: var(--ink); font-weight: 600; }
+.metro li.sel .dot { outline: 3px solid var(--next); outline-offset: 3px; }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12.5px; color: var(--muted); }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; border: 2px solid var(--line); }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px; display: grid; gap: 14px; }
+.card .head { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
+.pill { font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 99px; white-space: nowrap; }
+.p-done { background: var(--accent-soft); color: var(--ok); }
+.p-in_progress, .p-review, .p-doing { background: var(--warn-soft); color: var(--warn); }
+.p-next { background: var(--next-soft); color: var(--next); }
+.p-planned, .p-todo, .p-later { background: var(--bg); color: var(--muted); border: 1px solid var(--line); }
+.p-proposed { background: var(--warn-soft); color: var(--warn); }
+.p-confirmed { background: var(--accent-soft); color: var(--ok); }
+.p-dropped { background: var(--bg); color: var(--muted); text-decoration: line-through; }
+.p-open { background: var(--warn-soft); color: var(--warn); }
+.p-merged { background: var(--accent-soft); color: var(--ok); }
+.cols { display: grid; grid-template-columns: 1.4fr 1fr; gap: 18px; }
+@media (max-width: 760px) { .cols { grid-template-columns: 1fr; } }
+ul.feat { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+ul.feat li { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: start; padding-bottom: 8px; border-bottom: 1px dashed var(--line); }
+ul.feat li:last-child { border-bottom: 0; padding-bottom: 0; }
+.mini { font-size: 13px; color: var(--muted); }
+.box { display: grid; gap: 6px; }
+.box h3 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-family: var(--font-body); font-weight: 600; }
+.box ul { margin: 0; padding-left: 18px; }
+.box ul.feat { padding-left: 0; }
+.prs { display: flex; flex-wrap: wrap; gap: 6px; }
+.prs a { text-decoration: none; font-size: 13px; padding: 4px 10px; border-radius: 8px; border: 1px solid var(--line); display: inline-flex; gap: 6px; align-items: center; }
+.note { background: var(--warn-soft); border-radius: 8px; padding: 8px 12px; font-size: 14px; }
+
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 600; }
+td.id { font-family: var(--font-display); font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.tablewrap { overflow-x: auto; }
+.layers { display: grid; gap: 10px; }
+.layer { display: grid; grid-template-columns: 220px 1fr; gap: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+.layer h3 { font-size: 15px; }
+.layer ul { margin: 0; padding-left: 18px; }
+@media (max-width: 600px) { .layer { grid-template-columns: 1fr; } }
+.arrow { text-align: center; color: var(--muted); font-size: 18px; line-height: 1; }
+ol.steps { margin: 0; padding-left: 22px; display: grid; gap: 6px; }
+.todo-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.todo-list li { display: grid; grid-template-columns: 22px 1fr auto; gap: 10px; align-items: start; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+.todo-list li.done { opacity: .6; }
+.todo-list li.done .txt { text-decoration: line-through; }
+.chk { width: 18px; height: 18px; border: 2px solid var(--warn); border-radius: 4px; margin-top: 3px; }
+li.done .chk { background: var(--ok); border-color: var(--ok); }
+.log { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.log li { display: grid; grid-template-columns: 96px 1fr; gap: 14px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.log time { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 13px; }
+.view[hidden] { display: none; }
+.err { background: var(--warn-soft); padding: 10px 12px; border-radius: 8px; }
+@media (prefers-reduced-motion: no-preference) { .metro button .dot { transition: transform .15s; } .metro button:hover .dot { transform: scale(1.06); } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Gia sư AI Toán · bản đồ lộ trình</h1>
+      <p class="sub" id="oneliner"></p>
+    </div>
+    <div class="stamp" id="stamp"></div>
+    <div class="summary" id="summary"></div>
+  </header>
+
+  <nav class="tabs" aria-label="Các phần">
+    <a href="#lo-trinh" data-view="lo-trinh">Lộ trình</a>
+    <a href="#tong-quan" data-view="tong-quan">Mục đích &amp; thiết kế</a>
+    <a href="#kien-truc" data-view="kien-truc">Kiến trúc</a>
+    <a href="#quyet-dinh" data-view="quyet-dinh">Quyết định</a>
+    <a href="#viec-bo-me" data-view="viec-bo-me">Việc của bố mẹ</a>
+    <a href="#nhat-ky" data-view="nhat-ky">Nhật ký</a>
+  </nav>
+
+  <section class="view" id="v-lo-trinh">
+    <div class="metro"><ol id="metro"></ol></div>
+    <div class="legend">
+      <span><i style="background:var(--ok);border-color:var(--ok)"></i>Xong</span>
+      <span><i style="background:var(--warn-soft);border-color:var(--warn)"></i>Đang làm</span>
+      <span><i style="border-color:var(--next)"></i>Làm tiếp</span>
+      <span><i></i>Kế hoạch</span>
+      <span><i style="border-style:dashed"></i>Sau v1</span>
+      <span>Bấm một ga để xem chi tiết.</span>
+    </div>
+    <article class="card" id="slice"></article>
+  </section>
+
+  <section class="view" id="v-tong-quan" hidden></section>
+  <section class="view" id="v-kien-truc" hidden></section>
+  <section class="view" id="v-quyet-dinh" hidden></section>
+  <section class="view" id="v-viec-bo-me" hidden></section>
+  <section class="view" id="v-nhat-ky" hidden></section>
+</div>
+
+<script id="snapshot" type="application/json">/*SNAPSHOT*/</script>
+<script>
+(function () {
+  "use strict";
+  var REPOS = {
+    "gia-su": "https://github.com/haleytruong89-moon/gia-su-ai-math/pull/",
+    "launcher": "https://github.com/haleytruong89-moon/study-launcher/pull/"
+  };
+  var REPO_LABEL = { "gia-su": "gia sư", "launcher": "Launcher" };
+  var SLICE = { done: "Xong", in_progress: "Đang làm", next: "Làm tiếp", planned: "Kế hoạch", later: "Sau v1" };
+  var FEAT = { done: "Xong", review: "Chờ merge", doing: "Đang làm", todo: "Chưa làm" };
+  var DEC = { confirmed: "Đã chốt", proposed: "Chờ chốt", dropped: "Bỏ" };
+  var FLOW = { building: "Đang xây", planned: "Kế hoạch", later: "Sau v1", done: "Xong" };
+  var VIEWS = ["lo-trinh", "tong-quan", "kien-truc", "quyet-dinh", "viec-bo-me", "nhat-ky"];
+  var data = null, selected = null;
+
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  function vnDate(iso) { var p = String(iso).split("-"); return p.length === 3 ? p[2] + "/" + p[1] + "/" + p[0] : iso; }
+  function pill(kind, label) { return '<span class="pill p-' + esc(kind) + '">' + esc(label) + "</span>"; }
+  function $(id) { return document.getElementById(id); }
+
+  function renderHeader() {
+    $("oneliner").textContent = data.vision.oneLiner;
+    var v1 = data.slices.filter(function (s) { return s.status !== "later"; });
+    var done = v1.filter(function (s) { return s.status === "done"; }).length;
+    var doing = v1.filter(function (s) { return s.status === "in_progress"; });
+    var feats = [].concat.apply([], v1.map(function (s) { return s.features; }));
+    var fDone = feats.filter(function (f) { return f.status === "done"; }).length;
+    var fReview = feats.filter(function (f) { return f.status === "review"; }).length;
+    var todos = data.parentTodo.filter(function (t) { return t.status === "open"; });
+    var pct = function (n) { return (100 * n / feats.length).toFixed(1) + "%"; };
+    $("stamp").innerHTML = "Cập nhật <b>" + esc(vnDate(data.updated)) + "</b> · " + esc(data.updatedNote) +
+      " · Nguồn: <a href=\"https://github.com/haleytruong89-moon/gia-su-ai-math/blob/main/docs/ROADMAP.json\">docs/ROADMAP.json</a>";
+    $("summary").innerHTML =
+      '<div class="tile"><span class="k">Lát v1 xong</span><span class="v">' + done + " / " + v1.length +
+        " <small>đang làm: " + esc(doing.map(function (s) { return s.id; }).join(", ") || "—") + "</small></span></div>" +
+      '<div class="tile"><span class="k">Tính năng v1</span><span class="v">' + fDone + " xong <small>· " + fReview + " chờ merge · " +
+        (feats.length - fDone - fReview) + " chưa làm</small></span>" +
+        '<div class="bar" aria-hidden="true"><span style="width:' + pct(fDone) + ';background:var(--ok)"></span><span style="width:' + pct(fReview) + ';background:var(--warn)"></span></div></div>' +
+      '<div class="tile"><span class="k">Test</span><span class="v">' + esc(data.metrics.vitest) + " <small>Vitest · " + esc(data.metrics.pytest) + " máy tính · e2e " + esc(data.metrics.e2e) + "</small></span></div>" +
+      '<div class="tile todo"><span class="k">Bố mẹ làm tiếp (' + todos.length + ")</span><span class=\"v\">" + esc(todos.length ? todos[0].text : "Không có việc chờ") + "</span></div>";
+  }
+
+  function renderMetro() {
+    $("metro").innerHTML = data.slices.map(function (s) {
+      return '<li class="s-' + esc(s.status) + (s.id === selected ? " sel" : "") + '"><button type="button" data-id="' + esc(s.id) +
+        '" aria-label="' + esc(s.id + ": " + s.title + " (" + SLICE[s.status] + ")") + '"><span class="dot">' + esc(s.id) +
+        '</span><span class="t">' + esc(s.title) + "</span></button></li>";
+    }).join("");
+  }
+
+  function prLinks(prs) {
+    return (prs || []).map(function (p) {
+      return '<a href="' + REPOS[p.repo] + p.number + '">' + esc(REPO_LABEL[p.repo]) + " #" + p.number + " " +
+        pill(p.status, p.status === "merged" ? "đã merge" : p.status === "open" ? "đang mở" : "đóng") + "</a>";
+    }).join("");
+  }
+
+  function renderSlice() {
+    var s = data.slices.filter(function (x) { return x.id === selected; })[0];
+    if (!s) return;
+    var todos = data.parentTodo.filter(function (t) { return t.slice === s.id && t.status === "open"; });
+    var html = '<div class="head"><h2>' + esc(s.id) + " · " + esc(s.title) + "</h2>" + pill(s.status, SLICE[s.status] + (s.done ? " " + vnDate(s.done) : "")) + "</div>" +
+      '<p class="sub" style="margin:0">' + esc(s.goal) + "</p>" +
+      '<div class="cols"><div class="box"><h3>Tính năng</h3><ul class="feat">' +
+      s.features.map(function (f) { return "<li><span>" + esc(f.name) + "</span>" + pill(f.status, FEAT[f.status]) + "</li>"; }).join("") +
+      '</ul></div><div class="grid2" style="grid-template-columns:1fr;align-content:start">';
+    if (s.acceptance && s.acceptance.length) html += '<div class="box"><h3>Nghiệm thu</h3><ul>' + s.acceptance.map(function (a) { return "<li>" + esc(a) + "</li>"; }).join("") + "</ul></div>";
+    if (s.prs && s.prs.length) html += '<div class="box"><h3>Pull request</h3><div class="prs">' + prLinks(s.prs) + "</div></div>";
+    if (s.sql && s.sql.length) html += '<div class="box"><h3>SQL bên Launcher</h3><div class="mini">' + s.sql.map(esc).join(", ") + "</div></div>";
+    if (s.depends && s.depends.length) html += '<div class="box"><h3>Cần xong trước</h3><div class="mini">' + s.depends.map(esc).join(", ") + "</div></div>";
+    if (todos.length) html += '<div class="box"><h3>Bố mẹ cần làm</h3><ul>' + todos.map(function (t) { return "<li>" + esc(t.text) + "</li>"; }).join("") + "</ul></div>";
+    html += "</div></div>";
+    if (s.notes) html += '<div class="note">' + esc(s.notes) + "</div>";
+    $("slice").innerHTML = html;
+  }
+
+  function renderOverview() {
+    var v = data.vision;
+    $("v-tong-quan").innerHTML =
+      '<div class="grid2">' +
+        '<div class="card"><h2>Vấn đề</h2><p style="margin:0">' + esc(v.problem) + "</p></div>" +
+        '<div class="card"><h2>Nguyên tắc không đổi</h2><ul style="margin:0;padding-left:18px">' + v.principles.map(function (p) { return "<li>" + esc(p) + "</li>"; }).join("") + "</ul></div>" +
+      "</div>" +
+      '<div class="card"><h2>Ba luồng</h2><div class="grid2">' + v.flows.map(function (f) {
+        return '<div class="box"><div class="head"><h3 style="font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font-family:var(--font-display)">' + esc(f.id + " · " + f.name) + "</h3>" + pill(f.status === "building" ? "in_progress" : f.status, FLOW[f.status]) + '</div><p class="mini" style="margin:0">' + esc(f.text) + "</p></div>";
+      }).join("") + "</div></div>" +
+      '<div class="card"><h2>Người dùng</h2><div class="tablewrap"><table><thead><tr><th>Ai</th><th>Khi nào</th><th>Thiết bị</th><th>Trọng tâm</th></tr></thead><tbody>' +
+        v.users.map(function (u) { return "<tr><td class=\"id\">" + esc(u.who) + "</td><td>" + esc(u.when) + "</td><td>" + esc(u.devices) + "</td><td>" + esc(u.focus) + "</td></tr>"; }).join("") +
+      "</tbody></table></div></div>" +
+      '<div class="card"><h2>Thí điểm ' + esc(v.pilot.length) + ' · điều kiện go/no-go</h2><ul style="margin:0;padding-left:18px">' + v.pilot.goNoGo.map(function (g) { return "<li>" + esc(g) + "</li>"; }).join("") + "</ul></div>";
+  }
+
+  function renderArch() {
+    var a = data.architecture;
+    var layers = a.layers.map(function (l) {
+      return '<div class="layer"><h3>' + esc(l.name) + "</h3><ul>" + l.items.map(function (i) { return "<li>" + esc(i) + "</li>"; }).join("") + "</ul></div>";
+    }).join('<div class="arrow" aria-hidden="true">↓</div>');
+    $("v-kien-truc").innerHTML = '<div class="card"><h2>Tổng thể</h2><p style="margin:0" class="sub">' + esc(a.summary) + '</p><div class="layers">' + layers + "</div></div>" +
+      '<div class="card"><h2>Một lượt hỏi cô</h2><ol class="steps">' + a.turn.map(function (t) { return "<li>" + esc(t) + "</li>"; }).join("") + "</ol></div>";
+  }
+
+  function renderDecisions() {
+    var order = { proposed: 0, confirmed: 1, dropped: 2 };
+    var list = data.decisions.slice().sort(function (x, y) { return order[x.status] - order[y.status]; });
+    var waiting = list.filter(function (d) { return d.status === "proposed"; }).length;
+    $("v-quyet-dinh").innerHTML = '<div class="card"><div class="head"><h2>Quyết định</h2><span class="mini">' + waiting + " chờ bố mẹ chốt · chi tiết ở DOMAIN §0</span></div>" +
+      '<div class="tablewrap"><table><thead><tr><th>Mã</th><th>Nội dung</th><th>Trạng thái</th><th>Ngày</th></tr></thead><tbody>' +
+      list.map(function (d) { return '<tr><td class="id">' + esc(d.id) + "</td><td>" + esc(d.text) + "</td><td>" + pill(d.status, DEC[d.status]) + '</td><td class="mini">' + esc(vnDate(d.date)) + "</td></tr>"; }).join("") +
+      "</tbody></table></div></div>";
+  }
+
+  function renderTodo() {
+    var list = data.parentTodo.slice().sort(function (x, y) { return (x.status === "open" ? 0 : 1) - (y.status === "open" ? 0 : 1); });
+    var risks = data.risks.filter(function (r) { return r.status === "open"; });
+    $("v-viec-bo-me").innerHTML = '<div class="card"><h2>Việc của bố mẹ</h2><ul class="todo-list">' +
+      list.map(function (t) { return '<li class="' + (t.status === "done" ? "done" : "") + '"><span class="chk" aria-hidden="true"></span><span class="txt">' + esc(t.text) + '</span><span class="mini">' + esc(t.slice) + "</span></li>"; }).join("") +
+      '</ul></div><div class="card"><h2>Rủi ro đang theo dõi</h2><div class="tablewrap"><table><thead><tr><th>Rủi ro</th><th>Cách xử lý</th></tr></thead><tbody>' +
+      risks.map(function (r) { return "<tr><td>" + esc(r.text) + "</td><td>" + esc(r.mitigation) + "</td></tr>"; }).join("") + "</tbody></table></div></div>";
+  }
+
+  function renderLog() {
+    $("v-nhat-ky").innerHTML = '<div class="card"><h2>Nhật ký</h2><ol class="log">' +
+      data.log.slice().reverse().map(function (l) { return '<li><time datetime="' + esc(l.date) + '">' + esc(vnDate(l.date)) + "</time><span>" + esc(l.text) + "</span></li>"; }).join("") +
+      '</ol><p class="mini" style="margin:0">Kết quả bộ test sư phạm: ' + esc(data.metrics.g0) + "</p></div>";
+  }
+
+  function show() {
+    var h = (location.hash || "").slice(1);
+    var view = VIEWS.indexOf(h) >= 0 ? h : "lo-trinh";
+    VIEWS.forEach(function (v) {
+      $("v-" + v).hidden = v !== view;
+      var a = document.querySelector('nav.tabs a[data-view="' + v + '"]');
+      if (v === view) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+    });
+  }
+
+  function start(d) {
+    data = d;
+    var cur = d.slices.filter(function (s) { return s.status === "in_progress"; })[0] || d.slices.filter(function (s) { return s.status === "next"; })[0] || d.slices[0];
+    selected = cur.id;
+    renderHeader(); renderMetro(); renderSlice(); renderOverview(); renderArch(); renderDecisions(); renderTodo(); renderLog(); show();
+  }
+
+  $("metro").addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-id]");
+    if (!b) return;
+    selected = b.getAttribute("data-id");
+    renderMetro(); renderSlice();
+  });
+  window.addEventListener("hashchange", show);
+
+  var snap = null;
+  try { snap = JSON.parse($("snapshot").textContent.replace("/*SNAPSHOT*/", "") || "null"); } catch (e) { snap = null; }
+  fetch("roadmap.json", { cache: "no-store" })
+    .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(function (d) { start(snap && snap.updated > d.updated ? snap : d); })
+    .catch(function () {
+      if (snap) start(snap);
+      else $("slice").innerHTML = '<p class="err">Không đọc được roadmap.json. Mở lại trang; nếu vẫn lỗi, báo Claude đăng lại trang.</p>';
+    });
+})();
+</script>
+</body>
+</html>
