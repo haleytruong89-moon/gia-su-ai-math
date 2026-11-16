@@ -78,11 +78,11 @@
 | D22 | Mở schema `tutor` cho Data API (Supabase → API settings → Exposed schemas). Con chỉ **đọc** qua RLS; mọi ghi đi qua máy chủ `gia-su-ai` (service role) — giống mẫu Launcher | thường | ✅ 14/11 (đã bật Exposed schemas) |
 | D23 | Thông báo đẩy cho bố mẹ: Launcher thêm route nội bộ `POST /api/internal/tutor-notify` (khóa bí mật riêng), dùng lại `lib/push/send.ts`; gia sư AI gọi route này | thường | *Đề xuất 14/11* |
 | D24 | Máy tính đại số C1 = **Python + SymPy** chạy riêng tư trong cùng project Vercel (Vercel Services — đang beta). Không chạy được → tách thành project Vercel riêng có khóa bí mật | thường | *Đề xuất 14/11* |
-| D25 | Kho kiến thức (bản đồ chương trình, hộp công cụ) lưu trong repo `knowledge/*.json`, sinh từ các file md đã duyệt trong hub; có `KNOWLEDGE_VERSION`; mỗi bài ghi version đã dùng | thường | *Đề xuất 14/11* |
+| D25 | Kho kiến thức (bản đồ chương trình, hộp công cụ) lưu trong repo `knowledge/*.json`, sinh từ các file md đã duyệt trong hub; có `KNOWLEDGE_VERSION`; mỗi bài ghi version đã dùng | thường | ✅ 16/11 (G5 Q2: dùng `BAN_DO_CHUONG_TRINH_TOAN9` v0.2, `…TOAN6` v0.1, `HOP_CONG_CU_HINH_9` v0.2, `HOP_CONG_CU_RUT_GON_9` v0.1 làm v1; G5 Q1: repo chỉ giữ **bản sạch** — ghi chú riêng về con/thầy/trường bị bỏ, bố mẹ nhập vào Hồ sơ dạy học) |
 | D26 | Ôn cách quãng đầu buổi: tối đa 2 câu, có nút "Để sau"; lịch 1 → 3 → 7 ngày; đúng 3 lần liên tiếp thì thôi ôn (§4.11) | thường | *Đề xuất 14/11* |
 | D28 | **Chọn model mỗi lượt do máy chủ quyết** (§4.14): mặc định Sonnet; chuyển **Opus** khi (1) bộ kiểm tra chặn câu của Sonnet, (2) con nản hoặc mức ≥ H3, (3) bài hình chứng minh lớp 9, (4) ý chặn đề vào 10, (5) cô báo không chắc. Đã chuyển thì giữ Opus đến hết bài. Lớp 6 chỉ dùng (1), (2), (5) | thường | ✅ 15/11 |
 | D29 | **Không có chế độ tiết kiệm.** Gần trần (~45 USD): báo ngay cho bố mẹ và **tạm ngừng chuyển Opus** (Sonnet vẫn chạy, kể cả lượt viết lại sau khi bị chặn). Trần cứng 50 USD trên Console giữ nguyên | thường | ✅ 15/11 |
-| D27 | Gắn nhãn ý đề vào 10 Hà Nội (`exam_slot`, vd `HN10-2c`) cho bài luyện; báo cáo tối/tuần đếm theo ý chặn | thường | *Đề xuất 14/11* |
+| D27 | Gắn nhãn ý đề vào 10 Hà Nội (`exam_slot`, vd `HN10-2c`) cho bài luyện; báo cáo tối/tuần đếm theo ý chặn | thường | ✅ 16/11 (G5 Q4: Haiku chỉ gắn khi đề rõ là đề vào 10 hoặc con nói vậy; không chắc → để trống) |
 
 ## 1. Data model (schema `tutor` trong Supabase `study-launcher`)
 
@@ -114,7 +114,7 @@ Quy ước chung mọi bảng: `id uuid`, `created_at timestamptz`, `updated_at 
 
 Để **v1.1**: `items` (ngân hàng câu hỏi), `attempts` (lưu nguyên đề lúc làm), `mastery` (M0–M4 theo đơn vị kiến thức).
 
-**Kho kiến thức không nằm trong DB** (D25): `knowledge/ku/*.json` (mỗi KU: mã, lớp, chương, cốt lõi, dạng bài, lỗi hay gặp + gốc lỗi, KU nền, mục hộp công cụ, `exam_notes`, `exam_slots`), `knowledge/toolbox/*.json` (hộp công cụ theo mục tiêu + kịch bản H1–H4), `KNOWLEDGE_VERSION`. Sinh từ file md đã duyệt trong hub bằng script; kiểm schema bằng zod khi build.
+**Kho kiến thức không nằm trong DB** (D25): `knowledge/knowledge.json` (G5: một file; mỗi KU: mã, lớp, chương, cốt lõi, dạng bài, lỗi hay gặp + gốc lỗi, KU nền, mục hộp công cụ, `exam_notes`, `exam_slots`), `knowledge/toolbox/*.json` (hộp công cụ theo mục tiêu + kịch bản H1–H4), `KNOWLEDGE_VERSION`. Sinh từ file md đã duyệt trong hub bằng script; kiểm schema bằng zod khi build.
 
 ## 2. Ma trận phân quyền
 
@@ -292,6 +292,22 @@ Dùng làm **checklist trước khi chốt** của HS-9A: khi con nộp lời gi
 
 Gia sư AI chỉ hỏi những mục **liên quan đến dạng bài** (vd bài rút gọn hỏi mục 6, 7; bài lập PT hỏi 2, 3, 6, 8) — danh sách mục theo dạng nằm trong `knowledge/ku/*.json` (`checklist`).
 
+### 4.10b. Checklist trước khi chốt — Toán 6 — *Đề xuất 16/11 (G5 Q3), chờ phụ huynh chốt*
+Lớp 6 chưa có barem của cô; dùng 5 mục chung. Như lớp 9: trước `self_solved` cô phải đã hỏi ≥ 1 mục (`TODO(rule-unconfirmed)` trong code). Mục theo dạng bài nằm ở `knowledge/src/MAP.md`.
+
+| # | Mục |
+|---|---|
+| 1 | Câu trả lời đúng điều đề hỏi, có đơn vị |
+| 2 | Bài "nhiều nhất / ít nhất": chọn đúng ƯCLN hay BCNN |
+| 3 | Bài có điều kiện "trong khoảng", "từ … đến …": đã đối chiếu, chọn đúng số |
+| 4 | Viết tập hợp: đủ dấu { }, đủ phần tử, không lặp |
+| 5 | Thử lại kết quả (thay vào đề hoặc ước lượng) |
+
+| # | Tình huống | Kết quả | |
+|---|---|---|---|
+| a | Lớp 6 nộp bài BCNN "trong khoảng" đúng số, máy xác nhận, cô chưa hỏi mục nào | Chưa `self_solved`; cô hỏi mục 3 | Đề xuất |
+| b | Đã hỏi mục 3, em soát lại, máy xác nhận | `self_solved` | Đề xuất |
+
 ### 4.11. Ôn cách quãng đầu buổi — *v0.4, đề xuất (D26)*
 - Đầu mỗi buổi: máy chủ chọn tối đa **2** câu ôn `active` có `due_date_vn ≤ hôm nay`, ưu tiên box thấp rồi hạn sớm. Không có câu đến hạn → bỏ qua phần ôn.
 - Con trả lời (gõ hoặc nút). Máy chủ chấm: `exact` so khớp đã chuẩn hóa; `math_check` gọi C1 so tương đương.
@@ -324,6 +340,13 @@ Gia sư AI chỉ hỏi những mục **liên quan đến dạng bài** (vd bài 
 - Khi con vướng đúng KU nền (vd không viết được x − 9 = (√x − 3)(√x + 3)), gia sư AI được dạy bù **ngắn** (≤ 2 lượt) phần nền rồi quay lại bài; ghi `prereq_gaps` += mã KU nền và chẩn đoán `concept` có `ku_code` nền.
 - Báo cáo tối liệt kê KU nền bị hổng trong ngày (vd "N8.02 — hằng đẳng thức, 2 lần").
 - Bài thuộc HK II hoặc ngoài đề cương mà con tự hỏi → vẫn dạy theo KNTT (Q3), không trả lời "ngoài phạm vi".
+
+*(G5, 16/11)* Máy chủ đếm lượt dạy bù: số câu trả lời đã hiện liền nhau ở cuối bài có `ky_thuat = day_bu_nen`. ⑥ ghi `day_bu_nen: n/2`; đủ 2 thì ghi "quay lại bài gốc".
+
+| # | Tình huống | Kết quả | |
+|---|---|---|---|
+| a | Con không tách được x − 9; cô dạy bù, `prereq_gap = N8.02` | `problems.prereq_gaps` ∋ `N8.02`; 1 dòng `diagnoses` (`concept`, `ku_code = N8.02`) | Đề xuất (theo §4.13 v0.4) |
+| b | Đã 2 lượt dạy bù liền nhau, lượt thứ 3 | ⑥: `day_bu_nen: 2/2 — đã đủ, quay lại bài gốc` | Đề xuất |
 
 ### 4.14. Chọn model mỗi lượt (D28, D29) — *v0.5, ✅ phụ huynh chốt 15/11*
 Máy chủ chọn model **trước** khi gọi; model không tự đổi. Thứ tự xét: (1) đang tạm ngừng Opus (D29) → Sonnet; (2) bài đã từng chạy Opus → Opus (giữ đến hết bài); (3) có dấu hiệu nào trong bảng dưới → Opus; (4) còn lại → Sonnet. Lý do chuyển ghi vào `model_calls.route_reason` và lên báo cáo tối.
@@ -384,7 +407,7 @@ Máy chủ chọn model **trước** khi gọi; model không tự đổi. Thứ 
 2. Các ví dụ ghi "Đề xuất" (4.2 d–e, 4.4 f–g, 4.5 c–e, 4.10 mục 8–10, 4.11, 4.12) chưa hỏi lại phụ huynh.
 3. ~~Đối chiếu Launcher~~ — ✅ đã đọc repo 14/11: `public.profiles`, `auth_role()`, `auth_family_id()`; PIN lưu `profiles.pin_hash` + bảng `pin_devices` (cookie httpOnly theo tên miền Launcher → lý do D20). **Còn:** thời hạn giữ bản backup tuần (`backup.yml`) — đọc khi làm trang bố mẹ.
 4. D19: tạo API key + workspace riêng cho gia sư AI trong Console (phụ huynh).
-5. D20–D27 chờ phụ huynh duyệt.
+5. ~~D20–D27 chờ phụ huynh duyệt~~ — còn D23, D26 chờ (16/11).
 6. ~~Thời hạn Anthropic lưu dữ liệu~~ — ✅ §4.8.
 
 ## 8. Nguồn nội dung đã có (14/11)
@@ -405,4 +428,5 @@ Lưu ý quyền riêng tư: một phiếu của HS-6A có ghi họ tên. Khi đ�
 | 14/11/2026 | **v0.2** — phụ huynh xác nhận quy tắc qua pop-up; D11–D14 (buổi 30–45', bỏ giới hạn giờ/buổi/ngày, chế độ tiết kiệm ~45 USD, không tài khoản gia sư người); §4.10 barem; §8 nguồn nội dung |
 | 14/11/2026 | **v0.3** — sửa theo review độc lập: tách log gốc model, RLS chi tiết, máy chủ giữ trạng thái, định nghĩa nản cụ thể, trạng thái `pending_review` và `closed_offtopic`, xóa EXIF, idempotency; D15–D19 |
 | 15/11/2026 | **v0.5** — sau G0: D28 chọn model mỗi lượt (§4.14), D29 bỏ chế độ tiết kiệm Haiku; D19 ✅ |
+| 16/11/2026 | G5 (phụ huynh chốt Q1–Q4): D25 ✅, D27 ✅; thêm §4.10b checklist lớp 6 (đề xuất); §4.13 thêm ví dụ chuẩn và cách đếm lượt dạy bù |
 | 14/11/2026 | **v0.4** — bộ năng lực (kho kiến thức, công cụ, ôn cách quãng, dạy bù nền), khớp repo Launcher thật, Q1–Q5, D20–D27 đề xuất, checklist 6–10 |
