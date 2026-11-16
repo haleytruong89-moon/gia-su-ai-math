@@ -11,7 +11,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "eval": "tsx --conditions=react-server eval/run.ts",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "roadmap:page": "node scripts/build-roadmap-page.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.65.1",

@@ -6,6 +6,27 @@ on:
     branches: [main]
 
 jobs:
+  # Every PR that changes the app must also update the progress map (docs/ROADMAP.json).
+  roadmap:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: ROADMAP.json updated with the code
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          changed=$(git diff --name-only "$BASE" "$HEAD")
+          echo "$changed"
+          code=$(echo "$changed" | grep -E '^(app|lib|cas|prompts|eval|e2e|knowledge|scripts)/|^vercel\.json$|^next\.config\.ts$' || true)
+          if [ -n "$code" ] && ! echo "$changed" | grep -qx 'docs/ROADMAP.json'; then
+            echo "::error file=docs/ROADMAP.json::PR đổi code nhưng chưa cập nhật docs/ROADMAP.json (bản đồ lộ trình). Sửa trạng thái lát/tính năng, PR, nhật ký và 'updated'."
+            exit 1
+          fi
+
   node:
     runs-on: ubuntu-latest
     steps:
