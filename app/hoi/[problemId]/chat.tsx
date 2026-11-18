@@ -13,6 +13,7 @@ import type { InputKind } from "@/lib/rules/events";
 import type { ProblemStatus, StoredReply } from "@/lib/tutor/repo";
 import { shouldShowRating } from "@/lib/rules/rating";
 import { RatingCard } from "./rating-card";
+import { ReferenceSolution } from "./reference-solution";
 
 const CLOSED_TEXT: Partial<Record<ProblemStatus, string>> = {
   timed_out: "Bài này đã đủ 20 lượt. Em ghi lại chỗ đã làm được và để dành hỏi thầy nhé.",
@@ -197,6 +198,7 @@ export function Chat({ initial, rating }: { initial: Thread; rating: RatingInfo 
       {!open && !ending && (
         <div className="flex flex-col gap-2 rounded-2xl bg-white p-4">
           <p className="font-semibold">{CLOSED_TEXT[status] ?? "Bài này đã đóng."}</p>
+          {status === "self_solved" && <ReferenceSolution problemId={initial.problemId} />}
           <div className="flex flex-wrap gap-2">
             <Link href="/" className="btn bg-accent text-white no-underline">Hỏi bài khác</Link>
             {sessionOpen && (

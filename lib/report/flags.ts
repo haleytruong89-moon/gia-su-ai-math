@@ -4,7 +4,8 @@
 import type { ProblemStatus } from "@/lib/tutor/repo";
 
 export type FlagKind =
-  | "cas_loi" | "y_chan" | "nan_bo_do" | "con_cham_kho" | "goi_y_nhieu" | "cho_thay" | "lo_hong_nen" | "bai_hinh" | "viet_lai_nhieu";
+  | "cas_loi" | "y_chan" | "nan_bo_do" | "con_cham_kho" | "goi_y_nhieu" | "cho_thay" | "lo_hong_nen" | "bai_hinh" | "viet_lai_nhieu"
+  | "loi_giai_lech";
 
 export interface ProblemFacts {
   id: string;
@@ -82,6 +83,9 @@ export function dayFlags(day: DayFacts, kuTitle: (code: string) => string | null
 
   const rewritten = ps.filter((x) => x.rewrittenCount >= 2);
   if (rewritten.length) out.push({ kind: "viet_lai_nhieu", text: `Cô phải viết lại nhiều ở ${rewritten.length} bài`, problemIds: ids(rewritten) });
+
+  const mismatch = ps.filter((x) => x.referenceMismatch);
+  if (mismatch.length) out.push({ kind: "loi_giai_lech", text: `Lời giải tham khảo lệch đáp số đã kiểm ở ${mismatch.length} bài (không hiện cho con)`, problemIds: ids(mismatch) });
 
   return out;
 }

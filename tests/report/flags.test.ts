@@ -47,6 +47,9 @@ describe("dayFlags (DOMAIN §4.7)", () => {
     expect(dayFlags(day([], { casErrors: 2 }), title)).toEqual([{ kind: "cas_loi", text: "Máy tính đại số lỗi 2 lần", problemIds: [] }]);
     expect(kinds(day([], { casErrors: 1 }))).toEqual([]);
   });
+  it("G7c: a reference solution cas did not confirm → flag for the parents (X5)", () => {
+    expect(dayFlags(day([p({ id: "a", referenceMismatch: true })]), title)).toEqual([{ kind: "loi_giai_lech", text: "Lời giải tham khảo lệch đáp số đã kiểm ở 1 bài (không hiện cho con)", problemIds: ["a"] }]);
+  });
   it("flags come in the parents' priority order (X1)", () => {
     expect(kinds(day([
       p({ id: "a", hintLevelMax: 4, rewrittenCount: 2, geometryProof: true, status: "pending_review", prereqGaps: ["N8.10"] }),

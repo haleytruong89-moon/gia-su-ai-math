@@ -28,6 +28,7 @@ import { runToolLoop, type LoopResult } from "@/lib/tutor/toolLoop";
 import { dateVn } from "@/lib/time";
 import { RATING_REASONS, ratingProposal, rulesBlock, rulesVersionNow, type RatingReason } from "@/lib/rules/teachingRules";
 import { assemble, type ImageData, type Msg, type Turn } from "@/lib/tutor/assemble";
+import { writeReference, type ChildCheck } from "@/lib/tutor/reference";
 import { runGuard, type GuardResult } from "@/lib/tutor/guard";
 import type { Layers } from "@/lib/tutor/layers";
 import {
@@ -69,6 +70,8 @@ export interface Deps {
   classify?: boolean;
   /** G7c (D23): asks the Launcher to push a money message to the parents; true when it was sent. Absent → no pushes. */
   notify?: (kind: "economy" | "console_blocked" | "burn", familyId: string, forecastUsd?: number) => Promise<boolean>;
+  /** Runs work after the answer is sent (Next `after` in routes). Absent (tests) → awaited before returning. */
+  later?: (work: () => Promise<void>) => void;
 }
 type Result = { status: number; json: unknown };
 
@@ -260,6 +263,29 @@ export async function rateSession(d: Deps, raw: unknown): Promise<Result> {
     }
   }
   return { status: 200, json: { status: r } };
+}
+
+/** The math_check of the answer the child saw that confirmed the child's final answer (§4.12 gate). */
+function confirmingCheck(tools: readonly ToolRecord[]): ChildCheck | null {
+  const t = [...tools].reverse().find((x) => {
+    const out = x.output as { ok?: boolean; result?: Record<string, unknown> } | null;
+    return x.tool === "math_check" && x.ok && out?.ok === true
+      && (out.result?.equivalent === true || out.result?.is_root === true || out.result?.satisfies === true);
+  });
+  if (!t) return null;
+  const input = (t.input ?? {}) as Record<string, unknown>;
+  return { mode: String(input.mode ?? ""), input };
+}
+
+async function referenceFor(d: Deps, actor: ChildActor, problemId: string, statement: string, childCheck: ChildCheck): Promise<void> {
+  try {
+    const r = await writeReference({ client: d.client, model: d.models.main, prompt: d.layers.reference ?? "", cas: d.cas },
+      { statement, grade: actor.grade, childCheck });
+    await d.repo.saveReference({ familyId: actor.familyId, childId: actor.userId, problemId, call: r.call, reference: r.reference,
+      promptVersion: d.promptVersion, now: d.now });
+  } catch (e) {
+    console.error("reference failed", e instanceof Error ? e.message : "unknown");
+  }
 }
 
 /** D23: one money push through the Launcher; marked as sent only when it went out. Never breaks the turn. */
@@ -545,6 +571,15 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
     return pending;
   }
   if (saved.status !== "in_progress") await syncAttention(d, actor);
+  if (saved.status === "self_solved") {
+    // G4 Q3 / G7 P4: the reference solution, written after the answer and shown only when cas confirms it (X5).
+    const childCheck = confirmingCheck(shownTools);
+    if (childCheck && d.layers.reference) {
+      const work = () => referenceFor(d, actor, problem.id, guardStatement, childCheck);
+      if (d.later) d.later(work);
+      else await work();
+    }
+  }
   // §4.5 b2: the month's pace would pass the cap → one push a week (from day 5, X2).
   const forecast = burnAlertDue({ costUsd: usage.costUsd + calls.reduce((n, c) => n + c.costUsd, 0), burnAlertSentAt: usage.burnAlertSentAt ?? null }, d.now);
   if (forecast !== null) await moneyAlert(d, actor.familyId, "burn", forecast);

@@ -296,6 +296,33 @@ export function supabaseRepo(db: SupabaseClient = createAdminClient(), strongMod
       await setMonth(familyId, now, { model_mode: "normal" });
     },
 
+    async saveReference(a) {
+      if (a.call) {
+        const { error } = await t().from("model_calls").insert({
+          family_id: a.familyId, child_id: a.childId, problem_id: a.problemId, purpose: "reference", model: a.call.model,
+          prompt_version: a.promptVersion, raw_output: a.call.raw, guard_result: a.reference?.verified ? "pass" : "blocked",
+          tokens_in: a.call.tokens.in, tokens_cached: a.call.tokens.cached, tokens_out: a.call.tokens.out, cost_usd: a.call.costUsd,
+        });
+        if (error) fail("saveReference.call", error);
+        await addUsage(db, a.familyId, a.now, a.call.costUsd);
+      }
+      if (!a.reference?.verified) return;
+      const { error: e2 } = await t().from("reference_solutions").upsert({
+        family_id: a.familyId, child_id: a.childId, problem_id: a.problemId, content: a.reference.steps.join("\n"), final_answer: a.reference.finalAnswer,
+      }, { onConflict: "problem_id", ignoreDuplicates: true });
+      if (e2) fail("saveReference.solution", e2);
+    },
+
+    async getReference(problemId, childId) {
+      if (!/^[0-9a-f-]{36}$/i.test(problemId)) return null;
+      const { data: p, error } = await t().from("problems").select("status").eq("id", problemId).eq("child_id", childId).is("deleted_at", null).maybeSingle();
+      if (error) fail("getReference.problem", error);
+      if (p?.status !== "self_solved") return null;
+      const { data: r, error: e2 } = await t().from("reference_solutions").select("content, final_answer").eq("problem_id", problemId).eq("child_id", childId).maybeSingle();
+      if (e2) fail("getReference", e2);
+      return r ? { steps: String(r.content).split("\n"), finalAnswer: (r.final_answer as string | null) ?? "" } : null;
+    },
+
     async markAlert(familyId, kind, now) {
       await setMonth(familyId, now, { [`${kind}_alert_sent_at`]: now.toISOString() });
     },

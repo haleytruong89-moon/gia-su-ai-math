@@ -35,7 +35,7 @@ export function factsFromRows(a: {
       id: p.id, status: p.status, hintLevelMax: p.hint_level_max, nanJumps: p.nan_jumps, uLevel: p.u_level,
       kuCode: p.ku_code, examSlot: p.exam_slot, prereqGaps: p.prereq_gaps ?? [], geometryProof,
       rewrittenCount: calls.filter((c) => c.purpose === "tutor" && c.guard_result === "rewritten").length,
-      referenceMismatch: false,
+      referenceMismatch: calls.some((c) => c.purpose === "reference" && c.guard_result === "blocked"),
     };
   });
   return {

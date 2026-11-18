@@ -67,6 +67,8 @@ export interface ParentThread extends Thread {
   problem: ReportProblem;
   /** Parent feedback already given, by tutor message id. */
   feedback: Record<string, { thumb: "up" | "down"; note: string | null }>;
+  /** G7c (P4): the verified reference solution, when the child solved it alone. */
+  reference: { steps: string[]; finalAnswer: string } | null;
 }
 
 /** One problem of the family for the review page; null when it is not this family's. */
@@ -86,9 +88,13 @@ export async function loadParentThread(parent: ParentActor, problemId: string, d
   if (e3) fail("thread.feedback", e3);
   const feedback: ParentThread["feedback"] = {};
   for (const f of fb ?? []) if (f.message_id) feedback[f.message_id as string] = { thumb: f.thumb as "up" | "down", note: (f.note as string | null) ?? null };
+  const { data: ref, error: e4 } = await t.from("reference_solutions").select("content, final_answer")
+    .eq("family_id", parent.familyId).eq("problem_id", problemId).maybeSingle();
+  if (e4) fail("thread.reference", e4);
   const row = p as unknown as ProblemRowLite;
   return {
     ...thread, childId: p.child_id as string, date: (s?.date_vn as string | undefined) ?? "",
     problem: { ...row, kuTitle: row.ku_code ? kuTitle(row.ku_code) : null }, feedback,
+    reference: ref ? { steps: String(ref.content).split("\n"), finalAnswer: (ref.final_answer as string | null) ?? "" } : null,
   };
 }

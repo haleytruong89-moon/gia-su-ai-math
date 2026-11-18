@@ -2,7 +2,7 @@
   "schema": 1,
   "project": "Gia sư AI Toán",
   "updated": "2026-11-19",
-  "updatedNote": "G7 đang làm: L-6 (#93) + G7a (#16) chờ merge; G7b xong trên nhánh; tiếp G7c (tiền + lời giải tham khảo)",
+  "updatedNote": "G7: L-6 (#93) + G7a (#16) chờ merge; G7b, G7c xong trên nhánh, mở PR lần lượt sau khi PR trước merge",
   "vision": {
     "oneLiner": "Một \"cô\" gia sư AI giúp 2 con tự học Toán buổi chiều: gỡ chỗ kẹt bằng câu hỏi gợi mở, không đưa lời giải bài gốc, tối bố mẹ đọc báo cáo 5 phút.",
     "problem": "Buổi chiều 2 con có nhiều thời gian tự học nhưng không có người lớn. Bố mẹ có khoảng 2 giờ buổi tối, gia sư người 2 buổi/tuần. Tốc độ tiến bộ do giờ tự học buổi chiều quyết định.",
@@ -516,11 +516,11 @@
         },
         {
           "name": "Báo tiền qua Launcher: ~45 USD, Console hết tiền, dự báo vượt trần (D23)",
-          "status": "todo"
+          "status": "review"
         },
         {
           "name": "Lời giải tham khảo sau khi con tự làm xong, cas kiểm (P4, X5)",
-          "status": "todo"
+          "status": "review"
         },
         {
           "name": "L-6 Launcher: link báo cáo, route báo tiền, SQL 0023",
@@ -918,6 +918,10 @@
     {
       "date": "2026-11-19",
       "text": "G7b xong trên nhánh (chấm cô 1 chạm sau bài đầu, Kết thúc buổi, luật dạy: Sonnet soạn từ ghi chú, 😕 ×2 đề xuất, bố mẹ duyệt/sửa/tắt/tự viết, hiệu lực buổi sau); mở PR sau khi #16 merge"
+    },
+    {
+      "date": "2026-11-19",
+      "text": "G7c xong trên nhánh (báo tiền qua Launcher: ~45 USD / Console hết tiền / dự báo vượt trần; Bật lại Opus; Gửi thử; cộng chi phí bằng add_usage; lời giải tham khảo sau self_solved, cas so với đáp số của con)"
     }
   ]
 }

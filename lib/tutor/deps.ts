@@ -1,4 +1,5 @@
 import "server-only";
+import { after } from "next/server";
 // lib/tutor/deps.ts — real dependencies for the route handlers.
 import { realClient } from "@/lib/anthropic";
 import { getActor } from "@/lib/auth";
@@ -27,6 +28,7 @@ export async function liveDeps(): Promise<Deps> {
     models: { main: env.TUTOR_MODEL_MAIN, strong: env.TUTOR_MODEL_STRONG, light: env.TUTOR_MODEL_LIGHT },
     classify: true, // G5
     notify: launcherNotify(env), // G7c (D23): money pushes through the Launcher
+    later: (work) => after(work), // G7c: the reference solution is written after the answer is sent
   };
 }
 
