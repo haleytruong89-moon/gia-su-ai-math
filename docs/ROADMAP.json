@@ -1,8 +1,8 @@
 {
   "schema": 1,
   "project": "Gia sư AI Toán",
-  "updated": "2026-11-16",
-  "updatedNote": "G5 bắt đầu: PR A kho kiến thức (bản sạch) mở",
+  "updated": "2026-11-18",
+  "updatedNote": "G5 PR A (#13) đã merge; PR B (#14) mở",
   "vision": {
     "oneLiner": "Một \"cô\" gia sư AI giúp 2 con tự học Toán buổi chiều: gỡ chỗ kẹt bằng câu hỏi gợi mở, không đưa lời giải bài gốc, tối bố mẹ đọc báo cáo 5 phút.",
     "problem": "Buổi chiều 2 con có nhiều thời gian tự học nhưng không có người lớn. Bố mẹ có khoảng 2 giờ buổi tối, gia sư người 2 buổi/tuần. Tốc độ tiến bộ do giờ tự học buổi chiều quyết định.",
@@ -423,27 +423,27 @@
       "features": [
         {
           "name": "Kho kiến thức: 4 file hub làm sạch (repo công khai) + bảng nối KU → checklist, hộp công cụ; knowledge.json + CI kiểm",
-          "status": "review"
+          "status": "done"
         },
         {
           "name": "Thẻ kiến thức (lớp ⑤) + công cụ lookup",
-          "status": "todo"
+          "status": "review"
         },
         {
           "name": "Haiku phân loại bài SGK, ý đề vào 10 (D27), bài hình chứng minh",
-          "status": "todo"
+          "status": "review"
         },
         {
           "name": "Dạy bù nền ≤ 2 lượt, ghi prereq_gaps + chẩn đoán",
-          "status": "todo"
+          "status": "review"
         },
         {
-          "name": "Checklist lớp 6 (5 mục, chờ chốt §4.10b)",
-          "status": "todo"
+          "name": "Checklist lớp 6 (5 mục, §4.10b đã chốt 18/11)",
+          "status": "review"
         },
         {
           "name": "Opus cho hình chứng minh lớp 9 và ý chặn đề vào 10",
-          "status": "todo"
+          "status": "review"
         }
       ],
       "acceptance": [
@@ -458,6 +458,11 @@
         {
           "repo": "gia-su",
           "number": 13,
+          "status": "merged"
+        },
+        {
+          "repo": "gia-su",
+          "number": 14,
           "status": "open"
         }
       ],
@@ -479,13 +484,14 @@
         "DOMAIN §4.11 a–f"
       ],
       "depends": [
-        "G5"
+        "G5",
+        "G7"
       ]
     },
     {
       "id": "G7",
       "title": "Báo cáo bố mẹ + góp ý thành luật dạy",
-      "status": "planned",
+      "status": "next",
       "goal": "Tối bố mẹ đọc báo cáo 5 phút, góp ý thành luật dạy; báo chi phí.",
       "features": [
         {
@@ -745,24 +751,30 @@
     },
     {
       "id": "G5-Q3",
-      "text": "Checklist lớp 6: 5 mục chung, bắt buộc như lớp 9 (đề xuất, chờ chốt §4.10b)",
-      "status": "proposed",
-      "date": "2026-11-16"
+      "text": "Checklist lớp 6: 5 mục chung, bắt buộc như lớp 9 (§4.10b)",
+      "status": "confirmed",
+      "date": "2026-11-18"
+    },
+    {
+      "id": "Q-thu-tu",
+      "text": "Sau G5 làm G7 (báo cáo bố mẹ) trước G6 (ôn đầu buổi)",
+      "status": "confirmed",
+      "date": "2026-11-18"
     }
   ],
   "parentTodo": [
     {
-      "text": "Thêm GitHub Secret PRIVATE_TERMS (tên thật 2 con, trường, thầy cô; cách nhau dấu phẩy) trước khi merge PR G5-A",
+      "text": "Merge PR #14 (G5 · cô dùng kho kiến thức), không SQL; thử theo hướng dẫn trong PR",
       "slice": "G5",
       "status": "open"
     },
     {
-      "text": "Đọc knowledge/src/*.md trong PR G5-A rồi merge; chép phần riêng (file hub G5_PHAN_RIENG_HO_SO) vào Hồ sơ dạy học",
+      "text": "Sau khi merge G5: chạy G0 cases 9.16,9.17,9.18,9.19,6.11,9.3 (Sonnet + Opus); thử bài rút gọn + bài hình lớp 9, bài BCNN lớp 6 trên link chính thức",
       "slice": "G5",
       "status": "open"
     },
     {
-      "text": "Chốt checklist lớp 6 (DOMAIN §4.10b) và D23, D26",
+      "text": "Chốt D23 (thông báo đẩy qua Launcher, cần cho G7) và D26 (ôn đầu buổi, cho G6)",
       "slice": "G5",
       "status": "open"
     },
@@ -820,7 +832,7 @@
     }
   ],
   "metrics": {
-    "vitest": 232,
+    "vitest": 265,
     "pytest": 20,
     "e2e": "xanh",
     "g0": "Lần 4 (15/11): Sonnet 21/28 lộ 0 · Opus 23/28 lộ 0"
@@ -861,6 +873,18 @@
     {
       "date": "2026-11-16",
       "text": "G5 lên kế hoạch (chốt Q1–Q4: bản sạch, D25, checklist lớp 6, D27); PR A kho kiến thức mở"
+    },
+    {
+      "date": "2026-11-16",
+      "text": "G5 PR B code xong: phân loại Haiku, thẻ ⑤ + lookup, dạy bù ≤ 2 lượt, checklist lớp 6, Opus cho hình/ý chặn; bộ test 9.17–9.19, 6.11"
+    },
+    {
+      "date": "2026-11-18",
+      "text": "Phụ huynh chốt checklist lớp 6 (§4.10b) và thứ tự: G7 trước G6"
+    },
+    {
+      "date": "2026-11-18",
+      "text": "G5 PR A (#13, kho kiến thức bản sạch) và #12 đã merge; PR B (#14) mở"
     }
   ]
 }

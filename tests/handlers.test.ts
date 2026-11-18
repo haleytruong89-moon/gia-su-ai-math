@@ -39,7 +39,7 @@ function client(texts: string[] | (() => never)) {
 function deps<C extends ModelClient = ReturnType<typeof client>>(seed: Seed = {}, c: C = client([confirm]) as unknown as C,
   actor: Deps["actor"] = child) {
   const repo = memoryRepo(seed);
-  const d: Deps = { repo, client: c, actor, now: NOW, layers: { role: "①", rules: "②", method: "③", guard: "Em là bộ kiểm tra", sibling: "Em là người soạn BÀI ANH EM" },
+  const d: Deps = { repo, client: c, actor, now: NOW, layers: { role: "①", rules: "②", method: "③", guard: "Em là bộ kiểm tra", sibling: "Em là người soạn BÀI ANH EM", classify: "Em là bộ phân loại" },
     promptVersion: "v0.2", models: MODELS, cas: null };
   return { d, repo, c };
 }
@@ -62,7 +62,7 @@ describe("startSession", () => {
     const { d, repo } = deps({ sessions: [{ childId: "c1", dateVn: "2026-11-13" }] });
     repo.problems.push({ id: "old", childId: "c1", familyId: "f1", sessionId: repo.sessions[0]!.id, status: "in_progress",
       turnCount: 3, hintLevel: 0, hintLevelMax: 0, nanJumps: 0, wrongCount: 0, offtopicCount: 0, uLevel: 0, stuckKind: null,
-      statementConfirmed: true, confirmedStatement: "đề cũ" });
+      statementConfirmed: true, confirmedStatement: "đề cũ", kuCode: null, examSlot: null, prereqGaps: [], knowledgeVersion: null });
     const r = await startSession(d, { device: "laptop" });
     expect((r.json as { reused: boolean }).reused).toBe(false);
     expect(repo.sessions.map((s) => s.status)).toEqual(["abandoned", "active"]);
@@ -587,4 +587,128 @@ describe("G4 tools in a turn", () => {
     expect(repo.modelCalls.find((c) => c.shown)?.guardResult).toBe("rewritten");
   });
   const body1 = (n: number, text: string) => ({ problemId: "p1", clientMsgId: uuid(n), text });
+});
+
+// G5 — knowledge card, classifier, background teaching, grade 6 checklist (DOMAIN §4.10b, §4.13, §4.14 h–i; phụ huynh chốt 16/11)
+describe("G5 knowledge in a turn", () => {
+  const usage = { input_tokens: 100, output_tokens: 10 };
+  const base1 = JSON.parse(confirmed) as Record<string, unknown>;
+  const out = (o: Record<string, unknown> = {}) => ({ content: [{ type: "text", text: JSON.stringify({ ...base1, ku_code_de_xuat: null, ...o }) }], stop_reason: "end_turn", usage });
+  const ask = (id: string, name: string, input: object) => ({ content: [{ type: "thinking", thinking: "…", signature: "s" }, { type: "tool_use", id, name, input }], stop_reason: "tool_use", usage });
+  const grade6 = { ...child, userId: "c1", grade: 6 as const, childCode: "HS-6A", maxLines: 4, profileText: "HỒ SƠ HS-6A" };
+  function world(o: { classify?: object | Error; tutor: object[] }) {
+    const log: { kind: "classify" | "tutor" | "guard"; model: string; req: Record<string, unknown> }[] = [];
+    let ti = 0;
+    return {
+      log,
+      create: async (req: object) => {
+        const r = req as { model: string; system?: unknown };
+        const kind = typeof r.system === "string" ? "guard" : JSON.stringify(r.system).includes("Em là bộ phân loại") ? "classify" : "tutor";
+        log.push({ kind, model: r.model, req: JSON.parse(JSON.stringify(req)) });
+        if (kind === "guard") return { content: [{ type: "text", text: JSON.stringify({ pass: true, ly_do: [] }) }], usage };
+        if (kind === "classify") {
+          if (o.classify instanceof Error) throw o.classify;
+          return { content: [{ type: "text", text: JSON.stringify(o.classify ?? { ku_code: null, exam_slot: null, geometry_proof: false }) }], usage };
+        }
+        return o.tutor[Math.min(ti++, o.tutor.length - 1)] as never;
+      },
+    };
+  }
+  const start = (n: number, statement: string) => ({ clientMsgId: uuid(n), stuckKind: "khong_biet_bat_dau", statement });
+  const turn = (n: number, text: string, kind = "text") => ({ problemId: "p1", clientMsgId: uuid(n), text, kind });
+  const tutorCalls = (w: ReturnType<typeof world>) => w.log.filter((x) => x.kind === "tutor");
+  const systemText = (req: Record<string, unknown>) => (req.system as { text: string }[]).map((b) => b.text).join("\n");
+
+  it("§4.14 h: grade 9 proof, turn 1 → the classifier flags it → Opus (geometry_proof); KU, version and the classify call are stored", async () => {
+    const w = world({ classify: { ku_code: "T9.16", exam_slot: null, geometry_proof: true }, tutor: [out({ de_da_xac_nhan: false })] });
+    const { d, repo } = deps({}, client([confirm]));
+    const r = await newProblem({ ...d, client: w, classify: true }, start(1, "Chứng minh MA là tiếp tuyến của (O)"));
+    expect(r.status).toBe(200);
+    expect(w.log.map((x) => [x.kind, x.model])).toEqual([["classify", "claude-haiku-5-5"], ["tutor", "claude-opus-5-5"], ["guard", "claude-haiku-5-5"]]);
+    expect(repo.modelCalls.map((c) => [c.purpose, c.routeReason])).toEqual([["classify", null], ["tutor", "geometry_proof"], ["guard", null]]);
+    expect(repo.problems[0]).toMatchObject({ kuCode: "T9.16", examSlot: null, knowledgeVersion: expect.stringMatching(/^\d{4}-/) });
+  });
+  it("§4.14 i: grade 6 geometry → Sonnet; ⑤ is the T6.20 card", async () => {
+    const w = world({ classify: { ku_code: "T6.20", exam_slot: null, geometry_proof: true }, tutor: [out({ de_da_xac_nhan: false })] });
+    const { d } = deps({}, client([confirm]), grade6);
+    await newProblem({ ...d, client: w, classify: true }, start(1, "Tính chu vi hình chữ nhật dài 8 m rộng 5 m"));
+    expect(tutorCalls(w)[0]!.model).toBe("claude-sonnet-5-5");
+    expect(systemText(tutorCalls(w)[0]!.req)).toContain("T6.20 · Chu vi, diện tích các tứ giác đã học");
+  });
+  it("D27: exam slot HN10-2c on grade 9 → Opus (exam_slot_hard); ⑤ is the T9.9 card; ⑥ shows the slot", async () => {
+    const w = world({ classify: { ku_code: "T9.9", exam_slot: "HN10-2c", geometry_proof: false }, tutor: [out({ de_da_xac_nhan: false })] });
+    const { d, repo } = deps({}, client([confirm]));
+    await newProblem({ ...d, client: w, classify: true }, start(1, "Bài II câu 3: tìm m để P = m có nghiệm"));
+    expect(repo.modelCalls.find((c) => c.purpose === "tutor")).toMatchObject({ model: "claude-opus-5-5", routeReason: "exam_slot_hard" });
+    expect(repo.problems[0]).toMatchObject({ kuCode: "T9.9", examSlot: "HN10-2c" });
+    const req = tutorCalls(w)[0]!.req;
+    expect(systemText(req)).toContain("T9.9 · Biến đổi đơn giản và rút gọn biểu thức chứa căn");
+    expect(JSON.stringify(req.messages)).toContain("exam_slot: HN10-2c");
+  });
+  it("classifier down → unknown card, Sonnet, the turn is still answered", async () => {
+    const w = world({ classify: Object.assign(new Error("x"), { status: 529 }), tutor: [out({ de_da_xac_nhan: false })] });
+    const { d, repo } = deps({}, client([confirm]));
+    const r = await newProblem({ ...d, client: w, classify: true }, start(1, "Rút gọn P"));
+    expect(r.status).toBe(200);
+    expect(tutorCalls(w)[0]!.model).toBe("claude-sonnet-5-5");
+    expect(systemText(tutorCalls(w)[0]!.req)).toContain("[KIẾN THỨC — chưa xác định]");
+    expect(repo.modelCalls.some((c) => c.purpose === "classify")).toBe(false);
+  });
+  it("later turns do not classify again; an in-progress problem keeps its card", async () => {
+    const w = world({ tutor: [out({})] });
+    const { d } = deps({ problems: [{ id: "p1", childId: "c1", sessionId: "s1", turnCount: 2, kuCode: "T9.9" }] }, client([confirm]));
+    await handleTurn({ ...d, client: w, classify: true }, turn(1, "em chưa hiểu"));
+    expect(w.log.map((x) => x.kind)).toEqual(["tutor", "guard"]);
+    expect(systemText(tutorCalls(w)[0]!.req)).toContain("T9.9 ·");
+  });
+  it("§4.13 a: prereq_gap N8.02 → prereq_gaps [N8.02], one concept diagnosis on N8.02; ky_code of another grade is ignored", async () => {
+    const w = world({ tutor: [out({ ky_thuat: "day_bu_nen", prereq_gap: "N8.02", goc_loi_du_doan: "concept", goc_loi_da_kiem_tra: true }), out({ prereq_gap: "TH.05" })] });
+    const { d, repo } = deps({ problems: [{ id: "p1", childId: "c1", sessionId: "s1", turnCount: 2, kuCode: "T9.9", statementConfirmed: true }] }, client([confirm]));
+    await handleTurn({ ...d, client: w, classify: true }, turn(1, "em không biết x − 9 tách thế nào"));
+    expect(repo.problems[0]?.prereqGaps).toEqual(["N8.02"]);
+    expect(repo.diagnoses).toEqual([expect.objectContaining({ root: "concept", source: "verified", kuCode: "N8.02", problemId: "p1" })]);
+    await handleTurn({ ...d, client: w, classify: true }, turn(2, "à em hiểu rồi"));
+    expect(repo.problems[0]?.prereqGaps).toEqual(["N8.02"]); // TH.05 is a grade 6 code
+  });
+  it("§4.13 b: after 2 bridge turns in a row the state block says 2/2 — quay lại bài gốc", async () => {
+    const w = world({ tutor: [out({ ky_thuat: "day_bu_nen", prereq_gap: "N8.02" }), out({ ky_thuat: "day_bu_nen" }), out({})] });
+    const { d } = deps({ problems: [{ id: "p1", childId: "c1", sessionId: "s1", turnCount: 2, kuCode: "T9.9", statementConfirmed: true }] }, client([confirm]));
+    await handleTurn({ ...d, client: w }, turn(1, "em không biết tách"));
+    await handleTurn({ ...d, client: w }, turn(2, "a² − b² là gì ạ"));
+    expect(JSON.stringify(tutorCalls(w)[1]!.req.messages)).toContain("day_bu_nen: 1/2");
+    await handleTurn({ ...d, client: w }, turn(3, "(a − b)(a + b)"));
+    expect(JSON.stringify(tutorCalls(w)[2]!.req.messages)).toContain("day_bu_nen: 2/2 — đã đủ, quay lại bài gốc");
+  });
+  it("the KU changes only when the tutor confirms the statement (or when it was unknown)", async () => {
+    const w = world({ classify: { ku_code: "T9.8", exam_slot: null, geometry_proof: false },
+      tutor: [out({ de_da_xac_nhan: false, ku_code_de_xuat: "T9.7" }), out({ de_da_xac_nhan: true, ku_code_de_xuat: "T9.9" }), out({ ku_code_de_xuat: "T9.4" })] });
+    const { d, repo } = deps({}, client([confirm]));
+    const r = await newProblem({ ...d, client: w, classify: true }, start(1, "Rút gọn P = …"));
+    const pid = (r.json as { problemId: string }).problemId;
+    expect(repo.problems[0]?.kuCode).toBe("T9.8");
+    await handleTurn({ ...d, client: w, classify: true }, { ...turn(2, "Đúng rồi", "button"), problemId: pid });
+    expect(repo.problems[0]?.kuCode).toBe("T9.9");
+    await handleTurn({ ...d, client: w, classify: true }, { ...turn(3, "em làm tiếp"), problemId: pid });
+    expect(repo.problems[0]?.kuCode).toBe("T9.9");
+  });
+  it("§4.10b: grade 6 submits, cas confirms, no checklist item asked → stays open; item 3 asked → self_solved", async () => {
+    const cas = { check: async () => ({ ok: true as const, result: { equivalent: true } }), health: async () => true };
+    const lcm = { mode: "equivalent", expr_a: "105", expr_b: "lcm(3, 5, 7)" };
+    const w = world({ tutor: [ask("t1", "math_check", lcm), out({ ket_qua_bai: "self_solved", danh_gia_luot_em: "dung", checklist_da_hoi: [] }),
+      ask("t2", "math_check", lcm), out({ ket_qua_bai: "self_solved", danh_gia_luot_em: "dung", checklist_da_hoi: [3] })] });
+    const { d, repo } = deps({ problems: [{ id: "p1", childId: "c1", sessionId: "s1", turnCount: 3, kuCode: "T6.12", statementConfirmed: true }] }, client([confirm]), grade6);
+    await handleTurn({ ...d, client: w, cas }, turn(1, "Số bông là 105", "submit"));
+    expect(repo.problems[0]?.status).toBe("in_progress");
+    await handleTurn({ ...d, client: w, cas }, turn(2, "105 nằm trong khoảng 100 đến 120 ạ", "submit"));
+    expect(repo.problems[0]?.status).toBe("self_solved");
+  });
+  it("lookup runs and the checker sees it", async () => {
+    const w = world({ tutor: [ask("t1", "lookup", { code: "N8.02" }), out({})] });
+    const { d, repo } = deps({ problems: [{ id: "p1", childId: "c1", sessionId: "s1", turnCount: 2, kuCode: "T9.9" }] }, client([confirm]));
+    await handleTurn({ ...d, client: w }, turn(1, "em quên hằng đẳng thức"));
+    expect(repo.toolCalls[0]).toMatchObject({ tool: "lookup", ok: true });
+    const toolResult = JSON.stringify(tutorCalls(w)[1]!.req.messages);
+    expect(toolResult).toContain("Hằng đẳng thức đáng nhớ");
+    expect(JSON.stringify(w.log.find((x) => x.kind === "guard")!.req)).toContain("lookup(N8.02 → ok)");
+  });
 });

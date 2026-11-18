@@ -52,6 +52,12 @@ export interface ProblemRow {
   siblingShown: boolean;
   /** Checklist items (§4.10) asked in the answers the child saw (G4 Q2). */
   checklistAsked: number[];
+  /** G5: SGK lesson of the problem (classifier, then the tutor at confirmation), grade 10 exam item (D27), background gaps (§4.13). */
+  kuCode: string | null;
+  examSlot: string | null;
+  prereqGaps: string[];
+  /** Answers the child saw, at the end of the problem, with ky_thuat = day_bu_nen (§4.13: at most 2 in a row). */
+  bridgeTurns: number;
   pending: PendingMessage | null;
 }
 
@@ -70,7 +76,7 @@ export interface FoundMessage { problemId: string; messageId: string; text: stri
 
 /** One model call of a turn: the tutor answer(s) and the checker verdict(s). */
 export interface ModelCallRecord {
-  purpose: "tutor" | "guard" | "sibling";
+  purpose: "tutor" | "guard" | "sibling" | "classify";
   model: string;
   raw: string;
   costUsd: number;
@@ -105,9 +111,16 @@ export interface SaveReplyInput {
   calls: ModelCallRecord[];
   /** tools run for the answers of this turn; `callIndex` = index in `calls` of the answer (final call) they served */
   tools: (ToolRecord & { callIndex: number })[];
+  /** G5: KU to store (unchanged = problem.kuCode), the whole new list of background gaps, diagnoses of this answer. */
+  kuCode: string | null;
+  prereqGaps: string[];
+  diagnoses: Diagnosis[];
   promptVersion: string;
   now: Date;
 }
+
+export type DiagnosisRoot = "read" | "concept" | "strategy" | "calc" | "careful" | "unknown";
+export interface Diagnosis { root: DiagnosisRoot; source: "verified" | "self_reported"; kuCode: string | null }
 
 /** The family's spend this UTC month (like the Anthropic Console) and whether the strong model is paused. */
 export interface MonthUsage { costUsd: number; mode: "normal" | "economy" }
@@ -120,6 +133,8 @@ export interface TutorRepo {
   openSession(a: { actor: ChildActor; device: Device; dateVn: string; promptVersion: string; modelMain: string }): Promise<{ id: string; reused: boolean }>;
   createProblem(a: { actor: ChildActor; sessionId: string; stuckKind: StuckKind | null }): Promise<{ id: string }>;
   setProblemStatus(problemId: string, status: ProblemStatus, now: Date): Promise<void>;
+  /** G5: what the classifier said on the first turn, with the knowledge version the problem uses. */
+  setClassification(problemId: string, c: { kuCode: string | null; examSlot: string | null; knowledgeVersion: string }): Promise<void>;
   /** null when the problem does not exist or belongs to another child. */
   getProblemForChild(problemId: string, childId: string): Promise<ProblemRow | null>;
   /** The child's message with this client id, with the tutor reply that followed it (if any). */
@@ -169,6 +184,20 @@ export function checklistOf(raw: string): number[] {
   } catch {
     return [];
   }
+}
+
+/** Leading answers (newest first) with ky_thuat = day_bu_nen. */
+export function bridgeTurnsOf(rawsNewestFirst: readonly string[]): number {
+  let n = 0;
+  for (const raw of rawsNewestFirst) {
+    try {
+      if ((JSON.parse(raw) as { ky_thuat?: unknown }).ky_thuat !== "day_bu_nen") break;
+    } catch {
+      break;
+    }
+    n++;
+  }
+  return n;
 }
 
 /** A make_sibling result the tutor may use: machine-checked and with different numbers. */

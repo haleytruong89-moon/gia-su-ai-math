@@ -1,6 +1,6 @@
 // lib/tools/defs.ts — the tools the tutor model may call (SYSTEM_PROMPT "Công cụ"; DESIGN §5).
 // No minimum/maxLength keywords: the API refuses them (see lib/tutor/schema.ts apiSafeSchema).
-export type ToolName = "math_check" | "make_sibling";
+export type ToolName = "math_check" | "make_sibling" | "lookup";
 
 /** One tool call of a turn, as stored in tutor.tool_calls. `round` = index of the model call that asked. */
 export interface ToolRecord { tool: ToolName; input: unknown; output: unknown; ok: boolean; ms: number; round: number }
@@ -51,5 +51,12 @@ export const TOOL_DEFS = [
       required: ["original_statement", "difficulty"],
       additionalProperties: false,
     },
+  },
+  {
+    name: "lookup" as const,
+    description:
+      "Tra thẻ kiến thức theo mã: bài SGK (T9.9, T6.12…), kiến thức nền (N8.02, TH.05…) hoặc một mục hộp công cụ (hinh.1.7, rutgon.3…). " +
+      "Dùng khi em vướng kiến thức nền, khi cần cách làm theo mục tiêu, hoặc khi bài không khớp thẻ kiến thức đang có.",
+    input_schema: { type: "object", properties: { code: str }, required: ["code"], additionalProperties: false },
   },
 ];

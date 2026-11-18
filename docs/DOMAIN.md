@@ -292,8 +292,8 @@ Dùng làm **checklist trước khi chốt** của HS-9A: khi con nộp lời gi
 
 Gia sư AI chỉ hỏi những mục **liên quan đến dạng bài** (vd bài rút gọn hỏi mục 6, 7; bài lập PT hỏi 2, 3, 6, 8) — danh sách mục theo dạng nằm trong `knowledge/ku/*.json` (`checklist`).
 
-### 4.10b. Checklist trước khi chốt — Toán 6 — *Đề xuất 16/11 (G5 Q3), chờ phụ huynh chốt*
-Lớp 6 chưa có barem của cô; dùng 5 mục chung. Như lớp 9: trước `self_solved` cô phải đã hỏi ≥ 1 mục (`TODO(rule-unconfirmed)` trong code). Mục theo dạng bài nằm ở `knowledge/src/MAP.md`.
+### 4.10b. Checklist trước khi chốt — Toán 6 — ✅ phụ huynh chốt 18/11 (G5 Q3)
+Lớp 6 chưa có barem của cô; dùng 5 mục chung. Như lớp 9: trước `self_solved` cô phải đã hỏi ≥ 1 mục. Mục theo dạng bài nằm ở `knowledge/src/MAP.md`.
 
 | # | Mục |
 |---|---|
@@ -305,8 +305,8 @@ Lớp 6 chưa có barem của cô; dùng 5 mục chung. Như lớp 9: trước `
 
 | # | Tình huống | Kết quả | |
 |---|---|---|---|
-| a | Lớp 6 nộp bài BCNN "trong khoảng" đúng số, máy xác nhận, cô chưa hỏi mục nào | Chưa `self_solved`; cô hỏi mục 3 | Đề xuất |
-| b | Đã hỏi mục 3, em soát lại, máy xác nhận | `self_solved` | Đề xuất |
+| a | Lớp 6 nộp bài BCNN "trong khoảng" đúng số, máy xác nhận, cô chưa hỏi mục nào | Chưa `self_solved`; cô hỏi mục 3 | ✅ 18/11 |
+| b | Đã hỏi mục 3, em soát lại, máy xác nhận | `self_solved` | ✅ 18/11 |
 
 ### 4.11. Ôn cách quãng đầu buổi — *v0.4, đề xuất (D26)*
 - Đầu mỗi buổi: máy chủ chọn tối đa **2** câu ôn `active` có `due_date_vn ≤ hôm nay`, ưu tiên box thấp rồi hạn sớm. Không có câu đến hạn → bỏ qua phần ôn.
@@ -428,5 +428,6 @@ Lưu ý quyền riêng tư: một phiếu của HS-6A có ghi họ tên. Khi đ�
 | 14/11/2026 | **v0.2** — phụ huynh xác nhận quy tắc qua pop-up; D11–D14 (buổi 30–45', bỏ giới hạn giờ/buổi/ngày, chế độ tiết kiệm ~45 USD, không tài khoản gia sư người); §4.10 barem; §8 nguồn nội dung |
 | 14/11/2026 | **v0.3** — sửa theo review độc lập: tách log gốc model, RLS chi tiết, máy chủ giữ trạng thái, định nghĩa nản cụ thể, trạng thái `pending_review` và `closed_offtopic`, xóa EXIF, idempotency; D15–D19 |
 | 15/11/2026 | **v0.5** — sau G0: D28 chọn model mỗi lượt (§4.14), D29 bỏ chế độ tiết kiệm Haiku; D19 ✅ |
+| 18/11/2026 | §4.10b checklist lớp 6 ✅ (phụ huynh chốt) |
 | 16/11/2026 | G5 (phụ huynh chốt Q1–Q4): D25 ✅, D27 ✅; thêm §4.10b checklist lớp 6 (đề xuất); §4.13 thêm ví dụ chuẩn và cách đếm lượt dạy bù |
 | 14/11/2026 | **v0.4** — bộ năng lực (kho kiến thức, công cụ, ôn cách quãng, dạy bù nền), khớp repo Launcher thật, Q1–Q5, D20–D27 đề xuất, checklist 6–10 |

@@ -23,6 +23,7 @@ export async function liveDeps(): Promise<Deps> {
     // The private math checker: Vercel binding (CAS_SERVICE_URL) or CAS_URL, with the shared secret.
     cas: (() => { const url = casUrl(env); return url && env.CAS_SECRET ? httpCas(url, env.CAS_SECRET) : null; })(),
     models: { main: env.TUTOR_MODEL_MAIN, strong: env.TUTOR_MODEL_STRONG, light: env.TUTOR_MODEL_LIGHT },
+    classify: true, // G5
   };
 }
 

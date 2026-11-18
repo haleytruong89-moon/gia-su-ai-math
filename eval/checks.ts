@@ -14,6 +14,9 @@ export interface Expect {
   statementConfirmed?: boolean;
   /** G4: tools the answer must have used, as keys of toolKeys() — e.g. "math_check", "make_sibling:verified" */
   toolsInclude?: string[];
+  /** G5: the teaching technique must be one of these; the background gap must be this code. */
+  kyThuat?: TutorOutput["ky_thuat"][];
+  prereqGap?: string;
 }
 export interface CheckSpec { maxLines: number; forbid?: string[]; expect?: Expect; tools?: string[] }
 
@@ -22,6 +25,10 @@ export function toolKeys(t: { tool: string; input: unknown; output: unknown }): 
   if (t.tool === "math_check") {
     const mode = (t.input as { mode?: string } | null)?.mode;
     return ["math_check", ...(mode ? [`math_check:${mode}`] : [])];
+  }
+  if (t.tool === "lookup") {
+    const code = (t.input as { code?: string } | null)?.code;
+    return ["lookup", ...(code ? [`lookup:${code}`] : [])];
   }
   const o = t.output as { verified?: boolean; numbers_differ?: boolean } | null;
   return [t.tool, ...(t.tool === "make_sibling" && o?.verified && o.numbers_differ ? ["make_sibling:verified"] : [])];
@@ -56,5 +63,7 @@ export function checkOutput(o: TutorOutput | null, spec: CheckSpec): { failures:
   if (e.buttonMatches && !o.buttons.some((b) => e.buttonMatches!.test(b))) f.push(`button_missing:${e.buttonMatches}`);
   if (e.statementConfirmed !== undefined && o.de_da_xac_nhan !== e.statementConfirmed) f.push(`de_da_xac_nhan:${o.de_da_xac_nhan}`);
   for (const k of e.toolsInclude ?? []) if (!(spec.tools ?? []).includes(k)) f.push(`tool_missing:${k}`);
+  if (e.kyThuat && !e.kyThuat.includes(o.ky_thuat)) f.push(`ky_thuat:${o.ky_thuat}`);
+  if (e.prereqGap !== undefined && o.prereq_gap !== e.prereqGap) f.push(`prereq_gap:${o.prereq_gap ?? "null"}`);
   return { failures: f, leak: leaks.length > 0 };
 }

@@ -8,7 +8,7 @@ import { BTN_SAVE } from "@/lib/copy";
 import type { InputKind } from "@/lib/rules/events";
 import type { HintLevel } from "@/lib/rules/hints";
 import { deleteAfterVn } from "@/lib/rules/photo";
-import { checklistOf, flagsOf, usableSibling, type FoundMessage, type HistoryItem, type ProblemRow, type ProblemStatus, type StoredReply, type StuckKind, type TutorRepo } from "@/lib/tutor/repo";
+import { bridgeTurnsOf, checklistOf, flagsOf, usableSibling, type FoundMessage, type HistoryItem, type ProblemRow, type ProblemStatus, type StoredReply, type StuckKind, type TutorRepo } from "@/lib/tutor/repo";
 
 const UNIQUE_VIOLATION = "23505";
 
@@ -20,13 +20,14 @@ interface ProblemDb {
   id: string; child_id: string; family_id: string; session_id: string; status: ProblemStatus; turn_count: number;
   hint_level: HintLevel; hint_level_max: HintLevel; nan_jumps: number; wrong_count: number; offtopic_count: number; u_level: 0 | 1 | 2 | 3;
   stuck_kind: StuckKind | null; statement_confirmed: boolean; confirmed_statement: string | null;
+  ku_code: string | null; exam_slot: string | null; prereq_gaps: string[] | null;
 }
 interface MessageDb { id: string; role: "child" | "tutor" | "system"; content: string; buttons: string[] | null;
   hint_level: number | null; client_msg_id: string | null; created_at: string; problem_id: string; input_kind: InputKind }
 
 // offtopic_count and input_kind come from Launcher migration 0018 (G2).
 const PROBLEM_COLS = "id, child_id, family_id, session_id, status, turn_count, hint_level, hint_level_max, nan_jumps, wrong_count, " +
-  "offtopic_count, u_level, stuck_kind, statement_confirmed, confirmed_statement";
+  "offtopic_count, u_level, stuck_kind, statement_confirmed, confirmed_statement, ku_code, exam_slot, prereq_gaps";
 const MESSAGE_COLS = "id, role, content, buttons, hint_level, client_msg_id, created_at, problem_id, input_kind";
 
 const BUCKET = "tutor-images"; // private, server only (Launcher 0019)
@@ -80,6 +81,12 @@ export function supabaseRepo(db: SupabaseClient = createAdminClient(), strongMod
       if (error) fail("setProblemStatus", error);
     },
 
+    async setClassification(problemId, c) {
+      const { error } = await t().from("problems").update({ ku_code: c.kuCode, exam_slot: c.examSlot, knowledge_version: c.knowledgeVersion,
+        updated_at: new Date().toISOString() }).eq("id", problemId);
+      if (error) fail("setClassification", error);
+    },
+
     async getProblemForChild(problemId, childId) {
       if (!/^[0-9a-f-]{36}$/i.test(problemId)) return null;
       const { data: p, error } = await t().from("problems").select(PROBLEM_COLS)
@@ -121,6 +128,8 @@ export function supabaseRepo(db: SupabaseClient = createAdminClient(), strongMod
         lastTutorFlags: shown[0] ? flagsOf(shown[0].raw_output) : [],
         siblingShown: (siblings ?? []).some((x) => shownIds.has(x.model_call_id as string) && usableSibling(x.output)),
         checklistAsked: [...new Set(shown.flatMap((c) => checklistOf(c.raw_output)))],
+        kuCode: p.ku_code, examSlot: p.exam_slot, prereqGaps: p.prereq_gaps ?? [],
+        bridgeTurns: bridgeTurnsOf(shown.map((c) => c.raw_output)),
         pending: last?.role === "child" ? { messageId: last.id, clientMsgId: last.client_msg_id, text: last.content, at: new Date(last.created_at) } : null,
       };
       return row;
@@ -178,7 +187,8 @@ export function supabaseRepo(db: SupabaseClient = createAdminClient(), strongMod
         turn_count: a.turn, status: a.status, statement_confirmed: a.statementConfirmed, hint_level: a.hintLevel,
         ...(a.problem.confirmedStatement === null && a.confirmedStatement ? { confirmed_statement: a.confirmedStatement } : {}),
         hint_level_max: a.hintLevelMax, nan_jumps: a.nanJumps, wrong_count: a.wrongCount, offtopic_count: a.offtopicCount,
-        u_level: a.uLevel, updated_at: nowIso, closed_at: a.status === "in_progress" ? null : nowIso,
+        u_level: a.uLevel, ku_code: a.kuCode, prereq_gaps: a.prereqGaps,
+        updated_at: nowIso, closed_at: a.status === "in_progress" ? null : nowIso,
       }).eq("id", a.problem.id).eq("turn_count", a.problem.turnCount).select(REPLY_COLS).maybeSingle();
       if (e1) fail("saveReply.problem", e1);
 
@@ -208,6 +218,12 @@ export function supabaseRepo(db: SupabaseClient = createAdminClient(), strongMod
         }
       }
       if (!p || !msg) return { conflict: true as const };
+      if (a.diagnoses.length) {
+        const { error: e6 } = await t().from("diagnoses").insert(a.diagnoses.map((dg) => ({
+          family_id: a.actor.familyId, child_id: a.actor.userId, problem_id: a.problem.id, root: dg.root, source: dg.source, ku_code: dg.kuCode,
+        })));
+        if (e6) fail("saveReply.diagnoses", e6);
+      }
 
       const { error: e4 } = await t().from("study_sessions").update({ last_seen_at: nowIso, updated_at: nowIso }).eq("id", a.problem.sessionId);
       if (e4) fail("saveReply.session", e4);

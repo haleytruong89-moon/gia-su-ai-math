@@ -32,10 +32,11 @@ test("child: pick where stuck, type the problem → the tutor restates it", asyn
   await page.waitForURL(/\/gia-su\/hoi\//);
   await expect(page.getByText("Em kiểm tra giúp cô đúng chưa?")).toBeVisible();
   problemId = page.url().split("/hoi/")[1]!;
-  const { data } = await tutor().from("problems").select("status, turn_count, stuck_kind").eq("id", problemId).single();
-  expect(data).toEqual({ status: "in_progress", turn_count: 1, stuck_kind: "khong_biet_bat_dau" });
+  const { data } = await tutor().from("problems").select("status, turn_count, stuck_kind, knowledge_version").eq("id", problemId).single();
+  expect(data).toMatchObject({ status: "in_progress", turn_count: 1, stuck_kind: "khong_biet_bat_dau" });
+  expect(data?.knowledge_version).toMatch(/^\d{4}-\d{2}-\d{2}\./); // G5: the first turn is classified
   const { data: calls } = await tutor().from("model_calls").select("purpose").eq("problem_id", problemId);
-  expect(calls?.map((c) => c.purpose).sort()).toEqual(["guard", "tutor"]); // every answer is checked
+  expect(calls?.map((c) => c.purpose).sort()).toEqual(["classify", "guard", "tutor"]); // every answer is checked
 });
 
 test("'Chưa hiểu' pressed 3 times in a row → nản: the turn goes to Opus (route_reason nan)", async ({ page, context }) => {

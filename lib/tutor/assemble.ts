@@ -18,7 +18,9 @@ const toMsg = (t: Turn): Msg =>
   t.images?.length ? { role: t.role, content: [...imageBlocks(t.images), { type: "text", text: t.content }] } : { role: t.role, content: t.content };
 export interface TurnStateBlock { grade: 6 | 9; hintLevel: number; wrongCount: number; nan: boolean; idle: boolean;
   submitted: boolean; mode: "thuong" | "tiet_kiem"; minutesLeft: number; turn: number; stuckKind: string | null;
-  kuCode: string | null; examSlot: string | null; maxLines: number }
+  kuCode: string | null; examSlot: string | null; maxLines: number;
+  /** G5: answers in a row that taught background knowledge (§4.13, at most 2). */
+  bridgeTurns?: number }
 
 export function renderStateBlock(s: TurnStateBlock): string {
   return [
@@ -27,6 +29,7 @@ export function renderStateBlock(s: TurnStateBlock): string {
     `da_nop_loi_giai: ${s.submitted} | che_do: ${s.mode} | max_lines: ${s.maxLines}`,
     `thoi_gian_buoi_con_lai: ${s.minutesLeft} phút | luot_trong_bai: ${s.turn}/20`,
     `cho_ket_cua_em: ${s.stuckKind ?? "khong_ro"} | ku_code: ${s.kuCode ?? "chua_ro"} | exam_slot: ${s.examSlot ?? "khong"}`,
+    ...(s.bridgeTurns ? [`day_bu_nen: ${Math.min(s.bridgeTurns, 2)}/2${s.bridgeTurns >= 2 ? " — đã đủ, quay lại bài gốc" : ""}`] : []),
   ].join("\n");
 }
 

@@ -93,13 +93,14 @@ interface TurnEvent { kind: 'text' | 'button'; text: string; at: Date; }
    nan = isNanSignal(recentChildEvents)         (DOMAIN §4.2)
    pre = applyPreTurn(state, {nan})              → có thể nhảy H4, +nanJumps
    if turnCount + 1 >= 18 → cờ "đề nghị để dành" vào ⑥; = 20 → đóng timed_out sau lượt này
-6. Ghép prompt: ①②③ (cache) + ④ hồ sơ đã duyệt (cache) + ⑤ thẻ KU (cache) + lịch sử bài + ⑥ trạng thái
-7. Chọn model (DOMAIN §4.14, D28, `lib/rules/model.ts`): Sonnet; Opus khi nản / ≥ H3 / lượt trước cô `tutor_unsure`
+5b. (G5) Lượt 1 của bài, `ku_code` chưa có, còn ≥ 200 s: Haiku phân loại (`lib/tutor/classify.ts`, `purpose = classify`) → `ku_code` (hợp lớp), `exam_slot` (chỉ lớp 9, chỉ khi đề ghi rõ — D27), `geometry_proof` → `problems.ku_code/exam_slot/knowledge_version`. Lỗi → bỏ qua (thẻ "chưa xác định")
+6. Ghép prompt: ①②③ (cache) + ④ hồ sơ đã duyệt (cache) + ⑤ thẻ KU `knowledgeCard(ku_code, lớp)` (cache) + lịch sử bài + ⑥ trạng thái (có `ku_code`, `exam_slot`, `day_bu_nen: n/2`)
+7. Chọn model (DOMAIN §4.14, D28, `lib/rules/model.ts`): Sonnet; Opus khi nản / ≥ H3 / lượt trước cô `tutor_unsure` / (G5) lớp 9 bài hình chứng minh (bộ phân loại hoặc cờ `geometry_proof` lượt trước) / ý chặn `exam_slot`
    (G5: bài chứng minh hình 9, câu thi khó); bài đã lên Opus thì ở lại Opus; tháng ≥ 45 USD (D29) → chỉ Sonnet.
    toolLoop (G4, tối đa 3 lần gọi công cụ) với output_format JSON schema
 8. Guard Haiku (`lib/tutor/guard.ts`, fail-closed) trên TutorOutput + danh sách tool đã gọi → pass | viết lại 1 lần
    trên Opus (Sonnet khi Opus tạm ngừng) | câu an toàn theo mức (blocked). Cả lượt có hạn TURN_BUDGET_MS = 240 s
-9. Luật sau model: nextHintLevel(state, output.danh_gia_luot_em); outcome = decideOutcome(state, output, toolLog)
+9. Luật sau model: nextHintLevel(state, output.danh_gia_luot_em); outcome = decideOutcome(state, output, toolLog); (G5) `ku_code` đổi theo `ku_code_de_xuat` khi cô xác nhận đề (hoặc khi chưa có); `prereq_gap` hợp lớp → `problems.prereq_gaps` + `diagnoses(concept)`; checklist bắt buộc cả lớp 6 (§4.10b, chờ chốt)
    (solveGate: self_solved cần math_check đạt — DOMAIN §4.12; bài chứng minh → pending_review)
 10. Ghi: messages(tutor), model_calls (raw_output + tokens + cost), tool_calls, problems (state mới), diagnoses, usage_monthly += cost
 11. usage ≥ 45 USD → model_mode = economy (= tạm ngừng Opus, không có chế độ trả lời tiết kiệm — D29) + notify (D23, G7)
@@ -112,7 +113,7 @@ Chi phí mỗi lời gọi: `cost = (in − cached) × giá_in + cached × giá_
 | Tên | Ở đâu | Ghi chú |
 |---|---|---|
 | `math_check` | `lib/tools/mathCheck.ts` + `casClient.ts` → HTTP `<CAS_URL hoặc CAS_SERVICE_URL>/check` (header `x-cas-secret`), timeout 5 s. `cas` là service **riêng tư** trong cùng project Vercel (Vercel Services, `vercel.json`; không có rewrite nên không có đường công khai; `web` gọi qua binding) | Các mode: equivalent, simplify_check, solve, check_root, evaluate, inequality, domain, **solve_system, check_solution** (G4); biểu thức có `gcd`/`lcm` |
-| `lookup` | `lib/tools/lookup.ts` đọc `knowledge/` trong bộ nhớ | Trả thẻ KU rút gọn ≤ 1.500 ký tự |
+| `lookup` | `lib/tools/lookup.ts` → `lookupText` (`knowledge/knowledge.json`) | Mã KU (T9.9, N8.02, T6.12…) hoặc mục hộp công cụ (hinh.1.7, rutgon.3); ≤ 2.400 ký tự; `{error: not_found}` khi mã lạ (G5) |
 | `make_sibling` | `lib/tools/makeSibling.ts` + `prompts/sibling.md`: gọi Sonnet (purpose=sibling) sinh đề + lời giải + đáp số + **lệnh kiểm** (`check_solution` / `check_root` / `equivalent`) → máy chạy lệnh kiểm → so tập số với đề gốc (trùng ≤ 1 số, không trùng hết) | Không đạt → thử lại 1 lần; vẫn không → `verified=false` |
 | *(vòng)* | `lib/tutor/toolLoop.ts`: ≤ 3 vòng công cụ mỗi câu trả lời, giữ nguyên khối thinking; vòng chỉ chạy khi lượt còn ≥ 70 s; hết vòng/giờ → `tool_choice: none`; câu đề nghị `self_solved` chưa có `math_check` xác nhận → nhắc 1 lần | `tool_calls.model_call_id` = câu trả lời mà công cụ phục vụ |
 
