@@ -415,7 +415,7 @@ const monthOf = (now: Date) => `${now.toISOString().slice(0, 7)}-01`;
  * TODO(G7): read-then-write can lose a cent when both children send at the same instant; G7 moves
  * this into an SQL function in the study-launcher repo (the cap check also reads model_calls).
  */
-async function addUsage(db: SupabaseClient, familyId: string, now: Date, cost: number) {
+export async function addUsage(db: SupabaseClient, familyId: string, now: Date, cost: number) {
   const month = monthOf(now);
   const t = db.schema("tutor");
   const { data, error } = await t.from("usage_monthly").select("cost_usd").eq("family_id", familyId).eq("month", month).maybeSingle();

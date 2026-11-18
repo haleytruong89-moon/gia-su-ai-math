@@ -2,7 +2,7 @@
   "schema": 1,
   "project": "Gia sư AI Toán",
   "updated": "2026-11-19",
-  "updatedNote": "G7 đang làm: L-6 (#93) + G7a mở PR; tiếp G7b (chấm cô + luật dạy), G7c (tiền + lời giải tham khảo)",
+  "updatedNote": "G7 đang làm: L-6 (#93) + G7a (#16) chờ merge; G7b xong trên nhánh; tiếp G7c (tiền + lời giải tham khảo)",
   "vision": {
     "oneLiner": "Một \"cô\" gia sư AI giúp 2 con tự học Toán buổi chiều: gỡ chỗ kẹt bằng câu hỏi gợi mở, không đưa lời giải bài gốc, tối bố mẹ đọc báo cáo 5 phút.",
     "problem": "Buổi chiều 2 con có nhiều thời gian tự học nhưng không có người lớn. Bố mẹ có khoảng 2 giờ buổi tối, gia sư người 2 buổi/tuần. Tốc độ tiến bộ do giờ tự học buổi chiều quyết định.",
@@ -508,11 +508,11 @@
         },
         {
           "name": "Con chấm cô 1 chạm sau bài đầu + nút Kết thúc buổi (P2)",
-          "status": "todo"
+          "status": "review"
         },
         {
           "name": "Góp ý / 😕 ×2 → luật dạy (Sonnet soạn, bố mẹ duyệt, hiệu lực buổi sau)",
-          "status": "todo"
+          "status": "review"
         },
         {
           "name": "Báo tiền qua Launcher: ~45 USD, Console hết tiền, dự báo vượt trần (D23)",
@@ -914,6 +914,10 @@
     {
       "date": "2026-11-19",
       "text": "G7 bắt đầu: phụ huynh chốt X1–X5; Launcher #93 (L-6, SQL 0023) và gia sư G7a (báo cáo tối, 👍/👎, dòng cần chú ý) mở PR"
+    },
+    {
+      "date": "2026-11-19",
+      "text": "G7b xong trên nhánh (chấm cô 1 chạm sau bài đầu, Kết thúc buổi, luật dạy: Sonnet soạn từ ghi chú, 😕 ×2 đề xuất, bố mẹ duyệt/sửa/tắt/tự viết, hiệu lực buổi sau); mở PR sau khi #16 merge"
     }
   ]
 }

@@ -2,7 +2,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-export interface Layers { role: string; rules: string; method: string; guard: string; sibling: string; classify: string }
+export interface Layers { role: string; rules: string; method: string; guard: string; sibling: string; classify: string; ruleDraft?: string }
 
 const read = (file: string) => readFileSync(join(process.cwd(), "prompts", file), "utf8").trim();
 let cached: { layers: Layers; version: string } | null = null;
@@ -10,7 +10,7 @@ let cached: { layers: Layers; version: string } | null = null;
 function load() {
   cached ??= {
     layers: { role: read("role.md"), rules: read("rules.md"), method: read("method.md"), guard: read("guard.md"), sibling: read("sibling.md"),
-      classify: read("classify.md") },
+      classify: read("classify.md"), ruleDraft: read("rule_draft.md") },
     version: read("PROMPT_VERSION"),
   };
   return cached;
