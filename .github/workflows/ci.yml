@@ -39,6 +39,10 @@ jobs:
       - run: npx tsc --noEmit
       - run: npm run lint
       - run: npx vitest run
+      # Knowledge files (D25): JSON matches knowledge/src, no private text (names come from a secret, never the repo).
+      - run: npm run knowledge:check
+        env:
+          PRIVATE_TERMS: ${{ secrets.PRIVATE_TERMS }}
       # Build with placeholder values: NEXT_PUBLIC_* are inlined at build time; nothing is called.
       - run: npm run build
         env:

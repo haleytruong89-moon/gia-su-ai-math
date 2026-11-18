@@ -71,7 +71,7 @@ cd cas && pip install -r requirements.txt && pytest
 ## Current status
 - Phase: 3 — Implementation. Last updated: 16/11/2026.
 - **Trạng thái chi tiết ở `docs/ROADMAP.json`** (trang bản đồ lộ trình) và `docs/PROGRESS.md`; mục này chỉ tóm tắt.
-- Xong: G0, L-0, G1, L-1, G2 (+ e2e), G3, G4 PR A (`cas` trên Vercel Services).
-- Đang mở: G4 PR B (#10: vòng công cụ, cổng "tự làm xong", bài anh em). Tiếp: G5 (kho kiến thức).
+- Xong: G0, L-0, G1, L-1, G2 (+ e2e), G3, G4 (`cas` trên Vercel Services, vòng công cụ, cổng "tự làm xong", bài anh em).
+- Tiếp: G5 (kho kiến thức + dạy bù nền).
 - Hồ sơ dạy học (lớp ④) bố mẹ nhập ở `/gia-su/bo-me`, chỉ nằm trong DB — không đưa vào repo.
 - Chưa cho con dùng thật trước G9. Chờ phụ huynh: D23, D25–D27; chạy lại G0 sau #10.

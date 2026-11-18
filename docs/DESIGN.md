@@ -116,14 +116,37 @@ Chi phí mỗi lời gọi: `cost = (in − cached) × giá_in + cached × giá_
 | `make_sibling` | `lib/tools/makeSibling.ts` + `prompts/sibling.md`: gọi Sonnet (purpose=sibling) sinh đề + lời giải + đáp số + **lệnh kiểm** (`check_solution` / `check_root` / `equivalent`) → máy chạy lệnh kiểm → so tập số với đề gốc (trùng ≤ 1 số, không trùng hết) | Không đạt → thử lại 1 lần; vẫn không → `verified=false` |
 | *(vòng)* | `lib/tutor/toolLoop.ts`: ≤ 3 vòng công cụ mỗi câu trả lời, giữ nguyên khối thinking; vòng chỉ chạy khi lượt còn ≥ 70 s; hết vòng/giờ → `tool_choice: none`; câu đề nghị `self_solved` chưa có `math_check` xác nhận → nhắc 1 lần | `tool_calls.model_call_id` = câu trả lời mà công cụ phục vụ |
 
-## 6. Kho kiến thức
-`scripts/build-knowledge.ts` đọc các file md đã duyệt (chép từ hub vào `knowledge/src/`: BAN_DO_CHUONG_TRINH_TOAN9, TOAN6, HOP_CONG_CU_HINH_9, HOP_CONG_CU_RUT_GON_9) → parse các bảng markdown → `knowledge/ku/T9.9.json` …, `knowledge/toolbox/*.json`; `KNOWLEDGE_VERSION` = ngày + hash nội dung. `check-knowledge.ts` chạy trong CI: zod, mọi mã nền tồn tại, mọi `exam_slot` đúng mẫu.
+## 6. Kho kiến thức (G5, D25 ✅ 16/11)
+**Nguồn:** 4 file đã duyệt trong hub (BAN_DO_CHUONG_TRINH_TOAN9 v0.2, …TOAN6 v0.1, HOP_CONG_CU_HINH_9 v0.2, HOP_CONG_CU_RUT_GON_9 v0.1).
+- Repo công khai, nên `scripts/knowledge/sanitize.ts` làm sạch trước khi đưa vào repo: bỏ cột đề cương, bỏ ghi chú về con/thầy/trường, bỏ ví dụ trên đề của trường và ví dụ có đáp số. Kết quả ghi vào `knowledge/src/{toan9,toan6,hinh9,rutgon9}.md`.
+- Bản gốc chỉ nằm ở `knowledge/hub/` (gitignore).
+- `knowledge/src/MAP.md` soạn trong repo: checklist lớp 9 (§4.10), lớp 6 (§4.10b), KU → mục checklist + mục hộp công cụ, KU hình chứng minh.
+
+**Sinh:** `npm run knowledge` = sanitize + `scripts/knowledge/build.ts` → `knowledge/knowledge.json` (101 KU, 16 mục hộp công cụ, checklist) + `knowledge/KNOWLEDGE_VERSION` (`ngày.hash8` của nguồn).
+
+**Kiểm (CI, job node):** `npm run knowledge:check`
+- build lại trong bộ nhớ; JSON lệch nguồn thì báo đỏ;
+- quét chữ riêng tư: mẫu chung trong `scripts/knowledge/privacy.ts` + tên thật từ Secret `PRIVATE_TERMS`, không bao giờ ghi trong repo.
+
+**Cập nhật khi thầy/bố mẹ góp ý:**
+1. Sửa md trong hub.
+2. Tải về `knowledge/hub/`, rồi `npm run knowledge`.
+3. Đọc lại diff `knowledge/src/`.
+4. Mở PR.
+
+Không sửa tay JSON.
+
+**Dùng** (`lib/knowledge/`):
+- `knowledgeCard(code, grade)` = lớp ⑤ ≤ 3.500 ký tự: KU, lỗi hay gặp, KU nền, checklist theo dạng, danh sách mục hộp công cụ, một mục chép sẵn.
+- `lookupText(code)` cho công cụ `lookup` (≤ 2.400 ký tự; mục 1.10 đồng dạng dài ~2.100 ký tự nên nâng từ 1.500).
+- `kuIndex(grade)` là danh mục cho bộ phân loại Haiku.
+- `checklistFor(code, grade)`.
 
 ```ts
-interface KnowledgeUnit {
-  code: string; grade: 6|7|8|9; term: 'HK1'|'HK2'|'nen'; chapter: string; title: string;
-  core: string; problemTypes: string[]; commonErrors: { root: 'read'|'concept'|'strategy'|'calc'|'careful'; text: string }[];
-  prereqs: string[]; toolbox: string[]; checklist: number[]; examSlots: string[]; examNotes: string[];
+interface KnowledgeUnit {            // lib/knowledge/schema.ts (zod)
+  code: string; grade: 6 | 9; level: "bai" | "nen"; term: "HK1" | "HK2" | "nen"; chapter: string; title: string;
+  core: string; problemTypes: string; errors: { root: Root | null; text: string }[];
+  prereqs: string[]; usedBy: string[]; checklist: number[]; toolbox: string[]; proof: boolean;
 }
 ```
 

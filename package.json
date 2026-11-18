@@ -12,7 +12,9 @@
     "test": "vitest run",
     "eval": "tsx --conditions=react-server eval/run.ts",
     "e2e": "playwright test",
-    "roadmap:page": "node scripts/build-roadmap-page.mjs"
+    "roadmap:page": "node scripts/build-roadmap-page.mjs",
+    "knowledge": "tsx scripts/knowledge/sanitize.ts && tsx scripts/knowledge/build.ts",
+    "knowledge:check": "tsx scripts/knowledge/build.ts --check"
   },
   "devDependencies": {
     "@playwright/test": "^1.65.1",

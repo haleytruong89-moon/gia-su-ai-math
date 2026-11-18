@@ -1,0 +1,2806 @@
+{
+  "version": "2026-11-16.b3e4fa0f",
+  "units": [
+    {
+      "code": "T9.1",
+      "grade": 9,
+      "level": "bai",
+      "term": "HK1",
+      "chapter": "Chương 1. Phương trình và hệ hai phương trình bậc nhất hai ẩn",
+      "title": "Khái niệm PT và hệ hai PT bậc nhất hai ẩn",
+      "core": "ax + by = c; nghiệm là cặp số; biểu diễn nghiệm là đường thẳng",
+      "problemTypes": "Kiểm cặp số có là nghiệm; viết nghiệm tổng quát",
+      "errors": [
+        {
+          "root": "calc",
+          "text": "thay sai dấu"
+        }
+      ],
+      "prereqs": [
+        "N8.08"
+      ],
+      "usedBy": [],
+      "checklist": [
+        6
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T9.2",
+      "grade": 9,
+      "level": "bai",
+      "term": "HK1",
+      "chapter": "Chương 1. Phương trình và hệ hai phương trình bậc nhất hai ẩn",
+      "title": "Giải hệ hai PT bậc nhất hai ẩn",
+      "core": "Phương pháp thế, cộng đại số; hệ có 1 nghiệm / vô nghiệm / vô số nghiệm",
+      "problemTypes": "Giải hệ; hệ có hệ số thập phân, căn; đặt ẩn phụ (1/x, 1/(x+y))",
+      "errors": [
+        {
+          "root": "calc",
+          "text": "nhân hệ số sai dấu"
+        },
+        {
+          "root": "careful",
+          "text": "quên ĐK khi đặt ẩn phụ"
+        }
+      ],
+      "prereqs": [
+        "N7.06",
+        "N8.06"
+      ],
+      "usedBy": [],
+      "checklist": [
+        2,
+        6
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T9.3",
+      "grade": 9,
+      "level": "bai",
+      "term": "HK1",
+      "chapter": "Chương 1. Phương trình và hệ hai phương trình bậc nhất hai ẩn",
+      "title": "Giải bài toán bằng cách lập hệ PT",
+      "core": "Gọi ẩn + đơn vị + ĐK → lập hệ → giải → đối chiếu → kết luận",
+      "problemTypes": "Năng suất, làm chung – riêng, chuyển động, mua bán, phần trăm, chữ số",
+      "errors": [
+        {
+          "root": "read",
+          "text": "cụm so sánh (\"nhiều hơn\", \"gấp\")"
+        },
+        {
+          "root": "careful",
+          "text": "ĐK ẩn sai, thiếu đơn vị"
+        },
+        {
+          "root": "read",
+          "text": "kết luận trả lời sai đại lượng"
+        }
+      ],
+      "prereqs": [
+        "T9.2",
+        "N7.10"
+      ],
+      "usedBy": [],
+      "checklist": [
+        2,
+        3,
+        6,
+        8,
+        10
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T9.4",
+      "grade": 9,
+      "level": "bai",
+      "term": "HK1",
+      "chapter": "Chương 2. Phương trình và bất phương trình bậc nhất một ẩn",
+      "title": "PT quy về PT bậc nhất một ẩn",
+      "core": "PT tích A·B = 0; PT chứa ẩn ở mẫu: ĐKXĐ → quy đồng → giải → đối chiếu ĐK",
+      "problemTypes": "Đưa về PT tích; PT chứa ẩn ở mẫu",
+      "errors": [
+        {
+          "root": "careful",
+          "text": "thiếu/sai ĐKXĐ, không loại nghiệm"
+        }
+      ],
+      "prereqs": [
+        "N8.02",
+        "N8.03",
+        "N8.05"
+      ],
+      "usedBy": [],
+      "checklist": [
+        1,
+        2,
+        6
+      ],
+      "toolbox": [
+        "rutgon.0"
+      ],
+      "proof": false
+    },
+    {
+      "code": "T9.5",
+      "grade": 9,
+      "level": "bai",
+      "term": "HK1",
+      "chapter": "Chương 2. Phương trình và bất phương trình bậc nhất một ẩn",
+      "title": "Bất đẳng thức và tính chất",
+      "core": "Cộng hai vế; nhân với số dương giữ chiều, số âm đổi chiều; (a−b)² ≥ 0",
+      "problemTypes": "Chứng minh BĐT đơn giản; so sánh",
+      "errors": [
+        {
+          "root": "concept",
+          "text": "quên đổi chiều khi nhân số âm"
+        }
+      ],
+      "prereqs": [
+        "N8.02"
+      ],
+      "usedBy": [],
+      "checklist": [
+        2,
+        6,
+        9
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T9.6",
+      "grade": 9,
+      "level": "bai",
+      "term": "HK1",
+      "chapter": "Chương 2. Phương trình và bất phương trình bậc nhất một ẩn",
+      "title": "Bất phương trình bậc nhất một ẩn",
+      "core": "ax + b > 0; chuyển vế; chia số âm đổi chiều",
+      "problemTypes": "Giải BPT; bài toán thực tế \"ít nhất / nhiều nhất\"",
+      "errors": [
+        {
+          "root": "calc",
+          "text": "quên đổi chiều khi chia số âm"
+        },
+        {
+          "root": "read",
+          "text": "\"ít nhất / không quá\""
+        }
+      ],
+      "prereqs": [
+        "T9.5"
+      ],
+      "usedBy": [],
+      "checklist": [
+        2,
+        6,
+        9
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T9.7",
+      "grade": 9,
+      "level": "bai",
+      "term": "HK1",
+      "chapter": "Chương 3. Căn bậc hai và căn bậc ba",
+      "title": "Căn bậc hai và căn thức bậc hai",
+      "core": "√A xác định khi A ≥ 0; √(A²) = |A|",
+      "problemTypes": "Tìm ĐK xác định; tính giá trị; giải PT √A = B",
+      "errors": [
+        {
+          "root": "concept",
+          "text": "quên dấu giá trị tuyệt đối"
+        },
+        {
+          "root": "careful",
+          "text": "quên ĐK"
+        }
+      ],
+      "prereqs": [
+        "N7.03"
+      ],
+      "usedBy": [],
+      "checklist": [
+        6,
+        7
+      ],
+      "toolbox": [
+        "rutgon.0",
+        "rutgon.1",
+        "rutgon.3",
+        "rutgon.4"
+      ],
+      "proof": false
+    },
+    {
+      "code": "T9.8",
+      "grade": 9,
+      "level": "bai",
+      "term": "HK1",
+      "chapter": "Chương 3. Căn bậc hai và căn bậc ba",
+      "title": "Khai căn với phép nhân và phép chia",
+      "core": "√(AB) = √A·√B; √(A/B) = √A/√B (ĐK)",
+      "problemTypes": "Tính, rút gọn",
+      "errors": [
+        {
+          "root": "concept",
+          "text": "áp dụng sai cho tổng (√(a+b) ≠ √a + √b)"
+        }
+      ],
+      "prereqs": [
+        "T9.7"
+      ],
+      "usedBy": [],
+      "checklist": [
+        6,
+        7
+      ],
+      "toolbox": [
+        "rutgon.0",
+        "rutgon.1",
+        "rutgon.3",
+        "rutgon.4"
+      ],
+      "proof": false
+    },
+    {
+      "code": "T9.9",
+      "grade": 9,
+      "level": "bai",
+      "term": "HK1",
+      "chapter": "Chương 3. Căn bậc hai và căn bậc ba",
+      "title": "Biến đổi đơn giản và rút gọn biểu thức chứa căn",
+      "core": "Đưa thừa số ra/vào dấu căn; khử mẫu; trục căn ở mẫu",
+      "problemTypes": "Rút gọn biểu thức + bài toán phụ (tính giá trị, tìm x, so sánh, giá trị nguyên, GTNN)",
+      "errors": [
+        {
+          "root": "calc",
+          "text": "quy đồng sai"
+        },
+        {
+          "root": "careful",
+          "text": "không đối chiếu ĐK"
+        },
+        {
+          "root": "strategy",
+          "text": "không biết chọn cách cho câu phụ"
+        },
+        {
+          "root": "careful",
+          "text": "rút gọn chưa đến tận cùng"
+        },
+        {
+          "root": "strategy",
+          "text": "dạng nâng cao chưa làm được"
+        }
+      ],
+      "prereqs": [
+        "T9.7",
+        "T9.8",
+        "N8.02",
+        "N8.05"
+      ],
+      "usedBy": [],
+      "checklist": [
+        6,
+        7
+      ],
+      "toolbox": [
+        "rutgon.0",
+        "rutgon.1",
+        "rutgon.3",
+        "rutgon.4"
+      ],
+      "proof": false
+    },
+    {
+      "code": "T9.10",
+      "grade": 9,
+      "level": "bai",
+      "term": "HK1",
+      "chapter": "Chương 3. Căn bậc hai và căn bậc ba",
+      "title": "Căn bậc ba và căn thức bậc ba",
+      "core": "∛(a³) = a, xác định với mọi a",
+      "problemTypes": "Tính, so sánh",
+      "errors": [
+        {
+          "root": "concept",
+          "text": "nhầm với căn bậc hai (ĐK)"
+        }
+      ],
+      "prereqs": [
+        "T9.7"
+      ],
+      "usedBy": [],
+      "checklist": [
+        6,
+        7
+      ],
+      "toolbox": [
+        "rutgon.0",
+        "rutgon.1",
+        "rutgon.3",
+        "rutgon.4"
+      ],
+      "proof": false
+    },
+    {
+      "code": "T9.11",
+      "grade": 9,
+      "level": "bai",
+      "term": "HK1",
+      "chapter": "Chương 4. Hệ thức lượng trong tam giác vuông",
+      "title": "Tỉ số lượng giác của góc nhọn",
+      "core": "sin, cos, tan, cot; góc phụ nhau; giá trị đặc biệt",
+      "problemTypes": "Tính tỉ số; tìm góc bằng máy tính",
+      "errors": [
+        {
+          "root": "concept",
+          "text": "nhầm cạnh đối/kề"
+        },
+        {
+          "root": "careful",
+          "text": "máy tính để sai chế độ độ"
+        }
+      ],
+      "prereqs": [
+        "N8.12",
+        "N8.10"
+      ],
+      "usedBy": [],
+      "checklist": [
+        6
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T9.12",
+      "grade": 9,
+      "level": "bai",
+      "term": "HK1",
+      "chapter": "Chương 4. Hệ thức lượng trong tam giác vuông",
+      "title": "Hệ thức giữa cạnh, góc trong tam giác vuông và ứng dụng",
+      "core": "Cạnh góc vuông = cạnh huyền × sin/cos góc …; giải tam giác vuông",
+      "problemTypes": "Bài toán thực tế (cột đèn, thuyền, cánh diều); giải tam giác",
+      "errors": [
+        {
+          "root": "careful",
+          "text": "không làm tròn theo đề, thiếu dấu ≈"
+        },
+        {
+          "root": "read",
+          "text": "xác định sai góc nào là góc nào"
+        }
+      ],
+      "prereqs": [
+        "T9.11"
+      ],
+      "usedBy": [],
+      "checklist": [
+        4,
+        6,
+        10
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T9.13",
+      "grade": 9,
+      "level": "bai",
+      "term": "HK1",
+      "chapter": "Chương 5. Đường tròn",
+      "title": "Mở đầu về đường tròn",
+      "core": "Đường tròn, tâm đối xứng, trục đối xứng; điểm thuộc đường tròn",
+      "problemTypes": "Chứng minh các điểm cùng thuộc một đường tròn",
+      "errors": [
+        {
+          "root": "strategy",
+          "text": "không nghĩ tới \"cách đều một điểm\""
+        }
+      ],
+      "prereqs": [
+        "N7.15"
+      ],
+      "usedBy": [],
+      "checklist": [
+        5,
+        6
+      ],
+      "toolbox": [
+        "hinh.0",
+        "hinh.1.1",
+        "hinh.1.2",
+        "hinh.1.3",
+        "hinh.1.4",
+        "hinh.1.5",
+        "hinh.1.6",
+        "hinh.1.7",
+        "hinh.1.8",
+        "hinh.1.9",
+        "hinh.1.10",
+        "hinh.2.3"
+      ],
+      "proof": true
+    },
+    {
+      "code": "T9.14",
+      "grade": 9,
+      "level": "bai",
+      "term": "HK1",
+      "chapter": "Chương 5. Đường tròn",
+      "title": "Cung và dây",
+      "core": "Góc ở tâm, số đo cung; dây và khoảng cách đến tâm; đường kính ⊥ dây",
+      "problemTypes": "Tính số đo cung; so sánh dây",
+      "errors": [
+        {
+          "root": "concept",
+          "text": "nhầm cung nhỏ/cung lớn"
+        }
+      ],
+      "prereqs": [
+        "T9.13"
+      ],
+      "usedBy": [],
+      "checklist": [
+        5,
+        6
+      ],
+      "toolbox": [
+        "hinh.0",
+        "hinh.1.1",
+        "hinh.1.2",
+        "hinh.1.3",
+        "hinh.1.4",
+        "hinh.1.5",
+        "hinh.1.6",
+        "hinh.1.7",
+        "hinh.1.8",
+        "hinh.1.9",
+        "hinh.1.10",
+        "hinh.2.3"
+      ],
+      "proof": true
+    },
+    {
+      "code": "T9.15",
+      "grade": 9,
+      "level": "bai",
+      "term": "HK1",
+      "chapter": "Chương 5. Đường tròn",
+      "title": "Độ dài cung, diện tích hình quạt, hình vành khuyên",
+      "core": "l = πRn/180; S quạt = πR²n/360; S vành khuyên = π(R² − r²)",
+      "problemTypes": "Bài toán thực tế (quạt giấy, đĩa CD, pizza, viên gạch)",
+      "errors": [
+        {
+          "root": "calc",
+          "text": "quên đổi đơn vị"
+        },
+        {
+          "root": "careful",
+          "text": "làm tròn"
+        }
+      ],
+      "prereqs": [
+        "T9.14"
+      ],
+      "usedBy": [],
+      "checklist": [
+        4,
+        6,
+        10
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T9.16",
+      "grade": 9,
+      "level": "bai",
+      "term": "HK1",
+      "chapter": "Chương 5. Đường tròn",
+      "title": "Vị trí tương đối của đường thẳng và đường tròn",
+      "core": "d < R, d = R, d > R; tiếp tuyến ⊥ bán kính; hai tiếp tuyến cắt nhau",
+      "problemTypes": "Chứng minh tiếp tuyến; tính độ dài đoạn tiếp tuyến",
+      "errors": [
+        {
+          "root": "strategy",
+          "text": "không biết bắt đầu bài chứng minh"
+        }
+      ],
+      "prereqs": [
+        "T9.13",
+        "N7.11"
+      ],
+      "usedBy": [],
+      "checklist": [
+        5,
+        6
+      ],
+      "toolbox": [
+        "hinh.0",
+        "hinh.1.1",
+        "hinh.1.2",
+        "hinh.1.3",
+        "hinh.1.4",
+        "hinh.1.5",
+        "hinh.1.6",
+        "hinh.1.7",
+        "hinh.1.8",
+        "hinh.1.9",
+        "hinh.1.10",
+        "hinh.2.3"
+      ],
+      "proof": true
+    },
+    {
+      "code": "T9.17",
+      "grade": 9,
+      "level": "bai",
+      "term": "HK1",
+      "chapter": "Chương 5. Đường tròn",
+      "title": "Vị trí tương đối của hai đường tròn",
+      "core": "So sánh OO' với R ± r; tiếp xúc trong/ngoài",
+      "problemTypes": "Xác định vị trí; chứng minh tiếp xúc",
+      "errors": [
+        {
+          "root": "concept",
+          "text": "nhầm R + r với R − r"
+        }
+      ],
+      "prereqs": [
+        "T9.16"
+      ],
+      "usedBy": [],
+      "checklist": [
+        5,
+        6
+      ],
+      "toolbox": [
+        "hinh.0",
+        "hinh.1.1",
+        "hinh.1.2",
+        "hinh.1.3",
+        "hinh.1.4",
+        "hinh.1.5",
+        "hinh.1.6",
+        "hinh.1.7",
+        "hinh.1.8",
+        "hinh.1.9",
+        "hinh.1.10",
+        "hinh.2.3"
+      ],
+      "proof": true
+    },
+    {
+      "code": "T9.18",
+      "grade": 9,
+      "level": "bai",
+      "term": "HK2",
+      "chapter": "Chương 6. Hàm số y = ax² (a ≠ 0). Phương trình bậc hai một ẩn",
+      "title": "Hàm số y = ax²",
+      "core": "Đồ thị parabol đỉnh O; a > 0 / a < 0",
+      "problemTypes": "Vẽ đồ thị; điểm thuộc đồ thị; giao parabol – đường thẳng",
+      "errors": [
+        {
+          "root": "calc",
+          "text": "tính giá trị bình phương số âm"
+        }
+      ],
+      "prereqs": [
+        "N8.08"
+      ],
+      "usedBy": [],
+      "checklist": [
+        6
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T9.19",
+      "grade": 9,
+      "level": "bai",
+      "term": "HK2",
+      "chapter": "Chương 6. Hàm số y = ax² (a ≠ 0). Phương trình bậc hai một ẩn",
+      "title": "Phương trình bậc hai một ẩn",
+      "core": "Δ = b² − 4ac (và Δ'); công thức nghiệm; PT khuyết",
+      "problemTypes": "Giải PT; PT chứa tham số m",
+      "errors": [
+        {
+          "root": "calc",
+          "text": "tính Δ sai dấu"
+        },
+        {
+          "root": "strategy",
+          "text": "không đưa về dạng chuẩn"
+        }
+      ],
+      "prereqs": [
+        "N8.03"
+      ],
+      "usedBy": [],
+      "checklist": [
+        2,
+        6
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T9.20",
+      "grade": 9,
+      "level": "bai",
+      "term": "HK2",
+      "chapter": "Chương 6. Hàm số y = ax² (a ≠ 0). Phương trình bậc hai một ẩn",
+      "title": "Định lí Viète và ứng dụng",
+      "core": "x₁ + x₂ = −b/a; x₁x₂ = c/a; nhẩm nghiệm; tìm hai số biết tổng, tích",
+      "problemTypes": "Biểu thức đối xứng hai nghiệm; điều kiện của m",
+      "errors": [
+        {
+          "root": "careful",
+          "text": "quên điều kiện có nghiệm (Δ ≥ 0)"
+        }
+      ],
+      "prereqs": [
+        "T9.19"
+      ],
+      "usedBy": [],
+      "checklist": [
+        2,
+        6
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T9.21",
+      "grade": 9,
+      "level": "bai",
+      "term": "HK2",
+      "chapter": "Chương 6. Hàm số y = ax² (a ≠ 0). Phương trình bậc hai một ẩn",
+      "title": "Giải bài toán bằng cách lập phương trình",
+      "core": "Như T9.3, PT bậc hai",
+      "problemTypes": "Chuyển động, năng suất, hình học, phần trăm",
+      "errors": [
+        {
+          "root": null,
+          "text": "Như T9.3 + 🎯 loại nghiệm không thỏa ĐK"
+        }
+      ],
+      "prereqs": [
+        "T9.3",
+        "T9.19"
+      ],
+      "usedBy": [],
+      "checklist": [
+        2,
+        3,
+        6,
+        8,
+        10
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T9.22",
+      "grade": 9,
+      "level": "bai",
+      "term": "HK2",
+      "chapter": "Chương 7. Tần số và tần số tương đối",
+      "title": "Bảng tần số và biểu đồ tần số",
+      "core": "Đếm tần số; biểu đồ cột",
+      "problemTypes": "Lập bảng, đọc biểu đồ",
+      "errors": [
+        {
+          "root": "careful",
+          "text": "đếm sót"
+        }
+      ],
+      "prereqs": [
+        "N7.17"
+      ],
+      "usedBy": [],
+      "checklist": [
+        6
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T9.23",
+      "grade": 9,
+      "level": "bai",
+      "term": "HK2",
+      "chapter": "Chương 7. Tần số và tần số tương đối",
+      "title": "Bảng tần số tương đối và biểu đồ",
+      "core": "f = n/N (%); biểu đồ quạt",
+      "problemTypes": "Tính %, vẽ biểu đồ quạt",
+      "errors": [
+        {
+          "root": "calc",
+          "text": "tổng % ≠ 100 do làm tròn"
+        }
+      ],
+      "prereqs": [
+        "T9.22"
+      ],
+      "usedBy": [],
+      "checklist": [
+        6
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T9.24",
+      "grade": 9,
+      "level": "bai",
+      "term": "HK2",
+      "chapter": "Chương 7. Tần số và tần số tương đối",
+      "title": "Tần số, tần số tương đối ghép nhóm",
+      "core": "Chia nhóm [a; b)",
+      "problemTypes": "Lập bảng ghép nhóm, biểu đồ",
+      "errors": [
+        {
+          "root": "concept",
+          "text": "nhầm đầu mút nhóm"
+        }
+      ],
+      "prereqs": [
+        "T9.23"
+      ],
+      "usedBy": [],
+      "checklist": [
+        6
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T9.25",
+      "grade": 9,
+      "level": "bai",
+      "term": "HK2",
+      "chapter": "Chương 8. Xác suất của biến cố trong một số mô hình đơn giản",
+      "title": "Phép thử ngẫu nhiên và không gian mẫu",
+      "core": "Liệt kê kết quả, sơ đồ cây, bảng",
+      "problemTypes": "Mô tả không gian mẫu (gieo xúc xắc, rút thẻ 2 lần)",
+      "errors": [
+        {
+          "root": "strategy",
+          "text": "đếm thiếu/trùng (có thứ tự hay không)"
+        }
+      ],
+      "prereqs": [
+        "N7.18"
+      ],
+      "usedBy": [],
+      "checklist": [
+        6
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T9.26",
+      "grade": 9,
+      "level": "bai",
+      "term": "HK2",
+      "chapter": "Chương 8. Xác suất của biến cố trong một số mô hình đơn giản",
+      "title": "Xác suất của biến cố",
+      "core": "P = số kết quả thuận lợi / số kết quả có thể",
+      "problemTypes": "Tính xác suất",
+      "errors": [
+        {
+          "root": "read",
+          "text": "hiểu sai biến cố (\"ít nhất một\")"
+        }
+      ],
+      "prereqs": [
+        "T9.25"
+      ],
+      "usedBy": [],
+      "checklist": [
+        6
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T9.27",
+      "grade": 9,
+      "level": "bai",
+      "term": "HK2",
+      "chapter": "Chương 9. Đường tròn ngoại tiếp và đường tròn nội tiếp",
+      "title": "Góc nội tiếp",
+      "core": "Góc nội tiếp = ½ góc ở tâm cùng chắn cung; chắn nửa đường tròn = 90°",
+      "problemTypes": "Chứng minh góc bằng nhau, vuông góc",
+      "errors": [
+        {
+          "root": "strategy",
+          "text": "không nhận ra hai góc cùng chắn một cung"
+        }
+      ],
+      "prereqs": [
+        "T9.14"
+      ],
+      "usedBy": [],
+      "checklist": [
+        5,
+        6
+      ],
+      "toolbox": [
+        "hinh.0",
+        "hinh.1.1",
+        "hinh.1.2",
+        "hinh.1.3",
+        "hinh.1.4",
+        "hinh.1.5",
+        "hinh.1.6",
+        "hinh.1.7",
+        "hinh.1.8",
+        "hinh.1.9",
+        "hinh.1.10",
+        "hinh.2.3"
+      ],
+      "proof": true
+    },
+    {
+      "code": "T9.28",
+      "grade": 9,
+      "level": "bai",
+      "term": "HK2",
+      "chapter": "Chương 9. Đường tròn ngoại tiếp và đường tròn nội tiếp",
+      "title": "Đường tròn ngoại tiếp, nội tiếp tam giác",
+      "core": "Tâm ngoại tiếp = giao trung trực; tâm nội tiếp = giao phân giác; tam giác vuông: tâm là trung điểm cạnh huyền; tam giác đều",
+      "problemTypes": "Xác định tâm, bán kính",
+      "errors": [
+        {
+          "root": "concept",
+          "text": "nhầm hai loại tâm"
+        }
+      ],
+      "prereqs": [
+        "N7.15",
+        "N7.16"
+      ],
+      "usedBy": [],
+      "checklist": [
+        5,
+        6
+      ],
+      "toolbox": [
+        "hinh.0",
+        "hinh.1.1",
+        "hinh.1.2",
+        "hinh.1.3",
+        "hinh.1.4",
+        "hinh.1.5",
+        "hinh.1.6",
+        "hinh.1.7",
+        "hinh.1.8",
+        "hinh.1.9",
+        "hinh.1.10",
+        "hinh.2.3"
+      ],
+      "proof": true
+    },
+    {
+      "code": "T9.29",
+      "grade": 9,
+      "level": "bai",
+      "term": "HK2",
+      "chapter": "Chương 9. Đường tròn ngoại tiếp và đường tròn nội tiếp",
+      "title": "Tứ giác nội tiếp",
+      "core": "Tổng hai góc đối 180°; hình chữ nhật, vuông, thang cân nội tiếp",
+      "problemTypes": "Chứng minh tứ giác nội tiếp → suy góc bằng nhau → đồng dạng → đẳng thức tích (dạng chuỗi thi vào 10)",
+      "errors": [
+        {
+          "root": "strategy",
+          "text": "không biết bắt đầu"
+        },
+        {
+          "root": null,
+          "text": "không nối các ý"
+        }
+      ],
+      "prereqs": [
+        "T9.27",
+        "N8.10"
+      ],
+      "usedBy": [],
+      "checklist": [
+        5,
+        6
+      ],
+      "toolbox": [
+        "hinh.0",
+        "hinh.1.1",
+        "hinh.1.2",
+        "hinh.1.3",
+        "hinh.1.4",
+        "hinh.1.5",
+        "hinh.1.6",
+        "hinh.1.7",
+        "hinh.1.8",
+        "hinh.1.9",
+        "hinh.1.10",
+        "hinh.2.3"
+      ],
+      "proof": true
+    },
+    {
+      "code": "T9.30",
+      "grade": 9,
+      "level": "bai",
+      "term": "HK2",
+      "chapter": "Chương 9. Đường tròn ngoại tiếp và đường tròn nội tiếp",
+      "title": "Đa giác đều",
+      "core": "Tâm, góc ở tâm 360°/n; phép quay",
+      "problemTypes": "Nhận biết, tính góc",
+      "errors": [
+        {
+          "root": "calc",
+          "text": "công thức góc"
+        }
+      ],
+      "prereqs": [
+        "T9.28"
+      ],
+      "usedBy": [],
+      "checklist": [
+        6
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T9.31",
+      "grade": 9,
+      "level": "bai",
+      "term": "HK2",
+      "chapter": "Chương 10. Một số hình khối trong thực tiễn",
+      "title": "Hình trụ và hình nón",
+      "core": "S xq trụ = 2πrh; V trụ = πr²h; S xq nón = πrl; V nón = ⅓πr²h",
+      "problemTypes": "Bài toán thực tế (bồn nước, nón lá, thúng gạo)",
+      "errors": [
+        {
+          "root": "calc",
+          "text": "nhầm h với l (đường sinh)"
+        },
+        {
+          "root": null,
+          "text": "đổi đơn vị"
+        }
+      ],
+      "prereqs": [
+        "N8.14"
+      ],
+      "usedBy": [],
+      "checklist": [
+        4,
+        6,
+        10
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T9.32",
+      "grade": 9,
+      "level": "bai",
+      "term": "HK2",
+      "chapter": "Chương 10. Một số hình khối trong thực tiễn",
+      "title": "Hình cầu",
+      "core": "S = 4πR²; V = 4/3·πR³",
+      "problemTypes": "Bài toán thực tế; khối ghép",
+      "errors": [
+        {
+          "root": "calc",
+          "text": "nhầm bán kính/đường kính"
+        }
+      ],
+      "prereqs": [
+        "T9.31"
+      ],
+      "usedBy": [],
+      "checklist": [
+        4,
+        6,
+        10
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "N7.03",
+      "grade": 9,
+      "level": "nen",
+      "term": "nen",
+      "chapter": "3. Kiến thức nền lớp 7–8 (chỉ phần Toán 9 hay cần)",
+      "title": "Căn bậc hai số học, số vô tỉ, số thực",
+      "core": "",
+      "problemTypes": "",
+      "errors": [],
+      "prereqs": [],
+      "usedBy": [
+        "T9.7"
+      ],
+      "checklist": [],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "N7.06",
+      "grade": 9,
+      "level": "nen",
+      "term": "nen",
+      "chapter": "3. Kiến thức nền lớp 7–8 (chỉ phần Toán 9 hay cần)",
+      "title": "Biểu thức đại số, đa thức một biến",
+      "core": "",
+      "problemTypes": "",
+      "errors": [],
+      "prereqs": [],
+      "usedBy": [
+        "T9.2"
+      ],
+      "checklist": [],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "N7.10",
+      "grade": 9,
+      "level": "nen",
+      "term": "nen",
+      "chapter": "3. Kiến thức nền lớp 7–8 (chỉ phần Toán 9 hay cần)",
+      "title": "Tỉ lệ thức, đại lượng tỉ lệ thuận/nghịch",
+      "core": "",
+      "problemTypes": "",
+      "errors": [],
+      "prereqs": [],
+      "usedBy": [
+        "T9.3",
+        "T9.21"
+      ],
+      "checklist": [],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "N7.11",
+      "grade": 9,
+      "level": "nen",
+      "term": "nen",
+      "chapter": "3. Kiến thức nền lớp 7–8 (chỉ phần Toán 9 hay cần)",
+      "title": "Hai tam giác bằng nhau (các trường hợp)",
+      "core": "",
+      "problemTypes": "",
+      "errors": [],
+      "prereqs": [],
+      "usedBy": [
+        "T9.16"
+      ],
+      "checklist": [],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "N7.12",
+      "grade": 9,
+      "level": "nen",
+      "term": "nen",
+      "chapter": "3. Kiến thức nền lớp 7–8 (chỉ phần Toán 9 hay cần)",
+      "title": "Góc, đường thẳng song song, tiên đề Euclid, so le / đồng vị",
+      "core": "",
+      "problemTypes": "",
+      "errors": [],
+      "prereqs": [],
+      "usedBy": [],
+      "checklist": [],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "N7.14",
+      "grade": 9,
+      "level": "nen",
+      "term": "nen",
+      "chapter": "3. Kiến thức nền lớp 7–8 (chỉ phần Toán 9 hay cần)",
+      "title": "Tam giác cân, quan hệ cạnh – góc",
+      "core": "",
+      "problemTypes": "",
+      "errors": [],
+      "prereqs": [],
+      "usedBy": [],
+      "checklist": [],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "N7.15",
+      "grade": 9,
+      "level": "nen",
+      "term": "nen",
+      "chapter": "3. Kiến thức nền lớp 7–8 (chỉ phần Toán 9 hay cần)",
+      "title": "Đường trung trực; giao ba trung trực",
+      "core": "",
+      "problemTypes": "",
+      "errors": [],
+      "prereqs": [],
+      "usedBy": [
+        "T9.13",
+        "T9.28"
+      ],
+      "checklist": [],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "N7.16",
+      "grade": 9,
+      "level": "nen",
+      "term": "nen",
+      "chapter": "3. Kiến thức nền lớp 7–8 (chỉ phần Toán 9 hay cần)",
+      "title": "Trung tuyến, phân giác, đường cao – trực tâm",
+      "core": "",
+      "problemTypes": "",
+      "errors": [],
+      "prereqs": [],
+      "usedBy": [
+        "T9.28"
+      ],
+      "checklist": [],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "N7.17",
+      "grade": 9,
+      "level": "nen",
+      "term": "nen",
+      "chapter": "3. Kiến thức nền lớp 7–8 (chỉ phần Toán 9 hay cần)",
+      "title": "Thu thập dữ liệu, biểu đồ",
+      "core": "",
+      "problemTypes": "",
+      "errors": [],
+      "prereqs": [],
+      "usedBy": [
+        "T9.22"
+      ],
+      "checklist": [],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "N7.18",
+      "grade": 9,
+      "level": "nen",
+      "term": "nen",
+      "chapter": "3. Kiến thức nền lớp 7–8 (chỉ phần Toán 9 hay cần)",
+      "title": "Biến cố, xác suất đơn giản",
+      "core": "",
+      "problemTypes": "",
+      "errors": [],
+      "prereqs": [],
+      "usedBy": [
+        "T9.25"
+      ],
+      "checklist": [],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "N8.02",
+      "grade": 9,
+      "level": "nen",
+      "term": "nen",
+      "chapter": "3. Kiến thức nền lớp 7–8 (chỉ phần Toán 9 hay cần)",
+      "title": "Hằng đẳng thức đáng nhớ",
+      "core": "",
+      "problemTypes": "",
+      "errors": [],
+      "prereqs": [],
+      "usedBy": [
+        "T9.4",
+        "T9.5",
+        "T9.9",
+        "T9.19"
+      ],
+      "checklist": [],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "N8.03",
+      "grade": 9,
+      "level": "nen",
+      "term": "nen",
+      "chapter": "3. Kiến thức nền lớp 7–8 (chỉ phần Toán 9 hay cần)",
+      "title": "Phân tích đa thức thành nhân tử",
+      "core": "",
+      "problemTypes": "",
+      "errors": [],
+      "prereqs": [],
+      "usedBy": [
+        "T9.4",
+        "T9.19"
+      ],
+      "checklist": [],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "N8.05",
+      "grade": 9,
+      "level": "nen",
+      "term": "nen",
+      "chapter": "3. Kiến thức nền lớp 7–8 (chỉ phần Toán 9 hay cần)",
+      "title": "Phân thức đại số, quy đồng",
+      "core": "",
+      "problemTypes": "",
+      "errors": [],
+      "prereqs": [],
+      "usedBy": [
+        "T9.4",
+        "T9.9"
+      ],
+      "checklist": [],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "N8.06",
+      "grade": 9,
+      "level": "nen",
+      "term": "nen",
+      "chapter": "3. Kiến thức nền lớp 7–8 (chỉ phần Toán 9 hay cần)",
+      "title": "Phương trình bậc nhất một ẩn",
+      "core": "",
+      "problemTypes": "",
+      "errors": [],
+      "prereqs": [],
+      "usedBy": [
+        "T9.2",
+        "T9.4"
+      ],
+      "checklist": [],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "N8.08",
+      "grade": 9,
+      "level": "nen",
+      "term": "nen",
+      "chapter": "3. Kiến thức nền lớp 7–8 (chỉ phần Toán 9 hay cần)",
+      "title": "Hàm số bậc nhất và đồ thị",
+      "core": "",
+      "problemTypes": "",
+      "errors": [],
+      "prereqs": [],
+      "usedBy": [
+        "T9.1",
+        "T9.18"
+      ],
+      "checklist": [],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "N8.09",
+      "grade": 9,
+      "level": "nen",
+      "term": "nen",
+      "chapter": "3. Kiến thức nền lớp 7–8 (chỉ phần Toán 9 hay cần)",
+      "title": "Tứ giác: hình thang, bình hành, chữ nhật, thoi, vuông",
+      "core": "",
+      "problemTypes": "",
+      "errors": [],
+      "prereqs": [],
+      "usedBy": [],
+      "checklist": [],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "N8.10",
+      "grade": 9,
+      "level": "nen",
+      "term": "nen",
+      "chapter": "3. Kiến thức nền lớp 7–8 (chỉ phần Toán 9 hay cần)",
+      "title": "Định lí Thales, đường trung bình, tính chất phân giác; tam giác đồng dạng",
+      "core": "",
+      "problemTypes": "",
+      "errors": [],
+      "prereqs": [],
+      "usedBy": [
+        "T9.11",
+        "T9.29"
+      ],
+      "checklist": [],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "N8.12",
+      "grade": 9,
+      "level": "nen",
+      "term": "nen",
+      "chapter": "3. Kiến thức nền lớp 7–8 (chỉ phần Toán 9 hay cần)",
+      "title": "Định lí Pythagore và đảo",
+      "core": "",
+      "problemTypes": "",
+      "errors": [],
+      "prereqs": [],
+      "usedBy": [
+        "T9.11",
+        "T9.12"
+      ],
+      "checklist": [],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "N8.14",
+      "grade": 9,
+      "level": "nen",
+      "term": "nen",
+      "chapter": "3. Kiến thức nền lớp 7–8 (chỉ phần Toán 9 hay cần)",
+      "title": "Hình chóp, khối trong thực tiễn",
+      "core": "",
+      "problemTypes": "",
+      "errors": [],
+      "prereqs": [],
+      "usedBy": [
+        "T9.31"
+      ],
+      "checklist": [],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T6.1",
+      "grade": 6,
+      "level": "bai",
+      "term": "HK1",
+      "chapter": "Chương I. Tập hợp các số tự nhiên",
+      "title": "Tập hợp",
+      "core": "Phần tử, ký hiệu ∈ ∉; liệt kê / nêu dấu hiệu đặc trưng",
+      "problemTypes": "Viết tập hợp hai cách",
+      "errors": [
+        {
+          "root": "careful",
+          "text": "thiếu dấu { }, liệt kê thiếu phần tử"
+        }
+      ],
+      "prereqs": [],
+      "usedBy": [],
+      "checklist": [
+        4
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T6.2",
+      "grade": 6,
+      "level": "bai",
+      "term": "HK1",
+      "chapter": "Chương I. Tập hợp các số tự nhiên",
+      "title": "Cách ghi số tự nhiên",
+      "core": "Hệ thập phân, giá trị chữ số; số La Mã",
+      "problemTypes": "Viết số, đọc số La Mã",
+      "errors": [
+        {
+          "root": "concept",
+          "text": "nhầm số và chữ số"
+        }
+      ],
+      "prereqs": [
+        "TH.01"
+      ],
+      "usedBy": [],
+      "checklist": [
+        1,
+        5
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T6.3",
+      "grade": 6,
+      "level": "bai",
+      "term": "HK1",
+      "chapter": "Chương I. Tập hợp các số tự nhiên",
+      "title": "Thứ tự trong tập hợp số tự nhiên",
+      "core": "So sánh, tia số",
+      "problemTypes": "Sắp xếp; số liền trước/sau",
+      "errors": [
+        {
+          "root": "careful",
+          "text": "quên số 0"
+        }
+      ],
+      "prereqs": [
+        "TH.01"
+      ],
+      "usedBy": [],
+      "checklist": [
+        1,
+        5
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T6.4",
+      "grade": 6,
+      "level": "bai",
+      "term": "HK1",
+      "chapter": "Chương I. Tập hợp các số tự nhiên",
+      "title": "Phép cộng, phép trừ",
+      "core": "Tính chất giao hoán, kết hợp",
+      "problemTypes": "Tính nhanh; tìm x",
+      "errors": [
+        {
+          "root": "calc",
+          "text": "tính nhẩm sai"
+        }
+      ],
+      "prereqs": [
+        "TH.02"
+      ],
+      "usedBy": [],
+      "checklist": [
+        1,
+        5
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T6.5",
+      "grade": 6,
+      "level": "bai",
+      "term": "HK1",
+      "chapter": "Chương I. Tập hợp các số tự nhiên",
+      "title": "Phép nhân, phép chia",
+      "core": "Phân phối; chia có dư a = bq + r",
+      "problemTypes": "Tính nhanh; bài toán chia",
+      "errors": [
+        {
+          "root": "concept",
+          "text": "điều kiện số dư r < b"
+        }
+      ],
+      "prereqs": [
+        "TH.02"
+      ],
+      "usedBy": [],
+      "checklist": [
+        1,
+        5
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T6.6",
+      "grade": 6,
+      "level": "bai",
+      "term": "HK1",
+      "chapter": "Chương I. Tập hợp các số tự nhiên",
+      "title": "Lũy thừa với số mũ tự nhiên",
+      "core": "aⁿ; nhân, chia hai lũy thừa cùng cơ số",
+      "problemTypes": "Tính, viết gọn, so sánh lũy thừa",
+      "errors": [
+        {
+          "root": "concept",
+          "text": "aᵐ·aⁿ = aᵐ⁺ⁿ nhầm thành nhân số mũ"
+        }
+      ],
+      "prereqs": [
+        "T6.5"
+      ],
+      "usedBy": [],
+      "checklist": [
+        1,
+        5
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T6.7",
+      "grade": 6,
+      "level": "bai",
+      "term": "HK1",
+      "chapter": "Chương I. Tập hợp các số tự nhiên",
+      "title": "Thứ tự thực hiện các phép tính",
+      "core": "Ngoặc → lũy thừa → nhân chia → cộng trừ",
+      "problemTypes": "Tính giá trị biểu thức",
+      "errors": [
+        {
+          "root": "calc",
+          "text": "làm sai thứ tự"
+        }
+      ],
+      "prereqs": [
+        "T6.4",
+        "T6.5",
+        "T6.6"
+      ],
+      "usedBy": [],
+      "checklist": [
+        1,
+        5
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T6.8",
+      "grade": 6,
+      "level": "bai",
+      "term": "HK1",
+      "chapter": "Chương II. Tính chia hết trong tập hợp các số tự nhiên",
+      "title": "Quan hệ chia hết và tính chất",
+      "core": "Ước, bội; tính chất chia hết của tổng",
+      "problemTypes": "Tìm ước, bội; xét tổng có chia hết",
+      "errors": [
+        {
+          "root": "concept",
+          "text": "nhầm ước và bội"
+        }
+      ],
+      "prereqs": [
+        "T6.5"
+      ],
+      "usedBy": [],
+      "checklist": [
+        1,
+        5
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T6.9",
+      "grade": 6,
+      "level": "bai",
+      "term": "HK1",
+      "chapter": "Chương II. Tính chia hết trong tập hợp các số tự nhiên",
+      "title": "Dấu hiệu chia hết",
+      "core": "Cho 2, 5, 3, 9",
+      "problemTypes": "Nhận biết; điền chữ số",
+      "errors": [
+        {
+          "root": "concept",
+          "text": "dấu hiệu 3/9 dùng tổng chữ số"
+        }
+      ],
+      "prereqs": [
+        "T6.8"
+      ],
+      "usedBy": [],
+      "checklist": [
+        1,
+        5
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T6.10",
+      "grade": 6,
+      "level": "bai",
+      "term": "HK1",
+      "chapter": "Chương II. Tính chia hết trong tập hợp các số tự nhiên",
+      "title": "Số nguyên tố",
+      "core": "Số nguyên tố, hợp số; phân tích ra thừa số nguyên tố",
+      "problemTypes": "Phân tích; nhận biết số nguyên tố",
+      "errors": [
+        {
+          "root": "calc",
+          "text": "phân tích sai với số có thừa số lặp"
+        }
+      ],
+      "prereqs": [
+        "T6.9"
+      ],
+      "usedBy": [],
+      "checklist": [
+        1,
+        5
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T6.11",
+      "grade": 6,
+      "level": "bai",
+      "term": "HK1",
+      "chapter": "Chương II. Tính chia hết trong tập hợp các số tự nhiên",
+      "title": "Ước chung, ƯCLN",
+      "core": "ƯCLN qua phân tích thừa số nguyên tố (thừa số chung, mũ nhỏ nhất); ƯC = ước của ƯCLN",
+      "problemTypes": "Tìm ƯCLN, ƯC; bài toán chia đều nhiều nhất (nhóm, phần thưởng, cắt dây)",
+      "errors": [
+        {
+          "root": "read",
+          "text": "nhầm \"nhiều nhất\" sang BCNN"
+        }
+      ],
+      "prereqs": [
+        "T6.10"
+      ],
+      "usedBy": [],
+      "checklist": [
+        1,
+        2,
+        3,
+        5
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T6.12",
+      "grade": 6,
+      "level": "bai",
+      "term": "HK1",
+      "chapter": "Chương II. Tính chia hết trong tập hợp các số tự nhiên",
+      "title": "Bội chung, BCNN",
+      "core": "BCNN (thừa số chung và riêng, mũ lớn nhất); BC = bội của BCNN",
+      "problemTypes": "Tìm BCNN, BC; bài toán \"ít nhất\" (tàu cập cảng) và \"trong khoảng\" (số bông sen, số học sinh)",
+      "errors": [
+        {
+          "root": "concept",
+          "text": "nhầm bội chung với BCNN"
+        },
+        {
+          "root": "strategy",
+          "text": "bỏ điều kiện khoảng"
+        },
+        {
+          "root": "calc",
+          "text": "tính BCNN sai với số lớn"
+        }
+      ],
+      "prereqs": [
+        "T6.10",
+        "T6.11"
+      ],
+      "usedBy": [],
+      "checklist": [
+        1,
+        2,
+        3,
+        5
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T6.13",
+      "grade": 6,
+      "level": "bai",
+      "term": "HK1",
+      "chapter": "Chương III. Số nguyên",
+      "title": "Tập hợp các số nguyên",
+      "core": "Số âm, trục số, số đối, so sánh",
+      "problemTypes": "Biểu diễn, so sánh",
+      "errors": [
+        {
+          "root": "concept",
+          "text": "−5 < −2 (nhầm chiều)"
+        }
+      ],
+      "prereqs": [
+        "T6.3"
+      ],
+      "usedBy": [],
+      "checklist": [
+        1,
+        5
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T6.14",
+      "grade": 6,
+      "level": "bai",
+      "term": "HK1",
+      "chapter": "Chương III. Số nguyên",
+      "title": "Phép cộng, phép trừ số nguyên",
+      "core": "Cộng cùng dấu / khác dấu; a − b = a + (−b)",
+      "problemTypes": "Tính; bài toán nhiệt độ, độ cao",
+      "errors": [
+        {
+          "root": "calc",
+          "text": "sai dấu"
+        }
+      ],
+      "prereqs": [
+        "T6.13"
+      ],
+      "usedBy": [],
+      "checklist": [
+        1,
+        5
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T6.15",
+      "grade": 6,
+      "level": "bai",
+      "term": "HK1",
+      "chapter": "Chương III. Số nguyên",
+      "title": "Quy tắc dấu ngoặc",
+      "core": "Bỏ ngoặc có dấu − thì đổi dấu",
+      "problemTypes": "Tính nhanh",
+      "errors": [
+        {
+          "root": "calc",
+          "text": "quên đổi dấu số hạng sau"
+        }
+      ],
+      "prereqs": [
+        "T6.14"
+      ],
+      "usedBy": [],
+      "checklist": [
+        1,
+        5
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T6.16",
+      "grade": 6,
+      "level": "bai",
+      "term": "HK1",
+      "chapter": "Chương III. Số nguyên",
+      "title": "Phép nhân số nguyên",
+      "core": "Quy tắc dấu",
+      "problemTypes": "Tính",
+      "errors": [
+        {
+          "root": "calc",
+          "text": "sai dấu tích nhiều thừa số"
+        }
+      ],
+      "prereqs": [
+        "T6.14"
+      ],
+      "usedBy": [],
+      "checklist": [
+        1,
+        5
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T6.17",
+      "grade": 6,
+      "level": "bai",
+      "term": "HK1",
+      "chapter": "Chương III. Số nguyên",
+      "title": "Phép chia hết; ước và bội của số nguyên",
+      "core": "Ước, bội có cả số âm",
+      "problemTypes": "Tìm ước nguyên",
+      "errors": [
+        {
+          "root": "concept",
+          "text": "quên ước âm"
+        }
+      ],
+      "prereqs": [
+        "T6.8",
+        "T6.16"
+      ],
+      "usedBy": [],
+      "checklist": [
+        1,
+        5
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T6.18",
+      "grade": 6,
+      "level": "bai",
+      "term": "HK1",
+      "chapter": "Chương IV. Một số hình phẳng trong thực tiễn",
+      "title": "Tam giác đều, hình vuông, lục giác đều",
+      "core": "Đặc điểm cạnh, góc, đường chéo; vẽ bằng thước, compa",
+      "problemTypes": "Nhận biết, vẽ",
+      "errors": [
+        {
+          "root": "careful",
+          "text": "vẽ sai số đo"
+        }
+      ],
+      "prereqs": [
+        "TH.03"
+      ],
+      "usedBy": [],
+      "checklist": [
+        1,
+        5
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T6.19",
+      "grade": 6,
+      "level": "bai",
+      "term": "HK1",
+      "chapter": "Chương IV. Một số hình phẳng trong thực tiễn",
+      "title": "Hình chữ nhật, thoi, bình hành, thang cân",
+      "core": "Đặc điểm cạnh, góc, đường chéo",
+      "problemTypes": "Nhận biết, vẽ",
+      "errors": [
+        {
+          "root": "concept",
+          "text": "nhầm thoi với bình hành"
+        }
+      ],
+      "prereqs": [
+        "TH.03"
+      ],
+      "usedBy": [],
+      "checklist": [
+        1,
+        5
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T6.20",
+      "grade": 6,
+      "level": "bai",
+      "term": "HK1",
+      "chapter": "Chương IV. Một số hình phẳng trong thực tiễn",
+      "title": "Chu vi, diện tích các tứ giác đã học",
+      "core": "Công thức S, P của chữ nhật, vuông, bình hành, thoi, thang",
+      "problemTypes": "Bài toán thực tế (sân, vườn, lát gạch)",
+      "errors": [
+        {
+          "root": "calc",
+          "text": "quên đổi đơn vị"
+        },
+        {
+          "root": null,
+          "text": "nhầm chu vi với diện tích"
+        }
+      ],
+      "prereqs": [
+        "TH.04"
+      ],
+      "usedBy": [],
+      "checklist": [
+        1,
+        5
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T6.21",
+      "grade": 6,
+      "level": "bai",
+      "term": "HK1",
+      "chapter": "Chương V. Tính đối xứng của hình phẳng trong tự nhiên",
+      "title": "Hình có trục đối xứng",
+      "core": "Gấp đôi trùng khít",
+      "problemTypes": "Tìm trục, đếm số trục",
+      "errors": [
+        {
+          "root": "concept",
+          "text": "nhầm hình bình hành có trục"
+        }
+      ],
+      "prereqs": [
+        "T6.19"
+      ],
+      "usedBy": [],
+      "checklist": [
+        1,
+        5
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T6.22",
+      "grade": 6,
+      "level": "bai",
+      "term": "HK1",
+      "chapter": "Chương V. Tính đối xứng của hình phẳng trong tự nhiên",
+      "title": "Hình có tâm đối xứng",
+      "core": "Quay 180° trùng khít",
+      "problemTypes": "Tìm tâm",
+      "errors": [
+        {
+          "root": "concept",
+          "text": "nhầm trục với tâm"
+        }
+      ],
+      "prereqs": [
+        "T6.19"
+      ],
+      "usedBy": [],
+      "checklist": [
+        1,
+        5
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T6.23",
+      "grade": 6,
+      "level": "bai",
+      "term": "HK2",
+      "chapter": "Chương VI. Phân số",
+      "title": "Mở rộng phân số; phân số bằng nhau",
+      "core": "a/b với a, b nguyên, b ≠ 0; a/b = c/d ⇔ ad = bc",
+      "problemTypes": "Kiểm tra bằng nhau, rút gọn",
+      "errors": [
+        {
+          "root": "concept",
+          "text": "mẫu âm"
+        }
+      ],
+      "prereqs": [
+        "T6.17",
+        "TH.05"
+      ],
+      "usedBy": [],
+      "checklist": [
+        1,
+        5
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T6.24",
+      "grade": 6,
+      "level": "bai",
+      "term": "HK2",
+      "chapter": "Chương VI. Phân số",
+      "title": "So sánh phân số; hỗn số dương",
+      "core": "Quy đồng mẫu; hỗn số ↔ phân số",
+      "problemTypes": "So sánh, đổi hỗn số",
+      "errors": [
+        {
+          "root": "calc",
+          "text": "quy đồng sai (cần BCNN)"
+        }
+      ],
+      "prereqs": [
+        "T6.12"
+      ],
+      "usedBy": [],
+      "checklist": [
+        1,
+        5
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T6.25",
+      "grade": 6,
+      "level": "bai",
+      "term": "HK2",
+      "chapter": "Chương VI. Phân số",
+      "title": "Cộng, trừ phân số",
+      "core": "Quy đồng rồi cộng tử",
+      "problemTypes": "Tính, tìm x",
+      "errors": [
+        {
+          "root": "calc",
+          "text": "cộng cả mẫu"
+        }
+      ],
+      "prereqs": [
+        "T6.24"
+      ],
+      "usedBy": [],
+      "checklist": [
+        1,
+        5
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T6.26",
+      "grade": 6,
+      "level": "bai",
+      "term": "HK2",
+      "chapter": "Chương VI. Phân số",
+      "title": "Nhân, chia phân số",
+      "core": "Nhân tử với tử, mẫu với mẫu; chia = nhân nghịch đảo",
+      "problemTypes": "Tính, tìm x",
+      "errors": [
+        {
+          "root": "concept",
+          "text": "quên đảo phân số chia"
+        }
+      ],
+      "prereqs": [
+        "T6.25"
+      ],
+      "usedBy": [],
+      "checklist": [
+        1,
+        5
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T6.27",
+      "grade": 6,
+      "level": "bai",
+      "term": "HK2",
+      "chapter": "Chương VI. Phân số",
+      "title": "Hai bài toán về phân số",
+      "core": "Tìm giá trị phân số của một số; tìm một số biết giá trị phân số của nó",
+      "problemTypes": "Bài toán thực tế",
+      "errors": [
+        {
+          "root": "read",
+          "text": "nhầm hai dạng (nhân hay chia)"
+        }
+      ],
+      "prereqs": [
+        "T6.26"
+      ],
+      "usedBy": [],
+      "checklist": [
+        1,
+        5
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T6.28",
+      "grade": 6,
+      "level": "bai",
+      "term": "HK2",
+      "chapter": "Chương VII. Số thập phân",
+      "title": "Số thập phân",
+      "core": "Phân số thập phân, số thập phân âm, so sánh",
+      "problemTypes": "Viết, so sánh",
+      "errors": [
+        {
+          "root": "concept",
+          "text": "so sánh số âm"
+        }
+      ],
+      "prereqs": [
+        "T6.13",
+        "TH.06"
+      ],
+      "usedBy": [],
+      "checklist": [
+        1,
+        5
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T6.29",
+      "grade": 6,
+      "level": "bai",
+      "term": "HK2",
+      "chapter": "Chương VII. Số thập phân",
+      "title": "Tính toán với số thập phân",
+      "core": "Bốn phép tính, kể cả số âm",
+      "problemTypes": "Tính",
+      "errors": [
+        {
+          "root": "calc",
+          "text": "đặt dấu phẩy sai"
+        }
+      ],
+      "prereqs": [
+        "T6.28"
+      ],
+      "usedBy": [],
+      "checklist": [
+        1,
+        5
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T6.30",
+      "grade": 6,
+      "level": "bai",
+      "term": "HK2",
+      "chapter": "Chương VII. Số thập phân",
+      "title": "Làm tròn và ước lượng",
+      "core": "Làm tròn đến hàng cho trước",
+      "problemTypes": "Làm tròn; ước lượng kết quả",
+      "errors": [
+        {
+          "root": "careful",
+          "text": "làm tròn sai hàng"
+        }
+      ],
+      "prereqs": [
+        "T6.28"
+      ],
+      "usedBy": [],
+      "checklist": [
+        1,
+        5
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T6.31",
+      "grade": 6,
+      "level": "bai",
+      "term": "HK2",
+      "chapter": "Chương VII. Số thập phân",
+      "title": "Tỉ số và tỉ số phần trăm",
+      "core": "a : b; a/b·100%",
+      "problemTypes": "Bài toán giảm giá, lãi suất, % học sinh",
+      "errors": [
+        {
+          "root": "read",
+          "text": "nhầm \"% của\" và \"chiếm bao nhiêu %\""
+        }
+      ],
+      "prereqs": [
+        "T6.27"
+      ],
+      "usedBy": [],
+      "checklist": [
+        1,
+        5
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T6.32",
+      "grade": 6,
+      "level": "bai",
+      "term": "HK2",
+      "chapter": "Chương VIII. Những hình hình học cơ bản",
+      "title": "Điểm và đường thẳng",
+      "core": "Điểm thuộc / không thuộc; ba điểm thẳng hàng",
+      "problemTypes": "Vẽ, nhận biết",
+      "errors": [
+        {
+          "root": "careful",
+          "text": "ký hiệu"
+        }
+      ],
+      "prereqs": [],
+      "usedBy": [],
+      "checklist": [
+        1,
+        5
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T6.33",
+      "grade": 6,
+      "level": "bai",
+      "term": "HK2",
+      "chapter": "Chương VIII. Những hình hình học cơ bản",
+      "title": "Điểm nằm giữa hai điểm; tia",
+      "core": "Tia gốc O; hai tia đối nhau, trùng nhau",
+      "problemTypes": "Nhận biết, đọc tên tia",
+      "errors": [
+        {
+          "root": "concept",
+          "text": "tia Ox ≠ tia xO"
+        }
+      ],
+      "prereqs": [
+        "T6.32"
+      ],
+      "usedBy": [],
+      "checklist": [
+        1,
+        5
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T6.34",
+      "grade": 6,
+      "level": "bai",
+      "term": "HK2",
+      "chapter": "Chương VIII. Những hình hình học cơ bản",
+      "title": "Đoạn thẳng, độ dài đoạn thẳng",
+      "core": "Đo, so sánh đoạn thẳng; AM + MB = AB",
+      "problemTypes": "Tính độ dài",
+      "errors": [
+        {
+          "root": "strategy",
+          "text": "quên điều kiện M nằm giữa"
+        }
+      ],
+      "prereqs": [
+        "T6.33"
+      ],
+      "usedBy": [],
+      "checklist": [
+        1,
+        5
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T6.35",
+      "grade": 6,
+      "level": "bai",
+      "term": "HK2",
+      "chapter": "Chương VIII. Những hình hình học cơ bản",
+      "title": "Trung điểm của đoạn thẳng",
+      "core": "MA = MB = AB/2",
+      "problemTypes": "Chứng minh/tính trung điểm",
+      "errors": [
+        {
+          "root": "concept",
+          "text": "thiếu \"M nằm giữa A, B\""
+        }
+      ],
+      "prereqs": [
+        "T6.34"
+      ],
+      "usedBy": [],
+      "checklist": [
+        1,
+        5
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T6.36",
+      "grade": 6,
+      "level": "bai",
+      "term": "HK2",
+      "chapter": "Chương VIII. Những hình hình học cơ bản",
+      "title": "Góc",
+      "core": "Đỉnh, cạnh; điểm trong góc",
+      "problemTypes": "Đọc tên góc",
+      "errors": [
+        {
+          "root": "careful",
+          "text": "viết sai thứ tự chữ (đỉnh ở giữa)"
+        }
+      ],
+      "prereqs": [
+        "T6.33"
+      ],
+      "usedBy": [],
+      "checklist": [
+        1,
+        5
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T6.37",
+      "grade": 6,
+      "level": "bai",
+      "term": "HK2",
+      "chapter": "Chương VIII. Những hình hình học cơ bản",
+      "title": "Số đo góc",
+      "core": "Thước đo góc; góc nhọn, vuông, tù, bẹt",
+      "problemTypes": "Đo, phân loại",
+      "errors": [
+        {
+          "root": "careful",
+          "text": "đọc sai vạch thước đo"
+        }
+      ],
+      "prereqs": [
+        "T6.36"
+      ],
+      "usedBy": [],
+      "checklist": [
+        1,
+        5
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T6.38",
+      "grade": 6,
+      "level": "bai",
+      "term": "HK2",
+      "chapter": "Chương IX. Dữ liệu và xác suất thực nghiệm",
+      "title": "Dữ liệu và thu thập dữ liệu",
+      "core": "Dữ liệu số / không phải số; tính hợp lý",
+      "problemTypes": "Phân loại, phát hiện dữ liệu sai",
+      "errors": [
+        {
+          "root": "read",
+          "text": "đọc sai yêu cầu"
+        }
+      ],
+      "prereqs": [],
+      "usedBy": [],
+      "checklist": [
+        1,
+        5
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T6.39",
+      "grade": 6,
+      "level": "bai",
+      "term": "HK2",
+      "chapter": "Chương IX. Dữ liệu và xác suất thực nghiệm",
+      "title": "Bảng thống kê, biểu đồ tranh",
+      "core": "Đọc, lập bảng; mỗi biểu tượng = n đơn vị",
+      "problemTypes": "Đọc, lập",
+      "errors": [
+        {
+          "root": "calc",
+          "text": "quên nhân với giá trị biểu tượng"
+        }
+      ],
+      "prereqs": [
+        "T6.38"
+      ],
+      "usedBy": [],
+      "checklist": [
+        1,
+        5
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T6.40",
+      "grade": 6,
+      "level": "bai",
+      "term": "HK2",
+      "chapter": "Chương IX. Dữ liệu và xác suất thực nghiệm",
+      "title": "Biểu đồ cột",
+      "core": "Đọc, vẽ",
+      "problemTypes": "Đọc, vẽ, so sánh",
+      "errors": [
+        {
+          "root": "careful",
+          "text": "chia trục sai"
+        }
+      ],
+      "prereqs": [
+        "T6.39"
+      ],
+      "usedBy": [],
+      "checklist": [
+        1,
+        5
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T6.41",
+      "grade": 6,
+      "level": "bai",
+      "term": "HK2",
+      "chapter": "Chương IX. Dữ liệu và xác suất thực nghiệm",
+      "title": "Biểu đồ cột kép",
+      "core": "So sánh hai bộ dữ liệu",
+      "problemTypes": "Đọc, nhận xét",
+      "errors": [
+        {
+          "root": "read",
+          "text": "nhầm hai cột"
+        }
+      ],
+      "prereqs": [
+        "T6.40"
+      ],
+      "usedBy": [],
+      "checklist": [
+        1,
+        5
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T6.42",
+      "grade": 6,
+      "level": "bai",
+      "term": "HK2",
+      "chapter": "Chương IX. Dữ liệu và xác suất thực nghiệm",
+      "title": "Kết quả có thể, sự kiện",
+      "core": "Liệt kê kết quả; sự kiện có thể / không thể xảy ra",
+      "problemTypes": "Liệt kê",
+      "errors": [
+        {
+          "root": "strategy",
+          "text": "liệt kê thiếu"
+        }
+      ],
+      "prereqs": [],
+      "usedBy": [],
+      "checklist": [
+        1,
+        5
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "T6.43",
+      "grade": 6,
+      "level": "bai",
+      "term": "HK2",
+      "chapter": "Chương IX. Dữ liệu và xác suất thực nghiệm",
+      "title": "Xác suất thực nghiệm",
+      "core": "Số lần xảy ra / tổng số lần thử",
+      "problemTypes": "Tính",
+      "errors": [
+        {
+          "root": "read",
+          "text": "nhầm tử và mẫu"
+        }
+      ],
+      "prereqs": [
+        "T6.42",
+        "T6.26"
+      ],
+      "usedBy": [],
+      "checklist": [
+        1,
+        5
+      ],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "TH.01",
+      "grade": 6,
+      "level": "nen",
+      "term": "nen",
+      "chapter": "3. Kiến thức nền tiểu học (chỉ phần Toán 6 hay cần)",
+      "title": "Đọc, viết, so sánh số tự nhiên; giá trị theo vị trí",
+      "core": "",
+      "problemTypes": "",
+      "errors": [],
+      "prereqs": [],
+      "usedBy": [
+        "T6.2",
+        "T6.3"
+      ],
+      "checklist": [],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "TH.02",
+      "grade": 6,
+      "level": "nen",
+      "term": "nen",
+      "chapter": "3. Kiến thức nền tiểu học (chỉ phần Toán 6 hay cần)",
+      "title": "Bốn phép tính số tự nhiên, bảng cửu chương, chia có dư",
+      "core": "",
+      "problemTypes": "",
+      "errors": [],
+      "prereqs": [],
+      "usedBy": [
+        "T6.4",
+        "T6.5"
+      ],
+      "checklist": [],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "TH.03",
+      "grade": 6,
+      "level": "nen",
+      "term": "nen",
+      "chapter": "3. Kiến thức nền tiểu học (chỉ phần Toán 6 hay cần)",
+      "title": "Nhận biết hình vuông, chữ nhật, tam giác, hình tròn",
+      "core": "",
+      "problemTypes": "",
+      "errors": [],
+      "prereqs": [],
+      "usedBy": [
+        "T6.18",
+        "T6.19"
+      ],
+      "checklist": [],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "TH.04",
+      "grade": 6,
+      "level": "nen",
+      "term": "nen",
+      "chapter": "3. Kiến thức nền tiểu học (chỉ phần Toán 6 hay cần)",
+      "title": "Chu vi, diện tích hình chữ nhật, vuông, tam giác; đổi đơn vị đo",
+      "core": "",
+      "problemTypes": "",
+      "errors": [],
+      "prereqs": [],
+      "usedBy": [
+        "T6.20"
+      ],
+      "checklist": [],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "TH.05",
+      "grade": 6,
+      "level": "nen",
+      "term": "nen",
+      "chapter": "3. Kiến thức nền tiểu học (chỉ phần Toán 6 hay cần)",
+      "title": "Phân số, rút gọn, quy đồng (mẫu nhỏ)",
+      "core": "",
+      "problemTypes": "",
+      "errors": [],
+      "prereqs": [],
+      "usedBy": [
+        "T6.23",
+        "T6.24",
+        "T6.25",
+        "T6.26"
+      ],
+      "checklist": [],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "TH.06",
+      "grade": 6,
+      "level": "nen",
+      "term": "nen",
+      "chapter": "3. Kiến thức nền tiểu học (chỉ phần Toán 6 hay cần)",
+      "title": "Số thập phân, phép tính số thập phân",
+      "core": "",
+      "problemTypes": "",
+      "errors": [],
+      "prereqs": [],
+      "usedBy": [
+        "T6.28",
+        "T6.29"
+      ],
+      "checklist": [],
+      "toolbox": [],
+      "proof": false
+    },
+    {
+      "code": "TH.07",
+      "grade": 6,
+      "level": "nen",
+      "term": "nen",
+      "chapter": "3. Kiến thức nền tiểu học (chỉ phần Toán 6 hay cần)",
+      "title": "Tỉ số phần trăm cơ bản",
+      "core": "",
+      "problemTypes": "",
+      "errors": [],
+      "prereqs": [],
+      "usedBy": [
+        "T6.31"
+      ],
+      "checklist": [],
+      "toolbox": [],
+      "proof": false
+    }
+  ],
+  "toolbox": [
+    {
+      "id": "hinh.0",
+      "title": "Ba bước khi \"không biết bắt đầu\"",
+      "text": "1. **Đọc hình:** đánh dấu lên hình mọi giả thiết (góc vuông □, đoạn bằng nhau ‖, song song ↗↗, trung điểm). Tìm tam giác vuông, cặp tam giác có chung góc, các điểm nằm trên đường tròn.\n2. **Phân tích ngược:** viết điều phải chứng minh ở dưới cùng. Hỏi: \"Muốn có điều này, theo hộp công cụ có những cách nào?\" → chọn cách mà **\"cần có gì\"** gần với giả thiết nhất → điều cần có trở thành mục tiêu mới → lặp lại đến khi chạm giả thiết hoặc kết quả câu trước.\n3. **Viết xuôi:** đi ngược lại chuỗi vừa tìm, mỗi bước một dòng, có căn cứ trong ngoặc.\n\nCâu hỏi gia sư AI dùng: *\"Câu a, b đã cho em điều gì dùng được?\"* · *\"Muốn chứng minh [X], em biết những cách nào?\"* · *\"Cách nào cần thứ mà hình đã có?\"*"
+    },
+    {
+      "id": "hinh.1.1",
+      "title": "Hai đoạn thẳng bằng nhau",
+      "text": "| Cách | Cần có gì | Học ở |\n|---|---|---|\n| Hai tam giác bằng nhau (c.g.c, g.c.g, c.c.c, cạnh huyền – góc nhọn…) | Hai tam giác chứa hai đoạn đó | 7 |\n| Tam giác cân | Hai góc ở đáy bằng nhau | 7 |\n| Cùng bằng đoạn thứ ba / trung điểm chia đôi | Một đoạn trung gian | 6–7 |\n| Tính chất hình bình hành, chữ nhật, thoi, vuông | Tứ giác đặc biệt | 8 |\n| Trung tuyến ứng với cạnh huyền = ½ cạnh huyền | Tam giác vuông + trung điểm cạnh huyền | 8 |\n| Tỉ số bằng 1 (Thales, đồng dạng) | Hai tỉ số có chung đoạn, đoạn kia bằng nhau | 8 |\n| Hai tiếp tuyến cắt nhau tại một điểm → hai đoạn tiếp tuyến bằng nhau | Hai tiếp tuyến từ một điểm | 9 |\n| Bán kính cùng một đường tròn | Hai đầu cùng nằm trên đường tròn, một đầu là tâm | 9 |"
+    },
+    {
+      "id": "hinh.1.2",
+      "title": "Một điểm là trung điểm",
+      "text": "| Cách | Cần có gì | Học ở |\n|---|---|---|\n| **Đường trung bình:** đường qua trung điểm một cạnh, song song cạnh thứ hai thì đi qua trung điểm cạnh thứ ba | Một trung điểm đã biết + một cặp song song | 8 |\n| Hai đoạn bằng nhau và ba điểm thẳng hàng | Xem 1.1 | 7 |\n| Giao điểm hai đường chéo hình bình hành | Hình bình hành | 8 |\n| Đường kính vuông góc với dây thì đi qua trung điểm dây | Đường tròn + vuông góc | 9 |\n| Tỉ số Thales bằng 1 | Song song + một trung điểm khác | 8 |"
+    },
+    {
+      "id": "hinh.1.3",
+      "title": "Hai đường thẳng song song",
+      "text": "| Cách | Cần có gì | Học ở |\n|---|---|---|\n| **Cùng vuông góc với đường thứ ba** | Hai góc vuông với cùng một đường | 7 |\n| Cặp góc so le trong / đồng vị bằng nhau | Một cát tuyến + góc bằng nhau | 7 |\n| Đường trung bình của tam giác / hình thang | Hai trung điểm | 8 |\n| Thales đảo (tỉ số bằng nhau) | Hai tỉ số đoạn thẳng bằng nhau | 8 |\n| Cạnh đối của hình bình hành | Hình bình hành | 8 |"
+    },
+    {
+      "id": "hinh.1.4",
+      "title": "Hai đường thẳng vuông góc",
+      "text": "| Cách | Cần có gì | Học ở |\n|---|---|---|\n| **Trực tâm:** hai đường cao cắt nhau tại H thì đường thẳng qua H và đỉnh thứ ba vuông góc với cạnh còn lại | Hai đường vuông góc đã có trong cùng một tam giác | 7 |\n| Song song với một đường vuông góc | Một cặp song song + một góc vuông | 7 |\n| Tiếp tuyến vuông góc với bán kính tại tiếp điểm | Tiếp tuyến | 9 |\n| Đường kính đi qua trung điểm dây (không qua tâm) thì vuông góc với dây | Trung điểm dây | 9 |\n| Góc nội tiếp chắn nửa đường tròn = 90° **(HK II)** | Điểm trên đường tròn + đường kính | 9 |\n| Pythagore đảo; tổng hai góc nhọn = 90° | Độ dài ba cạnh / hai góc phụ nhau | 7–8 |"
+    },
+    {
+      "id": "hinh.1.5",
+      "title": "Hai góc bằng nhau",
+      "text": "| Cách | Cần có gì | Học ở |\n|---|---|---|\n| Hai tam giác bằng nhau / đồng dạng | Hai tam giác chứa hai góc | 7–8 |\n| Cùng phụ hoặc cùng bù với một góc | Một góc trung gian | 6–7 |\n| So le trong, đồng vị (có song song) | Song song | 7 |\n| Tam giác cân | Hai cạnh bằng nhau | 7 |\n| tan (hoặc sin, cos) của hai góc nhọn bằng nhau | Hai tam giác vuông, tỉ số cạnh bằng nhau | 9 |\n| Góc nội tiếp cùng chắn một cung **(HK II)** | Bốn điểm trên một đường tròn | 9 |\n| Tứ giác nội tiếp: góc ngoài bằng góc trong đối **(HK II)** | Tứ giác nội tiếp | 9 |"
+    },
+    {
+      "id": "hinh.1.6",
+      "title": "Ba điểm thẳng hàng",
+      "text": "| Cách | Cần có gì | Học ở |\n|---|---|---|\n| Tổng hai góc kề = 180° | Các góc tại điểm giữa | 6–7 |\n| Hai đường thẳng qua một điểm cùng song song (hoặc cùng vuông góc) với một đường → trùng nhau | Song song / vuông góc | 7 |\n| **Hai điểm trùng nhau:** gọi điểm phụ là giao của hai đường, chứng minh nó trùng với điểm đề cho | Một tính chất xác định duy nhất điểm (vd trung điểm) | 7–9 |\n| Hai góc bằng nhau ở cùng một phía (so tan, so góc) | Góc so sánh được | 9 |\n| Điểm nằm trên đường đặc biệt (đường kính, trung tuyến, trung trực) | Đường đặc biệt | 7–9 |"
+    },
+    {
+      "id": "hinh.1.7",
+      "title": "Đẳng thức tích (AB·CD = EF·GH, AC² = CH·BC)",
+      "text": "| Cách | Cần có gì | Học ở |\n|---|---|---|\n| **Hai tam giác đồng dạng** → tỉ số → nhân chéo | Hai tam giác có cạnh là các đoạn trong đẳng thức | 8 |\n| Hệ thức lượng trong tam giác vuông | Tam giác vuông + đường cao | 9 |\n| Qua đại lượng trung gian (A = M và B = M) | Hai đẳng thức đã có | 8–9 |\n\nMẹo chọn tam giác: viết đẳng thức thành tỉ số AC/BC = CH/AC → các đoạn **trên tử** thuộc một tam giác, **dưới mẫu** thuộc tam giác kia."
+    },
+    {
+      "id": "hinh.1.8",
+      "title": "Tiếp tuyến",
+      "text": "| Cách | Cần có gì | Học ở |\n|---|---|---|\n| Vuông góc với bán kính tại một điểm thuộc đường tròn | Điểm thuộc đường tròn + góc vuông | 9 |\n| Khoảng cách từ tâm đến đường thẳng bằng bán kính | Độ dài | 9 |"
+    },
+    {
+      "id": "hinh.1.9",
+      "title": "Bốn điểm cùng thuộc một đường tròn / tứ giác nội tiếp",
+      "text": "| Cách | Cần có gì | Học ở |\n|---|---|---|\n| Bốn điểm cách đều một điểm | Các đoạn bằng nhau | 9 |\n| Hai đỉnh cùng nhìn một đoạn dưới góc vuông → cùng nằm trên đường tròn đường kính đó | Hai góc vuông chung cạnh huyền | 9 |\n| Tổng hai góc đối bằng 180° **(HK II)** | Góc của tứ giác | 9 |\n| Hai đỉnh kề cùng nhìn cạnh nối hai đỉnh còn lại dưới hai góc bằng nhau **(HK II)** | Hai góc bằng nhau | 9 |"
+    },
+    {
+      "id": "hinh.1.10",
+      "title": "Hai tam giác đồng dạng — \"xương sống\"",
+      "text": "Đồng dạng vừa là **mục tiêu** (đề hỏi chứng minh hai tam giác đồng dạng) vừa là **công cụ** để có góc bằng nhau (1.5), đẳng thức tích (1.7), đoạn bằng nhau qua tỉ số (1.1).\n\n**a) Cách chứng minh hai tam giác đồng dạng**\n| Cách | Cần có gì | Học ở |\n|---|---|---|\n| **g.g:** hai cặp góc bằng nhau | Thường là **chung một góc** + một cặp góc bằng (hay gặp: hai góc vuông) | 8 |\n| **c.g.c:** hai cặp cạnh tỉ lệ + góc **xen giữa** bằng nhau | Một đẳng thức tích đã có (vd từ câu trước) + chung góc | 8 |\n| c.c.c: ba cặp cạnh tỉ lệ | Biết độ dài ba cạnh | 8 |\n| Tam giác vuông: thêm **một cặp góc nhọn** bằng nhau | Hai tam giác vuông | 8 |\n| Tam giác vuông: cạnh huyền và cạnh góc vuông tỉ lệ | Độ dài | 8 |\n| Đường thẳng song song với một cạnh, cắt hai cạnh kia → tam giác mới đồng dạng tam giác ban đầu | Một cặp song song | 8 |\n\n**b) Có đồng dạng rồi thì được gì**\n| Suy ra | Dùng để |\n|---|---|\n| Các góc tương ứng bằng nhau | 1.5 hai góc bằng nhau; rồi 1.3, 1.9 |\n| Tỉ số các cạnh tương ứng bằng nhau → nhân chéo | 1.7 đẳng thức tích |\n| Tỉ số chu vi = k, tỉ số diện tích = k² | Bài tính |\n\n**c) Mẫu hình hay gặp — khi đọc hình, tìm ngay**\n| Thấy trên hình | Cặp đồng dạng | Học ở |\n|---|---|---|\n| Tam giác vuông có **đường cao** ứng với cạnh huyền | Ba tam giác vuông đồng dạng với nhau → AB² = BH·BC, AC² = CH·BC, AH² = HB·HC | 8–9 |\n| Tam giác có **hai đường cao** BE, CF | ΔAEB ∽ ΔAFC (g.g, chung góc A, hai góc vuông) → AE·AC = AF·AB → ΔAEF ∽ ΔABC (c.g.c) | 8 |\n| Hai tam giác **chung một góc** + một cặp góc bằng | g.g | 8 |\n| Một đường **song song** với một cạnh | Tam giác nhỏ ∽ tam giác lớn | 8 |\n| Hai cát tuyến / tiếp tuyến từ một điểm ngoài đường tròn **(HK II)** | MA·MB = MC·MD, MT² = MA·MB | 9 |\n\n**d) Viết cho đúng — lỗi hay mất điểm**\n- **Thứ tự đỉnh phải tương ứng:** ΔAEB ∽ ΔAFC nghĩa là A↔A, E↔F, B↔C. Mẹo: đánh dấu các góc bằng nhau cùng ký hiệu, rồi viết đỉnh theo đúng ký hiệu đó.\n- c.g.c: góc phải **xen giữa** hai cặp cạnh tỉ lệ.\n- Lập tỉ số: lấy các cạnh **tương ứng** theo thứ tự đỉnh đã viết (AE/AF = AB/AC = EB/FC).\n- Mỗi bước ghi căn cứ: (g.g), (c.g.c), (chung góc A), (cùng bằng 90°)."
+    },
+    {
+      "id": "hinh.2.3",
+      "title": "Ví dụ đồng dạng (soạn mới, không phải đề của trường)",
+      "text": "Đề: Tam giác nhọn ABC, các đường cao BE, CF. a) Chứng minh AE·AC = AF·AB. b) Chứng minh góc AEF = góc ABC.\n\n```text\nMỤC TIÊU a): AE·AC = AF·AB\n  ↑ hộp 1.7: viết thành tỉ số AE/AF = AB/AC → tử AE, AB thuộc ΔAEB; mẫu AF, AC thuộc ΔAFC\nMỤC TIÊU MỚI: ΔAEB ∽ ΔAFC\n  ↑ hộp 1.10a g.g: chung góc A ✔; góc AEB = góc AFC = 90° (đường cao ✔) → CHẠM GIẢ THIẾT\n\nMỤC TIÊU b): góc AEF = góc ABC\n  ↑ hộp 1.5: cần ΔAEF ∽ ΔABC\n  ↑ hộp 1.10a c.g.c: chung góc A ✔; cần AE/AB = AF/AC\n  ↑ biến đổi từ kết quả câu a (AE·AC = AF·AB) ✔ — \"dùng câu trước\"\n```\n(Đã kiểm bằng toạ độ với SymPy, 14/11/2026.)\n\n**Gia sư AI dùng như sau:**\n- H1: \"Muốn chứng minh đẳng thức tích, em biết cách nào?\" → nút: *Tam giác đồng dạng · Hệ thức lượng · Qua đại lượng trung gian*\n- H2: \"Viết đẳng thức thành tỉ số. Các đoạn trên tử nằm trong tam giác nào?\"\n- H3: \"Hai tam giác đó có góc nào chung? Còn cặp góc nào bằng nhau?\"\n- H4: bài anh em cùng mẫu \"hai đường cao\" trên tam giác khác.\n- Ý b: hỏi \"Câu a cho em đẳng thức gì? Viết lại thành tỉ số thử.\""
+    },
+    {
+      "id": "rutgon.0",
+      "title": "Hằng đẳng thức — phải thuộc lòng",
+      "text": "### 0.1. Bảy hằng đẳng thức (lớp 8)\n| # | Dạng |\n|---|---|\n| 1 | (a + b)² = a² + 2ab + b² |\n| 2 | (a − b)² = a² − 2ab + b² |\n| 3 | a² − b² = (a − b)(a + b) |\n| 4 | (a + b)³ = a³ + 3a²b + 3ab² + b³ |\n| 5 | (a − b)³ = a³ − 3a²b + 3ab² − b³ |\n| 6 | a³ + b³ = (a + b)(a² − ab + b²) |\n| 7 | a³ − b³ = (a − b)(a² + ab + b²) |\n\n### 0.2. Cùng hằng đẳng thức, viết với √x (x ≥ 0) — dạng gặp trong bài rút gọn\n| Biểu thức | Phân tích | Dùng HĐT |\n|---|---|---|\n| x − 1 | (√x − 1)(√x + 1) | 3 |\n| x − 9 | (√x − 3)(√x + 3) | 3 |\n| x − 2√x + 1 | (√x − 1)² | 2 |\n| x + 4√x + 4 | (√x + 2)² | 1 |\n| x√x − 1 | (√x − 1)(x + √x + 1) | 7 |\n| x√x + 8 | (√x + 2)(x − 2√x + 4) | 6 |\n| x + √x − 2 | (√x − 1)(√x + 2) | tam thức, nhẩm nghiệm |\n| x − √x | √x(√x − 1) | đặt nhân tử chung |\n\n**Mẹo nhìn ra:** coi √x là một chữ (vd t), thì x = t², x√x = t³. Biểu thức theo √x thành đa thức theo t.\n\n### 0.3. Câu ôn đầu buổi (khối D, ôn cách quãng)\n- Mỗi buổi 1–2 câu, **con viết lại từ trí nhớ**, gia sư AI không nhắc sẵn. Ví dụ: \"Viết hằng đẳng thức a³ − b³\" · \"Phân tích x − 4\" · \"x√x + 27 bằng gì nhân gì?\"\n- Lịch ôn theo DOMAIN v0.4 §4.11: sai → hỏi lại ngày mai; đúng → lần sau cách 3 rồi 7 ngày; đúng 3 lần liên tiếp → coi là thuộc, thôi hỏi.\n- Khi gặp HĐT giữa bài: hỏi con viết lại HĐT trước (\"Em viết giúp cô a² − b² = ?\"), rồi mới áp dụng."
+    },
+    {
+      "id": "rutgon.1",
+      "title": "Quy trình rút gọn 6 bước",
+      "text": "| Bước | Làm gì | Câu gia sư AI hỏi |\n|---|---|---|\n| 1 | Ghi ĐKXĐ (đề thường cho sẵn — chép lại) | \"Đề cho điều kiện gì của x?\" |\n| 2 | **Phân tích từng mẫu thành nhân tử** (bảng 0.2) | \"Mẫu này có phải hằng đẳng thức không?\" |\n| 3 | Tìm mẫu chung (MTC) | \"Mẫu nào chứa được tất cả các mẫu khác?\" |\n| 4 | Quy đồng, gộp tử, **mở ngoặc, thu gọn tử** | \"Nhân tử phụ của phân số này là gì?\" |\n| 5 | **Phân tích tử thành nhân tử, rút gọn với mẫu** — làm đến khi không còn nhân tử chung | \"Tử còn phân tích được không? Có nhân tử nào giống mẫu không?\" |\n| 6 | Kết luận: \"Vậy P = … với [ĐK]\" | \"Em đã viết câu kết luận chưa?\" |\n\n### 1.1. Kiểm \"đã đến tận cùng chưa\" (trước khi chốt)\n1. Tử đã phân tích thành nhân tử chưa? (tử dạng −3√x − 9 → −3(√x + 3))\n2. Tử và mẫu còn nhân tử chung không?\n3. Mẫu còn dạng x − a² chưa tách không?\n4. Đã có câu kết luận kèm điều kiện chưa?\n\nGia sư AI **gọi C1** để kiểm: biểu thức con viết bằng biểu thức gốc, và không còn nhân tử chung."
+    },
+    {
+      "id": "rutgon.3",
+      "title": "Câu phụ — hộp công cụ theo yêu cầu đề",
+      "text": "| Đề hỏi | Cách làm | Lỗi hay gặp |\n|---|---|---|\n| Tính P khi x = a | **Kiểm a thỏa ĐK** → tính √a (đưa a về bình phương nếu cần) → thay vào P đã rút gọn | Không kiểm ĐK; viết √(7 − 4√3) = 7 − 2√3 |\n| Tìm x để P = k | Giải PT theo √x → **đối chiếu ĐK** → kết luận | Quên loại √x < 0 hoặc x = 9 |\n| So sánh P với số k | Xét **hiệu P − k**, xét dấu tử và mẫu theo ĐK | Nhân chéo khi chưa biết dấu mẫu |\n| Tìm x nguyên để P nguyên | Lập luận √x phải là số nguyên (nếu không P vô tỉ) → mẫu là ước của tử → đối chiếu ĐK | Bỏ ước âm; quên x ≠ 9; không giải thích vì sao √x nguyên |\n| **(2c)** Tìm m để PT P = m có nghiệm | Rút √x theo m → điều kiện √x ≥ 0 và √x ≠ 3 | Quên điều kiện √x ≥ 0 |\n| **(2c)** GTNN / GTLN | Tách để dùng **Cô-si** (a + b ≥ 2√(ab), a, b ≥ 0) hoặc đánh giá √x ≥ 0; **chỉ ra dấu bằng xảy ra** | Không chỉ ra dấu bằng; dấu bằng ngoài ĐK |\n| **(2c)** x thực để P nguyên | Chặn miền giá trị của P (a < P ≤ b) → liệt kê số nguyên trong khoảng → tìm x | Làm như \"x nguyên\" |"
+    },
+    {
+      "id": "rutgon.4",
+      "title": "Kịch bản gợi ý (H1–H4, theo thang chung)",
+      "text": "| Mức | Khi con vướng ở rút gọn | Khi con vướng ở câu phụ |\n|---|---|---|\n| H1 | \"Em xem các mẫu: có mẫu nào là hằng đẳng thức không?\" | \"Đề hỏi loại gì: tính giá trị, tìm x, so sánh hay GTNN?\" |\n| H2 | \"x − 9 = (… )(… )? Thử coi √x là t.\" | Hiện các cách trong bảng 3 dưới dạng nút, con chọn |\n| H3 | Làm mẫu **một** bước trên bài khác số (vd x − 4) | Chỉ ra bước đầu: \"Xét hiệu P − 1, em quy đồng thử\" |\n| H4 | Bài anh em: cùng cấu trúc, khác số (C3, đáp số kiểm C1) | Bài anh em cùng dạng câu phụ |\n\nKhông đưa lời giải bài gốc ở bất kỳ mức nào (luật cứng)."
+    }
+  ],
+  "checklist": [
+    {
+      "grade": 9,
+      "n": 1,
+      "text": "PT chứa ẩn ở mẫu: có ĐKXĐ và đã loại nghiệm không thỏa"
+    },
+    {
+      "grade": 9,
+      "n": 2,
+      "text": "Có câu kết luận đúng (PT, BPT, hệ PT)"
+    },
+    {
+      "grade": 9,
+      "n": 3,
+      "text": "Bài lập PT/HPT: điều kiện của ẩn đúng, có đơn vị"
+    },
+    {
+      "grade": 9,
+      "n": 4,
+      "text": "Làm tròn: có dấu \"≈\""
+    },
+    {
+      "grade": 9,
+      "n": 5,
+      "text": "Hình vẽ đúng giả thiết"
+    },
+    {
+      "grade": 9,
+      "n": 6,
+      "text": "Có câu kết luận cho từng ý"
+    },
+    {
+      "grade": 9,
+      "n": 7,
+      "text": "Rút gọn đến tận cùng (tử, mẫu không còn nhân tử chung)"
+    },
+    {
+      "grade": 9,
+      "n": 8,
+      "text": "Kết luận trả lời đúng đại lượng đề hỏi"
+    },
+    {
+      "grade": 9,
+      "n": 9,
+      "text": "Nhân/chia hai vế BPT với số âm thì đổi chiều"
+    },
+    {
+      "grade": 9,
+      "n": 10,
+      "text": "Kết quả hợp lý ngoài đời"
+    },
+    {
+      "grade": 6,
+      "n": 1,
+      "text": "Câu trả lời đúng điều đề hỏi, có đơn vị"
+    },
+    {
+      "grade": 6,
+      "n": 2,
+      "text": "Bài \"nhiều nhất / ít nhất\": chọn đúng ƯCLN hay BCNN"
+    },
+    {
+      "grade": 6,
+      "n": 3,
+      "text": "Bài có điều kiện \"trong khoảng\", \"từ … đến …\": đã đối chiếu, chọn đúng số"
+    },
+    {
+      "grade": 6,
+      "n": 4,
+      "text": "Viết tập hợp: đủ dấu { }, đủ phần tử, không lặp"
+    },
+    {
+      "grade": 6,
+      "n": 5,
+      "text": "Thử lại kết quả (thay vào đề hoặc ước lượng)"
+    }
+  ],
+  "defaults": {
+    "g6": [
+      1,
+      5
+    ],
+    "g9": [
+      6
+    ]
+  }
+}
