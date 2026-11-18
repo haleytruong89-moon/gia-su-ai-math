@@ -903,7 +903,7 @@
     },
     {
       "date": "2026-11-18",
-      "text": "G0 lần chạy 5 (sau G5): Sonnet 5/10, Opus 5/10, không lộ đáp số; tìm ra lỗi schema make_sibling (API 400 → bài anh em hỏng), cas HTTP 500, rubric 9.18/9.19 → PR sửa (prompt v0.6). D23 chốt: chỉ báo chuyện tiền"
+      "text": "G0 lần chạy 5 (sau G5): Sonnet 5/10, Opus 5/10, không lộ đáp số; tìm ra lỗi schema make_sibling (API 400 → bài anh em hỏng), cas HTTP 500, rubric 9.18/9.19 → PR #15 sửa (prompt v0.6). D23 chốt: chỉ báo chuyện tiền"
     }
   ]
 }
