@@ -6,7 +6,7 @@ const THO = "Hai người cùng làm 16 giờ xong; người I làm 3 giờ, ng�
 const good = {
   statement: "Hai vòi cùng chảy 12 giờ đầy bể; vòi I chảy 2 giờ, vòi II chảy 4 giờ được 25% bể. Hỏi mỗi vòi chảy riêng mất bao lâu?",
   solution_steps: ["Gọi x, y là số giờ…", "Lập hệ…", "Giải hệ…"], final_answer: "Vòi I 20 giờ, vòi II 30 giờ",
-  check: { mode: "check_solution", equations: ["1/x+1/y=1/12", "2/x+4/y=1/4"], values: { x: "20", y: "30" } },
+  check: { mode: "check_solution", equations: ["1/x+1/y=1/12", "2/x+4/y=1/4"], values: [{ name: "x", value: "20" }, { name: "y", value: "30" }] },
 };
 function scriptedJson(list: object[]) {
   let i = 0;
@@ -36,7 +36,7 @@ describe("numbers in a statement", () => {
 
 describe("makeSibling", () => {
   it("verified when cas confirms the sibling's answer; a wrong one is retried once", async () => {
-    const client = scriptedJson([{ ...good, check: { ...good.check, values: { x: "21", y: "30" } } }, good]);
+    const client = scriptedJson([{ ...good, check: { ...good.check, values: [{ name: "x", value: "21" }, { name: "y", value: "30" }] } }, good]);
     const cas = casFrom({ check_solution: (a) => ({ satisfies: (a.values as Record<string, string>).x === "20", failed: [] }) });
     const r = await makeSibling(deps(client, cas), { original_statement: THO, ku_code: "T9.3", difficulty: "same" });
     expect([r.output.verified, r.output.numbers_differ, r.calls.length]).toEqual([true, true, 2]);
@@ -60,5 +60,21 @@ describe("makeSibling", () => {
     const client = scriptedJson([{ nope: 1 }, { ...good, check: { mode: "evaluate", expr_a: "1+1" } }]);
     const r = await makeSibling(deps(client, casFrom({})), { original_statement: THO, ku_code: null, difficulty: "same" });
     expect(r.output.verified).toBe(false);
+  });
+});
+
+describe("make_sibling — G0 18/11 fixes", () => {
+  it("values come as {name, value} pairs and reach cas as an object", async () => {
+    let seen: Record<string, unknown> | null = null;
+    const cas = casFrom({ check_solution: (a) => { seen = a; return { satisfies: true, failed: [] }; } });
+    const r = await makeSibling(deps(scriptedJson([good]), cas), { original_statement: THO, ku_code: "T9.3", difficulty: "same" });
+    expect(r.output.verified).toBe(true);
+    expect(seen!.values).toEqual({ x: "20", y: "30" });
+  });
+  it("the API refusing the call → not verified, no throw (the turn goes on)", async () => {
+    const client = { create: async () => { throw Object.assign(new Error("400 schema"), { status: 400 }); } };
+    const r = await makeSibling({ client, model: "claude-sonnet-5-5", prompt: "P", cas: null }, { original_statement: THO, ku_code: null, difficulty: "same" });
+    expect(r.output.verified).toBe(false);
+    expect(r.calls).toEqual([]);
   });
 });

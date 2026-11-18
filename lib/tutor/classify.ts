@@ -13,7 +13,7 @@ export const EMPTY: Classification = { ku_code: null, exam_slot: null, geometry_
 export const EXAM_SLOT = /^HN10-[1-5][a-c]?(-y[12])?$/;
 
 const answer = z.object({ ku_code: z.string().nullable(), exam_slot: z.string().nullable(), geometry_proof: z.boolean() });
-const schema = {
+export const classifyJsonSchema = {
   type: "object",
   properties: { ku_code: { type: ["string", "null"] }, exam_slot: { type: ["string", "null"] }, geometry_proof: { type: "boolean" } },
   required: ["ku_code", "exam_slot", "geometry_proof"],
@@ -31,7 +31,7 @@ export async function classifyProblem(client: ModelClient, d: { model: string; p
         { type: "text", text: `DANH MỤC bài SGK lớp ${input.grade}:\n${kuIndex(input.grade)}`, cache_control: { type: "ephemeral" } },
       ],
       messages: [{ role: "user", content: input.image ? [...imageBlocks([input.image]), { type: "text", text }] : text }],
-      output_config: { effort: "low", format: { type: "json_schema", schema } },
+      output_config: { effort: "low", format: { type: "json_schema", schema: classifyJsonSchema } },
     });
     const raw = res.content.filter((p) => p.type === "text").map((p) => p.text ?? "").join("");
     const cached = res.usage.cache_read_input_tokens ?? 0;

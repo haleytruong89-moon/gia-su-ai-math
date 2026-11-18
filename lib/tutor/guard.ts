@@ -20,7 +20,7 @@ export interface GuardResult {
 }
 
 const verdict = z.object({ pass: z.boolean(), ly_do: z.array(z.string()) }).strict();
-const schema = {
+export const guardJsonSchema = {
   type: "object",
   properties: { pass: { type: "boolean" }, ly_do: { type: "array", items: { type: "string" } } },
   required: ["pass", "ly_do"],
@@ -42,7 +42,7 @@ export async function runGuard(client: ModelClient, model: string, guardPrompt: 
     const res = await client.create({
       model, max_tokens: 1500, thinking: { type: "disabled" }, system: guardPrompt,
       messages: [{ role: "user", content: i.images?.length ? [...imageBlocks(i.images), { type: "text", text: user }] : user }],
-      output_config: { effort: "low", format: { type: "json_schema", schema } },
+      output_config: { effort: "low", format: { type: "json_schema", schema: guardJsonSchema } },
     });
     const raw = res.content.filter((p) => p.type === "text").map((p) => p.text ?? "").join("");
     const cached = res.usage.cache_read_input_tokens ?? 0;

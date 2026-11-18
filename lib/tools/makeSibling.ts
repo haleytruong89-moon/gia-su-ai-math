@@ -14,7 +14,8 @@ export interface SiblingCall { model: string; raw: string; costUsd: number; toke
 /** Only modes with a yes/no answer can verify an answer. */
 const VERIFY = { check_solution: "satisfies", check_root: "is_root", equivalent: "equivalent" } as const;
 const str = { type: "string" };
-const schema = {
+/** Structured output: every object must close its keys (the API refuses additionalProperties: <schema>, G0 18/11). */
+export const siblingJsonSchema = {
   type: "object",
   properties: {
     statement: str,
@@ -24,7 +25,9 @@ const schema = {
       type: "object",
       properties: {
         mode: { type: "string", enum: Object.keys(VERIFY) },
-        equations: { type: "array", items: str }, values: { type: "object", additionalProperties: str },
+        equations: { type: "array", items: str },
+        // x = 24, y = 48 as pairs: an object with free keys is refused in structured outputs.
+        values: { type: "array", items: { type: "object", properties: { name: str, value: str }, required: ["name", "value"], additionalProperties: false } },
         equation: str, value: str, expr_a: str, expr_b: str, variable: str, assumptions: { type: "array", items: str },
       },
       required: ["mode"],
@@ -40,6 +43,15 @@ const reply = z.object({
   final_answer: z.string().min(1).max(400),
   check: z.object({ mode: z.enum(["check_solution", "check_root", "equivalent"]) }).passthrough(),
 });
+
+/** The model sends values as [{name, value}] pairs; math_check wants { x: "24", y: "48" }. */
+export function checkInput(check: Record<string, unknown>): Record<string, unknown> {
+  const v = check.values;
+  if (!Array.isArray(v)) return check;
+  const values = Object.fromEntries(v.filter((p): p is { name: string; value: string } =>
+    !!p && typeof p.name === "string" && typeof p.value === "string").map((p) => [p.name, p.value]));
+  return { ...check, values };
+}
 
 /** Numbers written in a statement: 16, 1,25 (Vietnamese decimal), 3/4, 25%. */
 export function numbersIn(text: string): string[] {
@@ -68,10 +80,17 @@ export async function makeSibling(
       `Mã kiến thức: ${input.ku_code ?? "chưa rõ"} | Độ khó: ${input.difficulty}`,
       ...(why ? [`Lần trước chưa đúng: ${why}. Soạn lại.`] : []),
     ].join("\n\n");
-    const res = await d.client.create({
+    let res: Awaited<ReturnType<ModelClient["create"]>>;
+    try {
+      res = await d.client.create({
       model: d.model, max_tokens: 4000, system: d.prompt, messages: [{ role: "user", content: user }],
-      output_config: { effort: "low", format: { type: "json_schema", schema } },
-    });
+      output_config: { effort: "low", format: { type: "json_schema", schema: siblingJsonSchema } },
+      });
+    } catch (e) {
+      // The tutor gets "not verified" and must not use a sibling (rule 11); the turn goes on.
+      console.error("make_sibling call failed", e instanceof Error ? e.message : "unknown");
+      break;
+    }
     const raw = res.content.filter((p) => p.type === "text").map((p) => p.text ?? "").join("");
     const cached = res.usage.cache_read_input_tokens ?? 0;
     calls.push({ model: d.model, raw, costUsd: costUsd(d.model, res.usage),
@@ -88,7 +107,7 @@ export async function makeSibling(
       why = "JSON sai khuôn";
       continue;
     }
-    const check = await runMathCheck(d.cas, parsed.check);
+    const check = await runMathCheck(d.cas, checkInput(parsed.check));
     const key = VERIFY[parsed.check.mode];
     const verified = check.output.ok && check.output.result[key] === true;
     const differ = numbersDiffer(input.original_statement, parsed.statement);
