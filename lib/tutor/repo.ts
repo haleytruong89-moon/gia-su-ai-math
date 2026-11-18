@@ -164,6 +164,8 @@ export interface TutorRepo {
    * saved_for_later. `already` for a resend of the same press; `not_open` when the problem is closed.
    */
   saveForLater(a: { actor: ChildActor; problemId: string; clientMsgId: string; now: Date }): Promise<"saved" | "already" | "not_open">;
+  /** G7: rewrite the child's "cần chú ý" lines of `dateVn` for the Launcher (≤ 2, DOMAIN §4.7, X1). */
+  syncAttention(a: { familyId: string; childId: string; dateVn: string; now: Date }): Promise<void>;
 }
 
 /** `flags` of a stored tutor answer (model_calls.raw_output); [] when it is not readable. */

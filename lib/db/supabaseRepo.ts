@@ -8,6 +8,7 @@ import { BTN_SAVE } from "@/lib/copy";
 import type { InputKind } from "@/lib/rules/events";
 import type { HintLevel } from "@/lib/rules/hints";
 import { deleteAfterVn } from "@/lib/rules/photo";
+import { syncAttention } from "@/lib/report/attentionSync";
 import { bridgeTurnsOf, checklistOf, flagsOf, usableSibling, type FoundMessage, type HistoryItem, type ProblemRow, type ProblemStatus, type StoredReply, type StuckKind, type TutorRepo } from "@/lib/tutor/repo";
 
 const UNIQUE_VIOLATION = "23505";
@@ -298,6 +299,10 @@ export function supabaseRepo(db: SupabaseClient = createAdminClient(), strongMod
       if (p) return "saved";
       await this.deleteMessage(m.id as string); // the problem was already closed: leave no stray press
       return "not_open";
+    },
+
+    async syncAttention(a) {
+      await syncAttention(db, a.familyId, a.childId, a.dateVn, a.now);
     },
   };
 }

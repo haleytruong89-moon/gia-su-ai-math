@@ -263,6 +263,8 @@ Mọi ngưỡng tính theo **sổ của app** (`usage_monthly.cost_usd`, cộng 
 | *(v0.4)* Ý chặn | Bài có `exam_slot` thuộc ý chặn (2c, 3c, 4b ý 2, 4c, 5) và con dừng ở U0–U1 |
 | *(v0.4)* C1 lỗi | Máy tính đại số lỗi/hết giờ ≥ 2 lần trong ngày |
 
+**Dòng "cần chú ý" trên Launcher** (G7, ✅ phụ huynh chốt 19/11 — X1): mỗi con mỗi ngày tối đa 2 dòng = 2 cờ đầu theo thứ tự: ① C1 lỗi → ② ý chặn U0–U1 → ③ nản / bỏ dở → ④ con chấm khó hiểu → ⑤ gợi ý nhiều → ⑥ chờ thầy xem → ⑦ lỗ hổng nền → ⑧ bài hình → ⑨ gia sư AI phải viết lại nhiều. Báo cáo tối hiện **mọi** cờ. Ghi lại khi một bài kết thúc (và khi con chấm cô — G7b). C1 lỗi = dịch vụ máy tính đại số hỏng/hết giờ (không tính đầu vào sai của model); **không** gửi thông báo đẩy (D23), chỉ cờ + dòng này. Cờ "Chi phí" là của cả nhà: hiện một lần ở đầu báo cáo, không vào dòng của con.
+
 ### 4.8. Xóa ảnh và xóa dữ liệu ✅
 `delete_after` = ngày tải lên (giờ VN) + 90 ngày. Job hằng ngày xóa file; giữ metadata + mô tả đề bằng chữ. Bố mẹ xóa sớm được.
 Bố mẹ yêu cầu xóa (một bài, một buổi, hoặc toàn bộ dữ liệu một con) → **xóa cứng** cả dòng DB lẫn file Storage, không chỉ xóa mềm. Bản backup tuần của Launcher còn giữ dữ liệu tối đa đến hết thời hạn lưu backup; ghi thời hạn này vào trang bố mẹ.
@@ -431,3 +433,4 @@ Lưu ý quyền riêng tư: một phiếu của HS-6A có ghi họ tên. Khi đ�
 | 18/11/2026 | §4.10b checklist lớp 6 ✅ (phụ huynh chốt) |
 | 16/11/2026 | G5 (phụ huynh chốt Q1–Q4): D25 ✅, D27 ✅; thêm §4.10b checklist lớp 6 (đề xuất); §4.13 thêm ví dụ chuẩn và cách đếm lượt dạy bù |
 | 14/11/2026 | **v0.4** — bộ năng lực (kho kiến thức, công cụ, ôn cách quãng, dạy bù nền), khớp repo Launcher thật, Q1–Q5, D20–D27 đề xuất, checklist 6–10 |
+| 19/11/2026 | G7 (kế hoạch `docs/superpowers/plans/2026-11-18-g7-reports.md`; phụ huynh chốt P1–P4 ngày 18/11, X1–X5 ngày 19/11): §4.7 thứ tự 2 dòng "cần chú ý" (X1). X2 (dự báo chi từ ngày 5), X3 (≤ 12 luật/con, ≤ 300 ký tự, luật tự viết có hiệu lực từ buổi sau), X4 (câu luật từ lời chấm của con), X5 (lời giải tham khảo chỉ hiện khi cas xác nhận khớp) ghi vào §4.5 / §3.4 / §1 ở PR G7b, G7c |

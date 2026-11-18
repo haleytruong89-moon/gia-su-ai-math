@@ -383,6 +383,7 @@ describe("saveForLater", () => {
     expect((await saveForLater(d, { problemId: "p1", clientMsgId: uuid(8) })).status).toBe(409);
     expect(repo.problems[0]?.status).toBe("saved_for_later");
     expect(repo.messages.filter((m) => m.inputKind === "button")).toHaveLength(1);
+    expect(repo.attentionSyncs).toHaveLength(1); // G7: the "cần chú ý" lines follow the ended problem
   });
   it("401 for a parent; 404 for another child's problem; 400 on a bad body", async () => {
     expect((await saveForLater(deps(inProgress, client([confirm]), { role: "parent", userId: "p", familyId: "f1" }).d,
@@ -522,6 +523,25 @@ describe("G4 tools in a turn", () => {
     expect((r.json as { status: string }).status).toBe("self_solved");
     expect(repo.toolCalls).toEqual([expect.objectContaining({ tool: "math_check", ok: true })]);
     expect(repo.modelCalls[repo.toolCalls[0]!.callRow]?.shown).toBe(true); // linked to the answer the child saw
+  });
+  it("G7: a problem that ends rewrites the day's attention lines; a turn that stays open does not", async () => {
+    const w = world({ tutor: [ask("t1", "math_check", simplify), reply({ ket_qua_bai: "self_solved", danh_gia_luot_em: "dung", checklist_da_hoi: [7] })] });
+    const { d, repo } = deps(inProgress, client([confirmed]));
+    const cas = fakeCas({ simplify_check: () => ({ equivalent: true, fully_simplified: true, common_factor: null }) });
+    await handleTurn({ ...d, client: w, cas }, submit(1, "P = 3/(3 - √x)"));
+    expect(repo.attentionSyncs).toEqual([{ familyId: "f1", childId: "c1", dateVn: "2026-11-14" }]);
+    const open = deps(inProgress, client([confirmed]));
+    await handleTurn(open.d, { problemId: "p1", clientMsgId: uuid(2), text: "x = 3", kind: "text" });
+    expect(open.repo.attentionSyncs).toEqual([]);
+  });
+  it("G7: an attention failure never breaks the child's turn", async () => {
+    const w = world({ tutor: [ask("t1", "math_check", simplify), reply({ ket_qua_bai: "self_solved", danh_gia_luot_em: "dung", checklist_da_hoi: [7] })] });
+    const { d, repo } = deps(inProgress, client([confirmed]));
+    repo.failAttention.on = true;
+    const cas = fakeCas({ simplify_check: () => ({ equivalent: true, fully_simplified: true, common_factor: null }) });
+    const r = await handleTurn({ ...d, client: w, cas }, submit(1, "P = 3/(3 - √x)"));
+    expect(r.status).toBe(200);
+    expect((r.json as { status: string }).status).toBe("self_solved");
   });
   it("4.12 b: self_solved proposed without a check → the app asks once; cas confirms → self_solved", async () => {
     const w = world({ tutor: [reply({ ket_qua_bai: "self_solved", checklist_da_hoi: [6] }), ask("t2", "math_check", { mode: "check_root", equation: "x - 4 = 0", value: "4" }),
