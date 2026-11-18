@@ -2,7 +2,7 @@
   "schema": 1,
   "project": "Gia sư AI Toán",
   "updated": "2026-11-18",
-  "updatedNote": "Chốt checklist lớp 6; lát sau G5 là G7 (báo cáo bố mẹ)",
+  "updatedNote": "G5 PR A (#13) đã merge; PR B (#14) mở",
   "vision": {
     "oneLiner": "Một \"cô\" gia sư AI giúp 2 con tự học Toán buổi chiều: gỡ chỗ kẹt bằng câu hỏi gợi mở, không đưa lời giải bài gốc, tối bố mẹ đọc báo cáo 5 phút.",
     "problem": "Buổi chiều 2 con có nhiều thời gian tự học nhưng không có người lớn. Bố mẹ có khoảng 2 giờ buổi tối, gia sư người 2 buổi/tuần. Tốc độ tiến bộ do giờ tự học buổi chiều quyết định.",
@@ -423,7 +423,7 @@
       "features": [
         {
           "name": "Kho kiến thức: 4 file hub làm sạch (repo công khai) + bảng nối KU → checklist, hộp công cụ; knowledge.json + CI kiểm",
-          "status": "review"
+          "status": "done"
         },
         {
           "name": "Thẻ kiến thức (lớp ⑤) + công cụ lookup",
@@ -458,6 +458,11 @@
         {
           "repo": "gia-su",
           "number": 13,
+          "status": "merged"
+        },
+        {
+          "repo": "gia-su",
+          "number": 14,
           "status": "open"
         }
       ],
@@ -759,12 +764,7 @@
   ],
   "parentTodo": [
     {
-      "text": "Thêm GitHub Secret PRIVATE_TERMS (tên thật 2 con, trường, thầy cô; cách nhau dấu phẩy) trước khi merge PR G5-A",
-      "slice": "G5",
-      "status": "open"
-    },
-    {
-      "text": "Đọc knowledge/src/*.md trong PR G5-A rồi merge; chép phần riêng (file hub G5_PHAN_RIENG_HO_SO) vào Hồ sơ dạy học",
+      "text": "Merge PR #14 (G5 · cô dùng kho kiến thức), không SQL; thử theo hướng dẫn trong PR",
       "slice": "G5",
       "status": "open"
     },
@@ -881,6 +881,10 @@
     {
       "date": "2026-11-18",
       "text": "Phụ huynh chốt checklist lớp 6 (§4.10b) và thứ tự: G7 trước G6"
+    },
+    {
+      "date": "2026-11-18",
+      "text": "G5 PR A (#13, kho kiến thức bản sạch) và #12 đã merge; PR B (#14) mở"
     }
   ]
 }
