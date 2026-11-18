@@ -6,6 +6,7 @@ import type { InputKind, StoredMsg } from "@/lib/rules/events";
 import type { RouteReason } from "@/lib/rules/model";
 import type { ToolRecord } from "@/lib/tools/defs";
 import type { ImageData } from "@/lib/tutor/assemble";
+import type { RatingReason, RuleRow } from "@/lib/rules/teachingRules";
 
 export type ChildActor = Extract<Actor, { role: "child" }>;
 /** An answered message of the problem; `id` lets the server put the message's photos back (never sent to the API). */
@@ -130,7 +131,7 @@ export interface TutorRepo {
    * The child's active session of `dateVn`, or a new one. An active one from an earlier day is
    * marked abandoned, with its open problems (DOMAIN §3.1–3.2).
    */
-  openSession(a: { actor: ChildActor; device: Device; dateVn: string; promptVersion: string; modelMain: string }): Promise<{ id: string; reused: boolean }>;
+  openSession(a: { actor: ChildActor; device: Device; dateVn: string; promptVersion: string; modelMain: string; rulesVersion: number }): Promise<{ id: string; reused: boolean }>;
   createProblem(a: { actor: ChildActor; sessionId: string; stuckKind: StuckKind | null }): Promise<{ id: string }>;
   setProblemStatus(problemId: string, status: ProblemStatus, now: Date): Promise<void>;
   /** G5: what the classifier said on the first turn, with the knowledge version the problem uses. */
@@ -166,7 +167,31 @@ export interface TutorRepo {
   saveForLater(a: { actor: ChildActor; problemId: string; clientMsgId: string; now: Date }): Promise<"saved" | "already" | "not_open">;
   /** G7: rewrite the child's "cần chú ý" lines of `dateVn` for the Launcher (≤ 2, DOMAIN §4.7, X1). */
   syncAttention(a: { familyId: string; childId: string; dateVn: string; now: Date }): Promise<void>;
+  /** G7b: every teaching rule of the child (any status, not deleted). */
+  childRules(childId: string): Promise<RuleRow[]>;
+  /** G7b: the rules a session uses: approved with version ≤ the session's pinned rules_version (§3.4). */
+  rulesForSession(sessionId: string, childId: string): Promise<RuleRow[]>;
+  /** G7b: a proposed rule (version 0, no effect until a parent approves it). */
+  proposeRule(a: { familyId: string; childId: string; text: string; source: "parent_feedback" | "child_rating"; sourceKey: string; sourceIds: string[]; now: Date }): Promise<void>;
+  /** G7b "Kết thúc buổi" (§3.1): active → ended; open problems → timed_out (to continue later). */
+  endSession(a: { actor: ChildActor; sessionId: string; now: Date }): Promise<"ended" | "already" | "not_found">;
+  /**
+   * G7b (P2): one rating per session, saved through the server (the session may still be active).
+   * A second send within RATING_EDIT_MS updates the reasons (the child taps a face, then reasons).
+   */
+  saveRating(a: { actor: ChildActor; sessionId: string; face: "easy" | "ok" | "hard"; reasons: RatingReason[]; comment: string | null; now: Date }): Promise<"saved" | "updated" | "already" | "not_found">;
+  /** G7b: the session (this child's) already has its rating. */
+  sessionRated(sessionId: string, childId: string): Promise<boolean>;
+  /** G7b: the child's latest ratings, newest first. */
+  latestRatings(childId: string, n: number): Promise<{ id: string; face: string; reasons: string[] }[]>;
+  /** G7b (P2): what the problem page needs to decide on the rating card. null when not this child's. */
+  ratingState(problemId: string, childId: string): Promise<{ sessionId: string; sessionStatus: "active" | "ended" | "abandoned"; rated: boolean; earlierEnded: boolean } | null>;
 }
+
+/** G7b: a rating may be completed (reasons added) for this long after the first tap. */
+export const RATING_EDIT_MS = 2 * 60 * 1000;
+/** G7b (P2): outcomes after which the rating card shows (abandoned / closed problems do not count). */
+export const RATING_OUTCOMES: readonly ProblemStatus[] = ["self_solved", "saved_for_later", "pending_review"];
 
 /** `flags` of a stored tutor answer (model_calls.raw_output); [] when it is not readable. */
 export function flagsOf(raw: string): string[] {

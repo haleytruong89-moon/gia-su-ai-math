@@ -25,6 +25,7 @@ import { classifyProblem, EMPTY, type Classification } from "@/lib/tutor/classif
 import { makeSibling, type SiblingCall, type SiblingInput } from "@/lib/tools/makeSibling";
 import { runToolLoop, type LoopResult } from "@/lib/tutor/toolLoop";
 import { dateVn } from "@/lib/time";
+import { RATING_REASONS, ratingProposal, rulesBlock, rulesVersionNow, type RatingReason } from "@/lib/rules/teachingRules";
 import { assemble, type ImageData, type Msg, type Turn } from "@/lib/tutor/assemble";
 import { runGuard, type GuardResult } from "@/lib/tutor/guard";
 import type { Layers } from "@/lib/tutor/layers";
@@ -93,6 +94,13 @@ const turnBody = z.object({
   image: photo,
 }).refine((b) => b.text.length > 0 || b.image !== undefined);
 const saveBody = z.object({ problemId: z.string().min(1).max(64), clientMsgId: z.string().uuid() });
+const endBody = z.object({ sessionId: z.string().min(1).max(64) });
+const rateBody = z.object({
+  sessionId: z.string().min(1).max(64),
+  face: z.enum(["easy", "ok", "hard"]),
+  reasons: z.array(z.enum(RATING_REASONS as [string, ...string[]])).max(6).default([]),
+  comment: z.string().max(500).nullish(),
+});
 
 const unauthorized: Result = { status: 401, json: { error: "unauthorized" } };
 const badRequest: Result = { status: 400, json: { error: "bad_request" } };
@@ -118,7 +126,8 @@ export async function startSession(d: Deps, raw: unknown): Promise<Result> {
   const actor = asChild(d.actor);
   if (!actor) return unauthorized;
   const { device: dev } = sessionBody.parse(raw ?? {});
-  const s = await d.repo.openSession({ actor, device: dev ?? "laptop", dateVn: dateVn(d.now), promptVersion: d.promptVersion, modelMain: d.models.main });
+  const s = await d.repo.openSession({ actor, device: dev ?? "laptop", dateVn: dateVn(d.now), promptVersion: d.promptVersion, modelMain: d.models.main,
+    rulesVersion: rulesVersionNow(await d.repo.childRules(actor.userId)) });
   return { status: 200, json: { sessionId: s.id, reused: s.reused } };
 }
 
@@ -151,7 +160,7 @@ export async function newProblem(d: Deps, raw: unknown): Promise<Result> {
   if (replacesProblemId) await d.repo.abandonUnconfirmed(replacesProblemId, actor.userId, d.now);
 
   const session = await d.repo.openSession({ actor, device: dev, dateVn: dateVn(d.now),
-    promptVersion: d.promptVersion, modelMain: d.models.main });
+    promptVersion: d.promptVersion, modelMain: d.models.main, rulesVersion: rulesVersionNow(await d.repo.childRules(actor.userId)) });
   const { id } = await d.repo.createProblem({ actor, sessionId: session.id, stuckKind });
   const problem = await d.repo.getProblemForChild(id, actor.userId);
   if (!problem) throw new Error("problem vanished after insert");
@@ -203,6 +212,50 @@ export async function saveForLater(d: Deps, raw: unknown): Promise<Result> {
   if (r === "not_open") return closed(problem.status);
   if (r === "saved") await syncAttention(d, actor);
   return { status: 200, json: { status: "saved_for_later" } };
+}
+
+/** Layer ④: the teaching profile, then the parents' approved rules of the session (G7b, §3.4). */
+const withRules = (profile: string, rules: string) => (rules ? `${profile}\n\n${rules}` : profile);
+
+/** "Kết thúc buổi" (DOMAIN §3.1): the child ends the session; the rating card follows if not rated (P2). */
+export async function endSession(d: Deps, raw: unknown): Promise<Result> {
+  const actor = asChild(d.actor);
+  if (!actor) return unauthorized;
+  const parsed = endBody.safeParse(raw);
+  if (!parsed.success) return badRequest;
+  const r = await d.repo.endSession({ actor, sessionId: parsed.data.sessionId, now: d.now });
+  if (r === "not_found") return { status: 404, json: { error: "not_found" } };
+  if (r === "ended") await syncAttention(d, actor);
+  const rated = await d.repo.sessionRated(parsed.data.sessionId, actor.userId);
+  return { status: 200, json: { status: r, rated } };
+}
+
+/**
+ * Con chấm cô (US6, P2): one tap saves; reasons may follow for a short while. Then the day's
+ * attention lines are rewritten (😕 is a flag) and a rule may be proposed (P3: 😕 twice, same reason).
+ */
+export async function rateSession(d: Deps, raw: unknown): Promise<Result> {
+  const actor = asChild(d.actor);
+  if (!actor) return unauthorized;
+  const parsed = rateBody.safeParse(raw);
+  if (!parsed.success) return badRequest;
+  const { sessionId, face, reasons, comment } = parsed.data;
+  const r = await d.repo.saveRating({ actor, sessionId, face, reasons: reasons as RatingReason[], comment: comment?.trim() || null, now: d.now });
+  if (r === "not_found") return { status: 404, json: { error: "not_found" } };
+  if (r !== "already") {
+    await syncAttention(d, actor);
+    try {
+      const two = await d.repo.latestRatings(actor.userId, 2);
+      const proposal = ratingProposal(two, await d.repo.childRules(actor.userId));
+      if (proposal) {
+        await d.repo.proposeRule({ familyId: actor.familyId, childId: actor.userId, text: proposal.text, source: "child_rating",
+          sourceKey: proposal.sourceKey, sourceIds: two.map((x) => x.id), now: d.now });
+      }
+    } catch (e) {
+      console.error("rating rule proposal failed", e instanceof Error ? e.message : "unknown");
+    }
+  }
+  return { status: 200, json: { status: r } };
 }
 
 /** G7: the Launcher's "cần chú ý" lines follow every ended problem. Never breaks the child's turn. */
@@ -326,7 +379,7 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
 
   const { system, messages } = assemble({
     layers: d.layers,
-    profileText: actor.profileText,
+    profileText: withRules(actor.profileText, rulesBlock(await d.repo.rulesForSession(problem.sessionId, actor.userId))),
     knowledgeCard: knowledgeCard(kuCode, actor.grade),
     history,
     childText: text,
