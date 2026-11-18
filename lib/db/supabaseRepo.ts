@@ -43,6 +43,16 @@ function replyFrom(p: Pick<ProblemDb, "id" | "status" | "turn_count" | "statemen
 
 export function supabaseRepo(db: SupabaseClient = createAdminClient(), strongModel = "claude-opus-5-5"): TutorRepo {
   const t = () => db.schema("tutor");
+  /** Updates this month's usage row of the family, creating it when the month has no spend yet. */
+  async function setMonth(familyId: string, now: Date, cols: Record<string, string>) {
+    const { data, error } = await t().from("usage_monthly").update({ ...cols, updated_at: now.toISOString() })
+      .eq("family_id", familyId).eq("month", monthOf(now)).select("family_id");
+    if (error) fail("usage.set", error);
+    if (data?.length) return;
+    const { error: e2 } = await t().from("usage_monthly")
+      .upsert({ family_id: familyId, month: monthOf(now), ...cols, updated_at: now.toISOString() }, { onConflict: "family_id,month" });
+    if (e2) fail("usage.set.insert", e2);
+  }
 
   return {
     async openSession(a) {
@@ -269,20 +279,25 @@ export function supabaseRepo(db: SupabaseClient = createAdminClient(), strongMod
     },
 
     async monthUsage(familyId, now) {
-      const { data, error } = await t().from("usage_monthly").select("cost_usd, model_mode")
+      const { data, error } = await t().from("usage_monthly")
+        .select("cost_usd, model_mode, burn_alert_sent_at, economy_alert_sent_at, console_alert_sent_at")
         .eq("family_id", familyId).eq("month", monthOf(now)).maybeSingle();
       if (error) fail("monthUsage", error);
-      return { costUsd: Number(data?.cost_usd ?? 0), mode: data?.model_mode === "economy" ? "economy" : "normal" };
+      const at = (v: unknown) => (typeof v === "string" ? new Date(v) : null);
+      return { costUsd: Number(data?.cost_usd ?? 0), mode: data?.model_mode === "economy" ? "economy" : "normal",
+        burnAlertSentAt: at(data?.burn_alert_sent_at), economyAlertSentAt: at(data?.economy_alert_sent_at), consoleAlertSentAt: at(data?.console_alert_sent_at) };
     },
 
     async pauseStrong(familyId, now) {
-      const { data, error } = await t().from("usage_monthly").update({ model_mode: "economy", updated_at: now.toISOString() })
-        .eq("family_id", familyId).eq("month", monthOf(now)).select("family_id");
-      if (error) fail("pauseStrong", error);
-      if (data?.length) return;
-      const { error: e2 } = await t().from("usage_monthly")
-        .upsert({ family_id: familyId, month: monthOf(now), model_mode: "economy", updated_at: now.toISOString() }, { onConflict: "family_id,month" });
-      if (e2) fail("pauseStrong.insert", e2);
+      await setMonth(familyId, now, { model_mode: "economy" });
+    },
+
+    async resumeStrong(familyId, now) {
+      await setMonth(familyId, now, { model_mode: "normal" });
+    },
+
+    async markAlert(familyId, kind, now) {
+      await setMonth(familyId, now, { [`${kind}_alert_sent_at`]: now.toISOString() });
     },
 
     async saveForLater(a) {
@@ -412,20 +427,11 @@ const monthOf = (now: Date) => `${now.toISOString().slice(0, 7)}-01`;
 
 /**
  * Adds to the family's monthly spend (UTC month, like the Anthropic Console).
- * TODO(G7): read-then-write can lose a cent when both children send at the same instant; G7 moves
- * this into an SQL function in the study-launcher repo (the cap check also reads model_calls).
  */
 export async function addUsage(db: SupabaseClient, familyId: string, now: Date, cost: number) {
-  const month = monthOf(now);
-  const t = db.schema("tutor");
-  const { data, error } = await t.from("usage_monthly").select("cost_usd").eq("family_id", familyId).eq("month", month).maybeSingle();
-  if (error) fail("usage.read", error);
-  const next = Number(data?.cost_usd ?? 0) + cost;
-  const { error: e2 } = await t.from("usage_monthly").upsert(
-    { family_id: familyId, month, cost_usd: next.toFixed(6), updated_at: now.toISOString() },
-    { onConflict: "family_id,month" },
-  );
-  if (e2) fail("usage.write", e2);
+  // Atomic (study-launcher 0023 tutor.add_usage): two children answering at the same instant both count.
+  const { error } = await db.schema("tutor").rpc("add_usage", { p_family: familyId, p_month: monthOf(now), p_cost: cost });
+  if (error) fail("usage.add", error);
 }
 
 export interface ThreadMessage { id: string; role: "child" | "tutor"; text: string; buttons: string[]; images: string[] }

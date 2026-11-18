@@ -64,6 +64,8 @@ export function memoryRepo(seed: Seed = {}, strongModel = "claude-opus-5-5") {
     usage.set(`${u.familyId ?? "f1"}|${u.month}`, u.costUsd);
     if (u.mode) modes.set(`${u.familyId ?? "f1"}|${u.month}`, u.mode);
   }
+  /** G7c: money pushes sent, by "family|month|kind". */
+  const alerts = new Map<string, Date>();
   const monthKey = (familyId: string, now: Date) => `${familyId}|${now.toISOString().slice(0, 7)}-01`;
 
   const replyAfter = (m: MsgRow): StoredReply | null => {
@@ -187,10 +189,17 @@ export function memoryRepo(seed: Seed = {}, strongModel = "claude-opus-5-5") {
     },
     async monthUsage(familyId, now) {
       const k = monthKey(familyId, now);
-      return { costUsd: usage.get(k) ?? 0, mode: modes.get(k) ?? "normal" };
+      return { costUsd: usage.get(k) ?? 0, mode: modes.get(k) ?? "normal", burnAlertSentAt: alerts.get(`${k}|burn`) ?? null,
+        economyAlertSentAt: alerts.get(`${k}|economy`) ?? null, consoleAlertSentAt: alerts.get(`${k}|console`) ?? null };
     },
     async pauseStrong(familyId, now) {
       modes.set(monthKey(familyId, now), "economy");
+    },
+    async resumeStrong(familyId, now) {
+      modes.set(monthKey(familyId, now), "normal");
+    },
+    async markAlert(familyId, kind, now) {
+      alerts.set(`${monthKey(familyId, now)}|${kind}`, now);
     },
     async saveForLater(a) {
       const p = problems.find((x) => x.id === a.problemId && x.childId === a.actor.userId);
@@ -252,5 +261,5 @@ export function memoryRepo(seed: Seed = {}, strongModel = "claude-opus-5-5") {
       return { sessionId: sess.id, sessionStatus: sess.status, rated: ratings.some((r) => r.sessionId === sess.id), earlierEnded };
     },
   };
-  return Object.assign(repo, { sessions, problems, messages, modelCalls, usage, modes, images, toolCalls, diagnoses, attentionSyncs, failAttention, rules, ratings });
+  return Object.assign(repo, { sessions, problems, messages, modelCalls, usage, modes, images, toolCalls, diagnoses, attentionSyncs, failAttention, rules, ratings, alerts });
 }
