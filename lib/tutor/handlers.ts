@@ -417,7 +417,7 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
   const next = nextHintLevel(pre.state, verdict);
   const outcome = decideOutcome({ turn, output: shown, submitted, offtopicCount: problem.offtopicCount,
     checks: checksFrom(shownTools),
-    // Grade 9: G4 Q2 (phụ huynh chốt 15/11). Grade 6: TODO(rule-unconfirmed) DOMAIN §4.10b (Đề xuất 16/11, G5 Q3).
+    // Grade 9: G4 Q2 (phụ huynh chốt 15/11). Grade 6: DOMAIN §4.10b (phụ huynh chốt 18/11).
     checklistRequired: true,
     checklistAsked: [...new Set([...problem.checklistAsked, ...(shown?.checklist_da_hoi ?? [])])] });
   const safe = safeLine(level);

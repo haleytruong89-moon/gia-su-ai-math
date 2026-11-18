@@ -15,7 +15,7 @@
 | 9 | Nhân/chia hai vế BPT với số âm thì đổi chiều |
 | 10 | Kết quả hợp lý ngoài đời |
 
-## Checklist lớp 6 (DOMAIN §4.10b — Đề xuất 16/11)
+## Checklist lớp 6 (DOMAIN §4.10b — phụ huynh chốt 18/11)
 | # | Mục |
 |---|---|
 | 1 | Câu trả lời đúng điều đề hỏi, có đơn vị |

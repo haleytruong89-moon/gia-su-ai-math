@@ -1,8 +1,8 @@
 {
   "schema": 1,
   "project": "Gia sư AI Toán",
-  "updated": "2026-11-16",
-  "updatedNote": "G5 PR B (cô dùng kho kiến thức) xong code, mở sau khi #13 merge",
+  "updated": "2026-11-18",
+  "updatedNote": "Chốt checklist lớp 6; lát sau G5 là G7 (báo cáo bố mẹ)",
   "vision": {
     "oneLiner": "Một \"cô\" gia sư AI giúp 2 con tự học Toán buổi chiều: gỡ chỗ kẹt bằng câu hỏi gợi mở, không đưa lời giải bài gốc, tối bố mẹ đọc báo cáo 5 phút.",
     "problem": "Buổi chiều 2 con có nhiều thời gian tự học nhưng không có người lớn. Bố mẹ có khoảng 2 giờ buổi tối, gia sư người 2 buổi/tuần. Tốc độ tiến bộ do giờ tự học buổi chiều quyết định.",
@@ -438,7 +438,7 @@
           "status": "review"
         },
         {
-          "name": "Checklist lớp 6 (5 mục, chờ chốt §4.10b)",
+          "name": "Checklist lớp 6 (5 mục, §4.10b đã chốt 18/11)",
           "status": "review"
         },
         {
@@ -479,13 +479,14 @@
         "DOMAIN §4.11 a–f"
       ],
       "depends": [
-        "G5"
+        "G5",
+        "G7"
       ]
     },
     {
       "id": "G7",
       "title": "Báo cáo bố mẹ + góp ý thành luật dạy",
-      "status": "planned",
+      "status": "next",
       "goal": "Tối bố mẹ đọc báo cáo 5 phút, góp ý thành luật dạy; báo chi phí.",
       "features": [
         {
@@ -745,9 +746,15 @@
     },
     {
       "id": "G5-Q3",
-      "text": "Checklist lớp 6: 5 mục chung, bắt buộc như lớp 9 (đề xuất, chờ chốt §4.10b)",
-      "status": "proposed",
-      "date": "2026-11-16"
+      "text": "Checklist lớp 6: 5 mục chung, bắt buộc như lớp 9 (§4.10b)",
+      "status": "confirmed",
+      "date": "2026-11-18"
+    },
+    {
+      "id": "Q-thu-tu",
+      "text": "Sau G5 làm G7 (báo cáo bố mẹ) trước G6 (ôn đầu buổi)",
+      "status": "confirmed",
+      "date": "2026-11-18"
     }
   ],
   "parentTodo": [
@@ -767,7 +774,7 @@
       "status": "open"
     },
     {
-      "text": "Chốt checklist lớp 6 (DOMAIN §4.10b) và D23, D26",
+      "text": "Chốt D23 (thông báo đẩy qua Launcher, cần cho G7) và D26 (ôn đầu buổi, cho G6)",
       "slice": "G5",
       "status": "open"
     },
@@ -870,6 +877,10 @@
     {
       "date": "2026-11-16",
       "text": "G5 PR B code xong: phân loại Haiku, thẻ ⑤ + lookup, dạy bù ≤ 2 lượt, checklist lớp 6, Opus cho hình/ý chặn; bộ test 9.17–9.19, 6.11"
+    },
+    {
+      "date": "2026-11-18",
+      "text": "Phụ huynh chốt checklist lớp 6 (§4.10b) và thứ tự: G7 trước G6"
     }
   ]
 }
