@@ -1,5 +1,5 @@
 {
-  "version": "2026-11-21.03573209",
+  "version": "2026-11-21.14aabeb3",
   "cards": [
     {
       "code": "D6.1",
@@ -1931,6 +1931,132 @@
       ]
     },
     {
+      "code": "T9.7",
+      "grade": 9,
+      "kind": "ban_chat",
+      "ku": "T9.7",
+      "title": "Căn bậc hai và căn thức bậc hai",
+      "variants": [
+        {
+          "n": 1,
+          "title": "Căn là phép ngược của bình phương",
+          "body": "**Ví dụ.** a) Tìm các căn bậc hai của 9 và tính √9. b) Với giá trị nào của x thì √(2x − 6) xác định?\n\n**Căn bậc hai là gì?** Căn bậc hai của a là số mà **bình phương lên bằng a**. 3² = 9 và (−3)² = 9, nên 9 có **hai** căn bậc hai: 3 và −3. Kí hiệu **√9** chỉ lấy căn **không âm** (căn bậc hai số học): **√9 = 3**.\n\n**Vì sao √A chỉ xác định khi A ≥ 0?** Bình phương của **mọi** số đều ≥ 0. Không có số nào bình phương lên ra số âm, nên √(−4) **không có nghĩa**.\n\n- b) √(2x − 6) xác định khi 2x − 6 ≥ 0 → 2x ≥ 6 → **x ≥ 3**.\n\n📝 **Mẹo nhớ:** *Trong căn phải ≥ 0; kết quả của √ cũng ≥ 0.* Vì sao nhớ được: căn là \"đi ngược\" bình phương, mà bình phương chỉ cho ra số không âm.\n\n🔎 **Ghi vào vở:** Nếu căn nằm ở **mẫu**, như 1/√(x − 2), thì cần x − 2 **> 0**: vừa không âm (vì nằm trong căn), vừa khác 0 (vì là mẫu). Luôn viết ĐK trước khi tính.",
+          "keyNumbers": [
+            "6",
+            "9"
+          ],
+          "checks": [
+            "sqrt(9) == 3",
+            "(-3)**2 == 9",
+            "2*3 - 6 == 0"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Vì sao √(A²) = |A|",
+          "body": "**Ví dụ.** a) Tính √((−5)²). b) Rút gọn √((x − 4)²). c) Giải phương trình √(x − 1) = 3.\n\n- a) √((−5)²) = √25 = **5**, không phải −5. Vì √ luôn cho kết quả không âm. Viết gọn: √((−5)²) = |−5| = 5.\n- b) √((x − 4)²) = **|x − 4|**. Nếu x ≥ 4 thì bằng x − 4; nếu x < 4 thì bằng 4 − x.\n- c) ĐK x ≥ 1. Bình phương hai vế: x − 1 = 9 → **x = 10** (thỏa mãn ĐK). Thử: √9 = 3 ✓.\n\n**Vì sao phải có dấu giá trị tuyệt đối?** Bình phương \"xóa dấu\" của số: 5² và (−5)² đều là 25. Khi lấy căn, ta chỉ lấy lại được **độ lớn** 5, không biết dấu ban đầu. Giá trị tuyệt đối chính là \"độ lớn không dấu\".\n\n📝 **Mẹo nhớ:** *Căn của bình phương ra trị tuyệt đối.* Vì sao nhớ được: bình phương làm mất dấu, căn chỉ trả lại phần không âm.\n\n🔎 **Ghi vào vở:** Bỏ dấu |…| phải xét **biểu thức bên trong âm hay dương** (dựa vào ĐK đề cho). Giải √A = B cần B ≥ 0 rồi mới bình phương.",
+          "keyNumbers": [
+            "5",
+            "4"
+          ],
+          "checks": [
+            "sqrt((-5)**2) == 5",
+            "Abs(-5) == 5",
+            "sqrt(10 - 1) == 3"
+          ]
+        }
+      ],
+      "review": [
+        {
+          "key": "why1",
+          "kind": "why",
+          "prompt": "Vì sao √((−5)²) = 5 chứ không phải −5?",
+          "buttons": [
+            "Vì căn bậc hai số học luôn không âm",
+            "Vì căn và bình phương triệt tiêu nhau",
+            "Vì 5 lớn hơn −5"
+          ],
+          "answer": "Vì căn bậc hai số học luôn không âm",
+          "check": "exact"
+        },
+        {
+          "key": "f1",
+          "kind": "formula",
+          "prompt": "√(2x − 8) xác định khi nào?",
+          "buttons": [
+            "x ≥ 4",
+            "x > 4",
+            "x ≥ 8"
+          ],
+          "answer": "x ≥ 4",
+          "check": "exact"
+        }
+      ]
+    },
+    {
+      "code": "T9.8",
+      "grade": 9,
+      "kind": "ban_chat",
+      "ku": "T9.8",
+      "title": "Khai căn với phép nhân và phép chia",
+      "variants": [
+        {
+          "n": 1,
+          "title": "Căn của tích bằng tích các căn",
+          "body": "**Ví dụ.** Tính: a) √(4 · 25); b) √12 · √3; c) viết gọn √50.\n\n- a) √(4 · 25) = √4 · √25 = 2 · 5 = **10** (kiểm: √100 = 10 ✓).\n- b) Gộp lại: √12 · √3 = √(12 · 3) = √36 = **6**.\n- c) **Đưa thừa số ra ngoài:** 50 = 25 · 2 → √50 = √25 · √2 = **5√2**.\n\n**Vì sao √(a · b) = √a · √b (a, b ≥ 0)?** Bình phương vế phải: (√a · √b)² = (√a)² · (√b)² = a · b. Vậy √a · √b là số **không âm** có bình phương bằng ab — đúng định nghĩa của √(ab).\n\n📝 **Mẹo nhớ:** *Tích thì tách được, tách được thì gộp được.* Vì sao nhớ được: √(a · b) và √a · √b là cùng một số, nên tách ra hay gộp lại đều được.\n\n🔎 **Ghi vào vở:** Muốn đưa thừa số ra ngoài căn, tìm **số chính phương lớn nhất** chia hết: 72 = 36 · 2 → √72 = 6√2.",
+          "keyNumbers": [
+            "12",
+            "50"
+          ],
+          "checks": [
+            "sqrt(4*25) == sqrt(4)*sqrt(25)",
+            "sqrt(12)*sqrt(3) == 6",
+            "sqrt(50) == 5*sqrt(2)"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Căn của tổng KHÔNG tách được",
+          "body": "**Ví dụ.** So sánh √(9 + 16) và √9 + √16. Tính √72 : √2.\n\n- √(9 + 16) = √25 = **5**, còn √9 + √16 = 3 + 4 = **7**. Hai số **khác nhau**!\n- Phép chia thì tách được như phép nhân: √72 : √2 = √(72 : 2) = √36 = **6**. Cũng vậy, √(49/4) = √49 / √4 = 7/2.\n\n**Vì sao tổng không tách được?** Thử bình phương: (√9 + √16)² = 9 + 16 + **2 · √9 · √16** = 25 + 24 = 49. Có thêm phần \"2 · √a · √b\" nên không bằng 9 + 16. Đây chính là (a + b)² ≠ a² + b² của lớp 8.\n\n📝 **Mẹo nhớ:** *Nhân, chia đi qua căn được; cộng, trừ thì không.* Vì sao nhớ được: bình phương một tổng sinh thêm phần \"2ab\", còn bình phương một tích thì không.\n\n🔎 **Ghi vào vở:** √(A/B) = √A / √B cần A ≥ 0, **B > 0**. Lỗi hay gặp nhất của chương: viết √(x + 9) = √x + 3.",
+          "keyNumbers": [
+            "9",
+            "16"
+          ],
+          "checks": [
+            "sqrt(9 + 16) == 5",
+            "sqrt(9) + sqrt(16) == 7",
+            "sqrt(72)/sqrt(2) == 6"
+          ]
+        }
+      ],
+      "review": [
+        {
+          "key": "why1",
+          "kind": "why",
+          "prompt": "Vì sao √(9 + 16) không bằng √9 + √16?",
+          "buttons": [
+            "Căn tách được tích, thương; không tách được tổng",
+            "Vì 9 + 16 là số lẻ",
+            "Thật ra hai bên bằng nhau"
+          ],
+          "answer": "Căn tách được tích, thương; không tách được tổng",
+          "check": "exact"
+        },
+        {
+          "key": "m1",
+          "kind": "mini_problem",
+          "prompt": "√18 · √2 bằng bao nhiêu?",
+          "buttons": [
+            "6",
+            "√20",
+            "36"
+          ],
+          "answer": "6",
+          "check": "exact"
+        }
+      ]
+    },
+    {
       "code": "T9.9",
       "grade": 9,
       "kind": "ban_chat",
@@ -1985,6 +2111,498 @@
           "buttons": [],
           "answer": "sqrt(x) + 5",
           "check": "math_check"
+        }
+      ]
+    },
+    {
+      "code": "T9.10",
+      "grade": 9,
+      "kind": "ban_chat",
+      "ku": "T9.10",
+      "title": "Căn bậc ba và căn thức bậc ba",
+      "variants": [
+        {
+          "n": 1,
+          "title": "Cạnh của khối lập phương",
+          "body": "**Ví dụ.** a) Một khối lập phương có thể tích 64 cm³. Cạnh của nó dài bao nhiêu? b) Tính ∛(−27).\n\n- a) Thể tích = cạnh³. Cần số mà **lập phương lên bằng 64**: 4³ = 64 → cạnh = **∛64 = 4 cm**.\n- b) (−3)³ = (−3) · (−3) · (−3) = −27 → **∛(−27) = −3**.\n\n**Vì sao căn bậc ba lấy được của số âm?** Lập phương của số âm **vẫn là số âm** (có 3 thừa số âm, số lẻ). Nên số âm nào cũng có đúng một căn bậc ba (là số âm). Khác hẳn căn bậc hai: không số nào bình phương ra số âm.\n\n**Tính chất.** ∛(a³) = a với **mọi** số a; ∛a xác định với **mọi** a (không cần ĐK a ≥ 0).\n\n📝 **Mẹo nhớ:** *Căn bậc hai đòi không âm; căn bậc ba nhận tất cả.* Vì sao nhớ được: bình phương luôn ≥ 0, còn lập phương giữ nguyên dấu.\n\n🔎 **Ghi vào vở:** Lỗi hay gặp: viết ĐK \"x ≥ 0\" cho ∛x (sai — ∛x xác định với mọi x). Nhớ các lập phương: 1, 8, 27, 64, 125, 216, 343, 512, 729, 1 000.",
+          "keyNumbers": [
+            "64",
+            "27"
+          ],
+          "checks": [
+            "4**3 == 64",
+            "cbrt(64) == 4",
+            "(-3)**3 == -27"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "So sánh bằng cách lập phương",
+          "body": "**Ví dụ.** a) So sánh 3 và ∛25. b) Tính ∛(−8) + ∛125.\n\n- a) Viết 3 dưới dạng căn bậc ba: 3 = ∛27. Vì 27 > 25 nên **∛27 > ∛25**, tức là **3 > ∛25**.\n- b) ∛(−8) = −2 (vì (−2)³ = −8); ∛125 = 5. Tổng: −2 + 5 = **3**.\n\n**Vì sao so sánh được như vậy?** Lập phương **giữ nguyên thứ tự**: a < b thì a³ < b³, và ngược lại (kể cả với số âm). Nên muốn so sánh hai căn bậc ba, chỉ cần so sánh hai số trong căn.\n\n📝 **Mẹo nhớ:** *Muốn so với căn bậc ba, đưa số kia vào trong căn.* Vì sao nhớ được: cùng là ∛ thì số trong căn lớn hơn sẽ lớn hơn.\n\n🔎 **Ghi vào vở:** (∛a)³ = a và ∛(a · b) = ∛a · ∛b — giống căn bậc hai nhưng **không cần** a, b ≥ 0.",
+          "keyNumbers": [
+            "25",
+            "125"
+          ],
+          "checks": [
+            "3**3 == 27",
+            "(-2)**3 == -8",
+            "5**3 == 125",
+            "-2 + 5 == 3"
+          ]
+        }
+      ],
+      "review": [
+        {
+          "key": "why1",
+          "kind": "why",
+          "prompt": "Vì sao ∛(−8) có nghĩa còn √(−8) thì không?",
+          "buttons": [
+            "Vì (−2)³ = −8, mà không số nào bình phương ra −8",
+            "Vì −8 là số chẵn",
+            "Cả hai đều không có nghĩa"
+          ],
+          "answer": "Vì (−2)³ = −8, mà không số nào bình phương ra −8",
+          "check": "exact"
+        },
+        {
+          "key": "m1",
+          "kind": "mini_problem",
+          "prompt": "∛(−125) bằng bao nhiêu?",
+          "buttons": [
+            "−5",
+            "5",
+            "Không xác định"
+          ],
+          "answer": "−5",
+          "check": "exact"
+        }
+      ]
+    },
+    {
+      "code": "T9.11",
+      "grade": 9,
+      "kind": "ban_chat",
+      "ku": "T9.11",
+      "title": "Tỉ số lượng giác của góc nhọn",
+      "variants": [
+        {
+          "n": 1,
+          "title": "Đứng ở góc nhìn ra các cạnh",
+          "body": "**Ví dụ.** Tam giác ABC vuông tại A có AB = 4 cm, AC = 3 cm, BC = 5 cm. Tính sin B, cos B, tan B, cot B.\n\n**Đứng ở đỉnh B nhìn ra:**\n\n- **Cạnh huyền**: cạnh đối diện góc vuông, BC = 5.\n- **Cạnh đối** của góc B: cạnh **không chạm** vào B, là AC = 3.\n- **Cạnh kề** của góc B: cạnh góc vuông **chạm** vào B, là AB = 4.\n\n| Tỉ số | Bằng | Góc B |\n|---|---|---|\n| sin | đối : huyền | 3/5 |\n| cos | kề : huyền | 4/5 |\n| tan | đối : kề | 3/4 |\n| cot | kề : đối | 4/3 |\n\n**Vì sao chỉ phụ thuộc vào góc?** Phóng to tam giác lên gấp đôi (AB = 8, AC = 6, BC = 10), góc B **không đổi** và các tỉ số cũng không đổi: 6/10 = 3/5. Các tam giác vuông có cùng góc nhọn thì **đồng dạng**, nên tỉ số các cạnh như nhau. Vì vậy tỉ số lượng giác là \"dấu vân tay\" của góc.\n\n📝 **Mẹo nhớ:** *Sin đi học, Cos không hư, Tan đoàn kết, Cot kết đoàn.* Vì sao nhớ được: chữ cái đầu của mỗi cặp từ là một phép chia. \"Đi học\" là đối : huyền (sin). \"Không hư\" là kề : huyền (cos). \"Đoàn kết\" là đối : kề (tan). \"Kết đoàn\" là kề : đối (cot).\n\n🔎 **Ghi vào vở:** Luôn **đánh dấu góc đang xét** trên hình trước, rồi mới gọi tên cạnh đối, cạnh kề. Đổi góc là đổi cạnh đối, cạnh kề.",
+          "keyNumbers": [
+            "3",
+            "4",
+            "5"
+          ],
+          "checks": [
+            "3**2 + 4**2 == 5**2",
+            "Rational(3, 5)**2 + Rational(4, 5)**2 == 1"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Hai góc phụ nhau thì đổi vai",
+          "body": "**Ví dụ.** Tam giác ABC vuông tại A. Vì sao sin B = cos C? Tính sin 30°, cos 60°, sin 45°, tan 45°.\n\n**Vì sao sin B = cos C?** B + C = 90° (hai góc **phụ nhau**). Cạnh AC **đối** với góc B nhưng lại **kề** với góc C. Nên sin B = AC/BC = cos C. Tương tự cos B = sin C, tan B = cot C.\n\n**Giá trị đặc biệt — nhìn từ hình quen thuộc:**\n\n- Cắt đôi **tam giác đều** cạnh 2 theo đường cao → tam giác vuông có góc 30°, cạnh đối góc 30° bằng 1, huyền bằng 2 → **sin 30° = 1/2 = cos 60°**.\n- Cắt đôi **hình vuông** theo đường chéo → tam giác vuông cân có góc 45°, hai cạnh góc vuông bằng nhau → **tan 45° = 1**, sin 45° = √2/2.\n\n📝 **Mẹo nhớ:** *Góc phụ nhau thì sin bên này là cos bên kia.* Vì sao nhớ được: cạnh đối của góc này chính là cạnh kề của góc kia.\n\n🔎 **Ghi vào vở:** Bấm máy tính phải để chế độ **độ (D)**. Kiểm nhanh: sin 30° phải ra 0,5; nếu ra số khác là máy đang để sai chế độ.",
+          "keyNumbers": [
+            "30",
+            "60"
+          ],
+          "checks": [
+            "sin(pi/6) == Rational(1, 2)",
+            "cos(pi/3) == Rational(1, 2)",
+            "sin(pi/4) == sqrt(2)/2",
+            "tan(pi/4) == 1"
+          ]
+        }
+      ],
+      "review": [
+        {
+          "key": "why1",
+          "kind": "why",
+          "prompt": "Tam giác ABC vuông tại A. Vì sao sin B = cos C?",
+          "buttons": [
+            "Cạnh đối của góc B là cạnh kề của góc C",
+            "Vì sin và cos luôn bằng nhau",
+            "Vì góc B bằng góc C"
+          ],
+          "answer": "Cạnh đối của góc B là cạnh kề của góc C",
+          "check": "exact"
+        },
+        {
+          "key": "f1",
+          "kind": "formula",
+          "prompt": "Trong tam giác vuông, tan của một góc nhọn bằng?",
+          "buttons": [
+            "Cạnh đối chia cạnh kề",
+            "Cạnh kề chia cạnh đối",
+            "Cạnh đối chia cạnh huyền"
+          ],
+          "answer": "Cạnh đối chia cạnh kề",
+          "check": "exact"
+        }
+      ]
+    },
+    {
+      "code": "T9.12",
+      "grade": 9,
+      "kind": "ban_chat",
+      "ku": "T9.12",
+      "title": "Hệ thức giữa cạnh và góc trong tam giác vuông",
+      "variants": [
+        {
+          "n": 1,
+          "title": "Chiếc thang dựa tường",
+          "body": "**Ví dụ.** Một chiếc thang dài 6 m dựa vào tường, tạo với mặt đất một góc 60°. Chân thang cách tường bao xa? Đỉnh thang cao bao nhiêu (làm tròn đến hàng phần trăm)?\n\nVẽ tam giác vuông: thang là **cạnh huyền** (6 m), góc 60° ở **chân thang**.\n\n- Khoảng cách chân thang đến tường là cạnh **kề** góc 60°: 6 · cos 60° = 6 · 1/2 = **3 m**.\n- Độ cao đỉnh thang là cạnh **đối** góc 60°: 6 · sin 60° = 3√3 **≈ 5,20 m**.\n\n**Vì sao \"cạnh góc vuông = cạnh huyền × sin góc đối\"?** Đây chỉ là định nghĩa viết theo cách khác. sin = đối : huyền. Nhân cả hai vế với cạnh huyền, ta được **đối = huyền · sin**. Tương tự, **kề = huyền · cos**.\n\n📝 **Mẹo nhớ:** *Biết huyền: đối thì nhân sin, kề thì nhân cos.* Vì sao nhớ được: sin và cos đều là \"cạnh góc vuông chia cạnh huyền\", nên nhân ngược lại với cạnh huyền là ra cạnh góc vuông.\n\n🔎 **Ghi vào vở:** Kết quả có căn hoặc số lẻ thì viết dấu **≈** và làm tròn **đúng như đề yêu cầu** (đến m, đến phần mười, phần trăm…).",
+          "keyNumbers": [
+            "6",
+            "60"
+          ],
+          "checks": [
+            "6*cos(pi/3) == 3",
+            "6*sin(pi/3) == 3*sqrt(3)"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Cột cờ và bóng nắng",
+          "body": "**Ví dụ.** Bóng của một cột cờ trên mặt đất dài 8 m. Tia nắng tạo với mặt đất một góc 35°. Tính chiều cao cột cờ (làm tròn đến hàng phần trăm).\n\n**Bước 1 — Vẽ và đánh dấu đúng góc.** Cột cờ đứng thẳng, bóng nằm trên đất, tia nắng nối đỉnh cột với đầu bóng. Góc 35° nằm ở **đầu bóng** (giữa tia nắng và mặt đất).\n\n**Bước 2 — Chọn tỉ số.** Đứng ở góc 35°: chiều cao cột là cạnh **đối**, bóng là cạnh **kề**. Biết kề, cần đối → dùng **tan** (đối : kề).\n\n**Bước 3 — Tính.** Chiều cao = 8 · tan 35° ≈ 8 · 0,7002 **≈ 5,60 m**.\n\n**Vì sao chọn tan mà không phải sin?** Đề không cho cạnh huyền (tia nắng). Sin và cos đều cần huyền; chỉ tan nối thẳng hai cạnh góc vuông.\n\n📝 **Mẹo nhớ:** *Có huyền dùng sin, cos; không có huyền dùng tan.* Vì sao nhớ được: chọn tỉ số chứa **cạnh đã biết** và **cạnh cần tìm**.\n\n🔎 **Ghi vào vở:** Lỗi hay gặp: đặt góc sai chỗ (góc với cột thay vì góc với mặt đất). Đọc kĩ \"góc tạo với **mặt đất**\" hay \"với **cột**\" rồi mới vẽ.",
+          "keyNumbers": [
+            "8",
+            "35"
+          ],
+          "checks": [
+            "Abs(8*tan(35*pi/180) - Rational(56, 10)) < Rational(1, 100)"
+          ]
+        }
+      ],
+      "review": [
+        {
+          "key": "why1",
+          "kind": "why",
+          "prompt": "Vì sao cạnh góc vuông bằng cạnh huyền nhân với sin của góc đối?",
+          "buttons": [
+            "Vì sin = đối : huyền, nhân huyền sang là ra",
+            "Vì sin luôn nhỏ hơn 1",
+            "Vì quy ước như vậy"
+          ],
+          "answer": "Vì sin = đối : huyền, nhân huyền sang là ra",
+          "check": "exact"
+        },
+        {
+          "key": "rec1",
+          "kind": "recognize",
+          "prompt": "Biết bóng cây (cạnh kề) và góc tia nắng với mặt đất, muốn tính chiều cao cây thì dùng tỉ số nào? (chỉ chọn, không cần giải)",
+          "buttons": [
+            "tan",
+            "sin",
+            "cos"
+          ],
+          "answer": "tan",
+          "check": "exact"
+        }
+      ]
+    },
+    {
+      "code": "T9.13",
+      "grade": 9,
+      "kind": "ban_chat",
+      "ku": "T9.13",
+      "title": "Mở đầu về đường tròn",
+      "variants": [
+        {
+          "n": 1,
+          "title": "Compa và chữ \"cách đều\"",
+          "body": "**Ví dụ.** Cho đường tròn (O; 5 cm). Điểm M, N, P có OM = 3 cm, ON = 5 cm, OP = 7 cm. Mỗi điểm nằm ở đâu so với đường tròn?\n\n**Đường tròn là gì?** Khi em quay compa có độ mở 5 cm, đầu chì vẽ ra **mọi điểm cách tâm O đúng 5 cm**. Đường tròn (O; R) chính là tập hợp các điểm cách O **đúng bằng R**.\n\n- OM = 3 < 5 → M nằm **bên trong** đường tròn.\n- ON = 5 = R → N nằm **trên** đường tròn.\n- OP = 7 > 5 → P nằm **bên ngoài** đường tròn.\n\n**Đối xứng:** đường tròn có **tâm đối xứng** là tâm O; **mọi đường kính** đều là trục đối xứng.\n\n📝 **Mẹo nhớ:** *Nằm trên đường tròn = cách tâm đúng bằng bán kính.* Vì sao nhớ được: khi vẽ, compa giữ nguyên độ mở, nên mọi điểm vẽ ra đều cách tâm đúng bằng độ mở đó.\n\n🔎 **Ghi vào vở:** Đường kính = 2 lần bán kính, là dây dài nhất. Muốn biết một điểm có thuộc đường tròn không: tính khoảng cách đến tâm rồi so với R.",
+          "keyNumbers": [
+            "5",
+            "7"
+          ],
+          "checks": [
+            "3 < 5",
+            "7 > 5"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Chứng minh nhiều điểm cùng nằm trên một đường tròn",
+          "body": "**Ví dụ.** a) Chứng minh bốn đỉnh của hình chữ nhật ABCD cùng nằm trên một đường tròn. b) Tam giác vuông có hai cạnh góc vuông 6 cm và 8 cm. Tính bán kính đường tròn đi qua ba đỉnh.\n\n**Ý chính:** muốn nhiều điểm cùng nằm trên một đường tròn, cần tìm **một điểm cách đều tất cả** các điểm đó. Điểm ấy là tâm.\n\n- a) Gọi O là giao điểm hai đường chéo. Hai đường chéo hình chữ nhật **bằng nhau** và **cắt nhau tại trung điểm**, nên OA = OB = OC = OD. Vậy A, B, C, D cùng nằm trên đường tròn tâm O.\n- b) Trong tam giác vuông, **trung điểm cạnh huyền cách đều ba đỉnh**. Cạnh huyền = √(6² + 8²) = 10 cm → bán kính = **5 cm** (đường tròn đường kính là cạnh huyền).\n\n**Vì sao trung điểm cạnh huyền cách đều ba đỉnh?** Ghép hai tam giác vuông giống nhau thành một hình chữ nhật: cạnh huyền là một đường chéo. Như câu a, giao điểm hai đường chéo (trung điểm cạnh huyền) cách đều bốn đỉnh.\n\n📝 **Mẹo nhớ:** *Muốn chứng minh các điểm cùng nằm trên một đường tròn, hãy tìm một điểm cách đều chúng.* Vì sao nhớ được: đường tròn được định nghĩa bằng chữ \"cách đều tâm\".\n\n🔎 **Ghi vào vở:** Thấy **góc vuông nhìn một đoạn thẳng** → nghĩ ngay đến đường tròn có **đường kính là đoạn đó**.",
+          "keyNumbers": [
+            "6",
+            "8"
+          ],
+          "checks": [
+            "sqrt(6**2 + 8**2) == 10",
+            "10/2 == 5"
+          ]
+        }
+      ],
+      "review": [
+        {
+          "key": "why1",
+          "kind": "why",
+          "prompt": "Muốn chứng minh 4 điểm cùng nằm trên một đường tròn, ta cần tìm gì?",
+          "buttons": [
+            "Một điểm cách đều cả 4 điểm",
+            "Một đường thẳng đi qua 4 điểm",
+            "Hai góc bằng nhau"
+          ],
+          "answer": "Một điểm cách đều cả 4 điểm",
+          "check": "exact"
+        },
+        {
+          "key": "m1",
+          "kind": "mini_problem",
+          "prompt": "Tam giác vuông có cạnh huyền 12 cm. Bán kính đường tròn đi qua ba đỉnh là bao nhiêu?",
+          "buttons": [
+            "6 cm",
+            "12 cm",
+            "24 cm"
+          ],
+          "answer": "6 cm",
+          "check": "exact"
+        }
+      ]
+    },
+    {
+      "code": "T9.14",
+      "grade": 9,
+      "kind": "ban_chat",
+      "ku": "T9.14",
+      "title": "Cung và dây của đường tròn",
+      "variants": [
+        {
+          "n": 1,
+          "title": "Góc ở tâm đo cung",
+          "body": "**Ví dụ.** Trên đường tròn (O), góc AOB = 70°. Tính số đo cung nhỏ AB và cung lớn AB.\n\n**Góc ở tâm** là góc có đỉnh trùng với tâm O. Hai cạnh của nó chia đường tròn thành **hai cung**: cung nhỏ (nằm trong góc) và cung lớn (phần còn lại).\n\n- Số đo cung nhỏ = số đo góc ở tâm: **cung nhỏ AB = 70°**.\n- Cả đường tròn là 360°: **cung lớn AB = 360° − 70° = 290°**.\n\n**Vì sao đo cung bằng độ?** Hãy nghĩ đến **mặt đồng hồ**: cả vòng là 360°, chia 12 số nên mỗi khoảng giữa hai số là 30°. Lúc 3 giờ, hai kim tạo góc ở tâm 90°, chắn cung 90° (một phần tư vòng). Cung \"to\" hay \"nhỏ\" đo bằng **phần của cả vòng** mà nó chiếm, không đo bằng cm.\n\n📝 **Mẹo nhớ:** *Cung nhỏ = góc ở tâm; cung lớn = 360° trừ cung nhỏ.* Vì sao nhớ được: hai cung ghép lại vừa đủ một vòng tròn.\n\n🔎 **Ghi vào vở:** Đề nói \"cung AB\" mà không nói gì thêm thì thường là **cung nhỏ**. Vẽ hình để thấy rõ đang xét cung nào.",
+          "keyNumbers": [
+            "70",
+            "290"
+          ],
+          "checks": [
+            "360 - 70 == 290",
+            "360/12*3 == 90"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Đường kính vuông góc với dây",
+          "body": "**Ví dụ.** Cho đường tròn (O; 5 cm) và dây AB = 8 cm. Tính khoảng cách từ O đến dây AB.\n\n- Kẻ OH ⊥ AB tại H. **Đường kính (hay bán kính) vuông góc với dây thì đi qua trung điểm của dây**, nên H là trung điểm AB: AH = 4 cm.\n- Tam giác OHA vuông tại H: OH = √(OA² − AH²) = √(25 − 16) = **3 cm**.\n\n**Vì sao H là trung điểm?** OA = OB = R nên tam giác OAB **cân tại O**. Trong tam giác cân, đường cao kẻ từ đỉnh cũng là **đường trung tuyến**, nên chia đôi cạnh đáy AB.\n\n**So sánh dây:** dây càng **gần tâm** thì càng **dài**; đường kính đi qua tâm (khoảng cách 0) là dây **dài nhất**.\n\n📝 **Mẹo nhớ:** *Bài dây cung: kẻ vuông góc từ tâm, được tam giác vuông với cạnh huyền là bán kính.* Vì sao nhớ được: bán kính, nửa dây và khoảng cách đến tâm luôn tạo thành tam giác vuông.\n\n🔎 **Ghi vào vở:** Công thức nhớ: R² = d² + (nửa dây)², với d là khoảng cách từ tâm đến dây.",
+          "keyNumbers": [
+            "5",
+            "8"
+          ],
+          "checks": [
+            "sqrt(5**2 - 4**2) == 3"
+          ]
+        }
+      ],
+      "review": [
+        {
+          "key": "why1",
+          "kind": "why",
+          "prompt": "Vì sao đường kính vuông góc với dây AB thì đi qua trung điểm của AB?",
+          "buttons": [
+            "Vì tam giác OAB cân tại O",
+            "Vì dây luôn bằng bán kính",
+            "Vì đường kính dài nhất"
+          ],
+          "answer": "Vì tam giác OAB cân tại O",
+          "check": "exact"
+        },
+        {
+          "key": "m1",
+          "kind": "mini_problem",
+          "prompt": "Góc ở tâm AOB = 110°. Số đo cung lớn AB là bao nhiêu?",
+          "buttons": [
+            "250°",
+            "110°",
+            "70°"
+          ],
+          "answer": "250°",
+          "check": "exact"
+        }
+      ]
+    },
+    {
+      "code": "T9.15",
+      "grade": 9,
+      "kind": "ban_chat",
+      "ku": "T9.15",
+      "title": "Độ dài cung, diện tích hình quạt, hình vành khuyên",
+      "variants": [
+        {
+          "n": 1,
+          "title": "Cung là một phần của cả vòng",
+          "body": "**Ví dụ.** Đường tròn bán kính 6 cm. Tính độ dài cung 60° và diện tích hình quạt 60° (làm tròn đến hàng phần trăm).\n\n**Vì sao có công thức πRn/180?** Cả vòng tròn dài 2πR và ứng với 360°. Chia đều cho 360 → **mỗi độ** ứng với 2πR/360 = πR/180. Cung **n°** thì gấp n lần:\n\nl = πRn/180 = π · 6 · 60/180 = **2π ≈ 6,28 cm**.\n\n**Hình quạt** cũng vậy: cả hình tròn có diện tích πR² ứng với 360°, nên quạt n° là:\n\nS = πR²n/360 = π · 36 · 60/360 = **6π ≈ 18,85 cm²**.\n\n(Cung 60° là **1/6 vòng**, nên cung bằng 1/6 chu vi, quạt bằng 1/6 hình tròn.)\n\n📝 **Mẹo nhớ:** *Cung n° = n/360 của cả vòng.* Vì sao nhớ được: độ dài cung và diện tích quạt tỉ lệ với số đo cung.\n\n🔎 **Ghi vào vở:** Thêm một công thức nhanh: S quạt = l · R / 2. Để π trong kết quả đến bước cuối mới thay π ≈ 3,14 (hoặc bấm máy) để đỡ sai số.",
+          "keyNumbers": [
+            "6",
+            "60"
+          ],
+          "checks": [
+            "pi*6*60/180 == 2*pi",
+            "pi*6**2*60/360 == 6*pi",
+            "(2*pi)*6/2 == 6*pi"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Vành khuyên = hình tròn lớn bỏ hình tròn nhỏ",
+          "body": "**Ví dụ.** Một chiếc đĩa có bán kính ngoài 5 cm, lỗ tròn ở giữa bán kính 2 cm (cùng tâm). Tính diện tích phần đĩa (làm tròn đến hàng phần trăm).\n\n- Hình tròn lớn: π · 5² = 25π. Lỗ ở giữa: π · 2² = 4π.\n- Phần đĩa (hình vành khuyên) = 25π − 4π = **21π ≈ 65,97 cm²**.\n\n**Công thức.** S vành khuyên = π(R² − r²).\n\n**Vì sao không phải π(R − r)²?** π(R − r)² = π · 3² = 9π là diện tích một hình tròn bán kính 3 — nhỏ hơn rất nhiều. Vành khuyên là **cả hình tròn lớn bỏ đi lỗ**, nên phải trừ **hai diện tích**, không trừ hai bán kính.\n\n📝 **Mẹo nhớ:** *Trừ diện tích, không trừ bán kính.* Vì sao nhớ được: phần còn lại là \"hình lớn bỏ hình nhỏ\", mỗi hình có diện tích riêng.\n\n🔎 **Ghi vào vở:** Đổi đơn vị trước khi tính (đường kính 1 m = 100 cm; đề cho đường kính thì bán kính là một nửa). Làm tròn đúng như đề yêu cầu.",
+          "keyNumbers": [
+            "5",
+            "2"
+          ],
+          "checks": [
+            "pi*(5**2 - 2**2) == 21*pi",
+            "(5 - 2)**2 != 5**2 - 2**2"
+          ]
+        }
+      ],
+      "review": [
+        {
+          "key": "why1",
+          "kind": "why",
+          "prompt": "Vì sao độ dài cung n° bằng πRn/180?",
+          "buttons": [
+            "Cả vòng 2πR ứng với 360°, lấy n phần",
+            "Vì π ≈ 3,14",
+            "Vì 180 là nửa vòng tròn"
+          ],
+          "answer": "Cả vòng 2πR ứng với 360°, lấy n phần",
+          "check": "exact"
+        },
+        {
+          "key": "f1",
+          "kind": "formula",
+          "prompt": "Diện tích hình vành khuyên giới hạn bởi hai đường tròn cùng tâm bán kính R và r (R > r) là?",
+          "buttons": [
+            "π(R² − r²)",
+            "π(R − r)²",
+            "2π(R − r)"
+          ],
+          "answer": "π(R² − r²)",
+          "check": "exact"
+        }
+      ]
+    },
+    {
+      "code": "T9.16",
+      "grade": 9,
+      "kind": "ban_chat",
+      "ku": "T9.16",
+      "title": "Vị trí tương đối của đường thẳng và đường tròn",
+      "variants": [
+        {
+          "n": 1,
+          "title": "So khoảng cách d với bán kính R",
+          "body": "**Ví dụ.** Đường tròn (O; 5 cm). Gọi d là khoảng cách từ O đến đường thẳng a. Đường thẳng a và đường tròn có mấy điểm chung khi d = 3 cm, d = 5 cm, d = 8 cm?\n\n| Khoảng cách | Vị trí | Số điểm chung |\n|---|---|---|\n| d = 3 < R | Cắt nhau | 2 |\n| d = 5 = R | **Tiếp xúc** (a là tiếp tuyến) | 1 |\n| d = 8 > R | Không giao nhau | 0 |\n\n**Vì sao tiếp tuyến vuông góc với bán kính?** Kẻ OH ⊥ a tại H. Đoạn vuông góc OH là **đoạn ngắn nhất** từ O đến đường thẳng a; mọi điểm khác của a đều xa O hơn. Khi OH = R thì chỉ có H nằm trên đường tròn, các điểm khác đều ở ngoài → a chỉ chạm đường tròn tại H, và **a ⊥ OH**.\n\n📝 **Mẹo nhớ:** *Nhỏ hơn R thì cắt, bằng R thì chạm, lớn hơn R thì xa.* Vì sao nhớ được: chỉ cần so điểm gần nhất của đường thẳng (chân đường vuông góc) với bán kính.\n\n🔎 **Ghi vào vở — chứng minh một đường là tiếp tuyến:** chỉ ra nó **đi qua một điểm của đường tròn** và **vuông góc với bán kính** tại điểm đó.",
+          "keyNumbers": [
+            "5",
+            "8"
+          ],
+          "checks": [
+            "3 < 5",
+            "8 > 5"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Hai tiếp tuyến cắt nhau tại một điểm",
+          "body": "**Ví dụ.** Từ điểm M nằm ngoài đường tròn (O; 3 cm), với OM = 5 cm, kẻ hai tiếp tuyến MA, MB (A, B là tiếp điểm). Tính MA và MB.\n\n- MA là tiếp tuyến nên **MA ⊥ OA**: tam giác OAM vuông tại A.\n- MA = √(OM² − OA²) = √(25 − 9) = **4 cm**. Tương tự MB = 4 cm.\n\n**Tính chất hai tiếp tuyến cắt nhau:** MA = MB; tia MO là **tia phân giác** của góc AMB; tia OM là tia phân giác của góc AOB.\n\n**Vì sao MA = MB?** Hai tam giác vuông OAM và OBM có **chung cạnh huyền OM** và OA = OB = R, nên chúng **bằng nhau** → MA = MB, và các góc tương ứng bằng nhau (vì vậy MO chia đôi góc).\n\n📝 **Mẹo nhớ:** *Có tiếp tuyến là có góc vuông.* Vì sao nhớ được: tiếp tuyến luôn vuông góc với bán kính ở tiếp điểm — nối tâm với tiếp điểm là thấy ngay tam giác vuông.\n\n🔎 **Ghi vào vở:** Bài tiếp tuyến: việc đầu tiên là **nối tâm với tiếp điểm** và đánh dấu góc vuông lên hình.",
+          "keyNumbers": [
+            "3",
+            "5"
+          ],
+          "checks": [
+            "sqrt(5**2 - 3**2) == 4"
+          ]
+        }
+      ],
+      "review": [
+        {
+          "key": "why1",
+          "kind": "why",
+          "prompt": "Vì sao tiếp tuyến vuông góc với bán kính tại tiếp điểm?",
+          "buttons": [
+            "Đoạn vuông góc là đoạn ngắn nhất từ O, và bằng R",
+            "Vì tiếp tuyến luôn nằm ngang",
+            "Vì mọi bán kính bằng nhau"
+          ],
+          "answer": "Đoạn vuông góc là đoạn ngắn nhất từ O, và bằng R",
+          "check": "exact"
+        },
+        {
+          "key": "m1",
+          "kind": "mini_problem",
+          "prompt": "Đường tròn bán kính 6 cm, khoảng cách từ tâm đến đường thẳng d là 6 cm. Đường thẳng d và đường tròn ở vị trí nào?",
+          "buttons": [
+            "Tiếp xúc",
+            "Cắt nhau",
+            "Không giao nhau"
+          ],
+          "answer": "Tiếp xúc",
+          "check": "exact"
+        }
+      ]
+    },
+    {
+      "code": "T9.17",
+      "grade": 9,
+      "kind": "ban_chat",
+      "ku": "T9.17",
+      "title": "Vị trí tương đối của hai đường tròn",
+      "variants": [
+        {
+          "n": 1,
+          "title": "So đoạn nối tâm với R + r và R − r",
+          "body": "**Ví dụ.** Hai đường tròn (O; 5 cm) và (O'; 3 cm). Xét vị trí của chúng khi OO' lần lượt bằng 9 cm, 8 cm, 6 cm, 2 cm, 1 cm.\n\nTính trước: R + r = 8, R − r = 2.\n\n| OO' | So sánh | Vị trí | Điểm chung |\n|---|---|---|---|\n| 9 | OO' > R + r | Ở ngoài nhau | 0 |\n| 8 | OO' = R + r | **Tiếp xúc ngoài** | 1 |\n| 6 | R − r < OO' < R + r | Cắt nhau | 2 |\n| 2 | OO' = R − r | **Tiếp xúc trong** | 1 |\n| 1 | OO' < R − r | Đựng nhau | 0 |\n\n**Vì sao tiếp xúc ngoài thì OO' = R + r?** Khi hai đường tròn chạm nhau từ bên ngoài, **tiếp điểm nằm trên đường nối tâm**. Đoạn OO' gồm bán kính R (từ O đến tiếp điểm) nối tiếp bán kính r (từ tiếp điểm đến O'), nên OO' = R + r.\n\n📝 **Mẹo nhớ:** *Tổng cho tiếp xúc ngoài, hiệu cho tiếp xúc trong.* Vì sao nhớ được: chạm ngoài thì hai bán kính nối tiếp nhau; chạm trong thì bán kính nhỏ nằm chồng lên bán kính lớn.\n\n🔎 **Ghi vào vở:** Luôn tính **R + r và R − r trước**, rồi mới đặt OO' vào bảng so sánh.",
+          "keyNumbers": [
+            "5",
+            "3"
+          ],
+          "checks": [
+            "5 + 3 == 8",
+            "5 - 3 == 2"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Kéo một đường tròn lại gần dần",
+          "body": "**Ví dụ.** Đường tròn (O; 4 cm) đứng yên. Đường tròn (O'; 1 cm) bắt đầu ở xa rồi được kéo dần lại gần, tâm O' đi thẳng về phía O. Lần lượt xảy ra những vị trí nào?\n\n- OO' = 7: còn **ở ngoài nhau**.\n- OO' = **5** (= 4 + 1): vừa **chạm ngoài** — tiếp xúc ngoài.\n- OO' = 4: đã **cắt nhau** tại 2 điểm.\n- OO' = **3** (= 4 − 1): đường tròn nhỏ lọt vào trong, **chạm trong** — tiếp xúc trong.\n- OO' = 1: nằm **hẳn bên trong** — đựng nhau. OO' = 0: hai đường tròn **cùng tâm**.\n\n**Vì sao thứ tự luôn như vậy?** Đường tròn nhỏ đi vào từ bên ngoài: phải chạm vào mép ngoài trước (khoảng cách = tổng), rồi đi xuyên qua (cắt), rồi chạm mép trong (khoảng cách = hiệu), cuối cùng nằm gọn bên trong.\n\n📝 **Mẹo nhớ:** *Xa – chạm ngoài – cắt – chạm trong – đựng.* Vì sao nhớ được: đó đúng là thứ tự khi kéo hai đường tròn lại gần nhau.\n\n🔎 **Ghi vào vở:** Lỗi hay gặp: nhầm R + r với R − r. Hỏi lại mình: \"đường tròn nhỏ đang ở **ngoài** hay **trong**?\" — ngoài dùng tổng, trong dùng hiệu.",
+          "keyNumbers": [
+            "4",
+            "1"
+          ],
+          "checks": [
+            "4 + 1 == 5",
+            "4 - 1 == 3"
+          ]
+        }
+      ],
+      "review": [
+        {
+          "key": "why1",
+          "kind": "why",
+          "prompt": "Hai đường tròn tiếp xúc ngoài. Vì sao đoạn nối tâm OO' = R + r?",
+          "buttons": [
+            "Đường nối tâm đi qua tiếp điểm, gồm hai bán kính",
+            "Vì hai đường tròn bằng nhau",
+            "Vì R lớn hơn r"
+          ],
+          "answer": "Đường nối tâm đi qua tiếp điểm, gồm hai bán kính",
+          "check": "exact"
+        },
+        {
+          "key": "m1",
+          "kind": "mini_problem",
+          "prompt": "R = 7 cm, r = 2 cm, OO' = 5 cm. Hai đường tròn ở vị trí nào?",
+          "buttons": [
+            "Tiếp xúc trong",
+            "Tiếp xúc ngoài",
+            "Cắt nhau"
+          ],
+          "answer": "Tiếp xúc trong",
+          "check": "exact"
         }
       ]
     }

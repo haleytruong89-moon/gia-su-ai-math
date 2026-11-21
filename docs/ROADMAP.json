@@ -2,7 +2,7 @@
   "schema": 1,
   "project": "Gia sư AI Toán",
   "updated": "2026-11-21",
-  "updatedNote": "Lớp 6 đủ thẻ HK1. Lớp 9: #23 đã merge. Chờ duyệt: #24 (thẻ lớp 9 đợt 4), #25 (sửa lời 26 thẻ đã merge)",
+  "updatedNote": "Đủ thẻ HK1 cả hai lớp (#21–#24 đã merge). Chờ duyệt: #25 (sửa lời 26 thẻ đã merge). Tiếp: G6d bài hình",
   "vision": {
     "oneLiner": "Một \"cô\" gia sư AI giúp 2 con tự học Toán buổi chiều: gỡ chỗ kẹt bằng câu hỏi gợi mở, không đưa lời giải bài gốc, tối bố mẹ đọc báo cáo 5 phút.",
     "problem": "Buổi chiều 2 con có nhiều thời gian tự học nhưng không có người lớn. Bố mẹ có khoảng 2 giờ buổi tối, gia sư người 2 buổi/tuần. Tốc độ tiến bộ do giờ tự học buổi chiều quyết định.",
@@ -534,6 +534,11 @@
         },
         {
           "repo": "gia-su",
+          "number": 24,
+          "status": "merged"
+        },
+        {
+          "repo": "gia-su",
           "number": 25,
           "status": "open"
         }
@@ -1055,7 +1060,15 @@
     },
     {
       "date": "2026-11-21",
+      "text": "G6c đợt 4: 10 thẻ lớp 9 Chương 3–5 (T9.7, T9.8, T9.10–T9.17: căn, lượng giác, đường tròn), PR #24 — merge = bố mẹ duyệt; cùng đợt 3 là đủ thẻ HK1 lớp 9"
+    },
+    {
+      "date": "2026-11-21",
       "text": "Phụ huynh góp ý lời thẻ còn lủng củng → 5 quy tắc viết; sửa lời 26 thẻ đã merge (PR #25), sửa trong #23, #24; dòng máy kiểm ẩn khỏi bản xem GitHub"
+    },
+    {
+      "date": "2026-11-21",
+      "text": "Phụ huynh merge #24 — đủ thẻ HK1 cả hai lớp (42 thẻ)"
     },
     {
       "date": "2026-11-21",
