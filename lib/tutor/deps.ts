@@ -9,6 +9,7 @@ import { fakeAllowed, fakeClient } from "@/lib/tutor/fakeClient";
 import { readBody } from "@/lib/tutor/form";
 import type { Deps } from "@/lib/tutor/handlers";
 import { loadLayers, promptVersion } from "@/lib/tutor/layers";
+import type { ModelClient } from "@/lib/tutor/turn";
 
 export async function liveDeps(): Promise<Deps> {
   const env = serverEnv();
@@ -25,6 +26,12 @@ export async function liveDeps(): Promise<Deps> {
     models: { main: env.TUTOR_MODEL_MAIN, strong: env.TUTOR_MODEL_STRONG, light: env.TUTOR_MODEL_LIGHT },
     classify: true, // G5
   };
+}
+
+/** The model client + main model, for server work outside a child's turn (G7b rule drafts). */
+export function liveModel(): { client: ModelClient; main: string } {
+  const env = serverEnv();
+  return { client: fakeAllowed(process.env) ? fakeClient() : realClient(env.ANTHROPIC_API_KEY), main: env.TUTOR_MODEL_MAIN };
 }
 
 type Handler = (d: Deps, body: unknown) => Promise<{ status: number; json: unknown }>;

@@ -9,7 +9,8 @@ import type { InputKind } from "@/lib/rules/events";
 import type { HintLevel } from "@/lib/rules/hints";
 import { deleteAfterVn } from "@/lib/rules/photo";
 import { syncAttention } from "@/lib/report/attentionSync";
-import { bridgeTurnsOf, checklistOf, flagsOf, usableSibling, type FoundMessage, type HistoryItem, type ProblemRow, type ProblemStatus, type StoredReply, type StuckKind, type TutorRepo } from "@/lib/tutor/repo";
+import { activeRules, type RuleRow } from "@/lib/rules/teachingRules";
+import { bridgeTurnsOf, checklistOf, flagsOf, RATING_EDIT_MS, RATING_OUTCOMES, usableSibling, type FoundMessage, type HistoryItem, type ProblemRow, type ProblemStatus, type StoredReply, type StuckKind, type TutorRepo } from "@/lib/tutor/repo";
 
 const UNIQUE_VIOLATION = "23505";
 
@@ -61,7 +62,7 @@ export function supabaseRepo(db: SupabaseClient = createAdminClient(), strongMod
       }
       const { data, error: e2 } = await t().from("study_sessions").insert({
         family_id: a.actor.familyId, child_id: a.actor.userId, device: a.device, date_vn: a.dateVn,
-        profile_version: a.actor.profileVersion, prompt_version: a.promptVersion, model_main: a.modelMain, created_by: a.actor.userId,
+        profile_version: a.actor.profileVersion, rules_version: a.rulesVersion, prompt_version: a.promptVersion, model_main: a.modelMain, created_by: a.actor.userId,
       }).select("id").single();
       if (e2?.code === UNIQUE_VIOLATION) return this.openSession(a); // a parallel tap opened it first
       if (e2 || !data) fail("openSession.insert", e2);
@@ -304,6 +305,106 @@ export function supabaseRepo(db: SupabaseClient = createAdminClient(), strongMod
     async syncAttention(a) {
       await syncAttention(db, a.familyId, a.childId, a.dateVn, a.now);
     },
+
+    async childRules(childId) {
+      const { data, error } = await t().from("teaching_rules").select("id, status, version, text, source_key")
+        .eq("child_id", childId).is("deleted_at", null).order("created_at", { ascending: true });
+      if (error) fail("childRules", error);
+      return (data ?? []).map((r) => ({ id: r.id as string, status: r.status as RuleRow["status"], version: r.version as number,
+        text: r.text as string, sourceKey: (r.source_key as string | null) ?? null }));
+    },
+
+    async rulesForSession(sessionId, childId) {
+      const { data: s, error } = await t().from("study_sessions").select("rules_version")
+        .eq("id", sessionId).eq("child_id", childId).maybeSingle();
+      if (error) fail("rulesForSession", error);
+      if (!s) return [];
+      return activeRules(await this.childRules(childId), (s.rules_version as number | null) ?? 0);
+    },
+
+    async proposeRule(a) {
+      const { error } = await t().from("teaching_rules").insert({
+        family_id: a.familyId, child_id: a.childId, text: a.text, status: "proposed", version: 0, source: a.source,
+        source_key: a.sourceKey, source_ids: a.sourceIds, created_at: a.now.toISOString(), updated_at: a.now.toISOString(),
+      });
+      if (error) fail("proposeRule", error);
+    },
+
+    async endSession(a) {
+      const { data: s, error } = await t().from("study_sessions").select("id, status")
+        .eq("id", a.sessionId).eq("child_id", a.actor.userId).is("deleted_at", null).maybeSingle();
+      if (error) fail("endSession.read", error);
+      if (!s) return "not_found";
+      if (s.status !== "active") return "already";
+      const at = a.now.toISOString();
+      const { data: done, error: e2 } = await t().from("study_sessions").update({ status: "ended", ended_at: at, updated_at: at })
+        .eq("id", a.sessionId).eq("status", "active").select("id");
+      if (e2) fail("endSession.update", e2);
+      if (!done?.length) return "already";
+      const { error: e3 } = await t().from("problems").update({ status: "timed_out", closed_at: at, updated_at: at })
+        .eq("session_id", a.sessionId).eq("status", "in_progress");
+      if (e3) fail("endSession.problems", e3);
+      return "ended";
+    },
+
+    async saveRating(a) {
+      const { data: s, error } = await t().from("study_sessions").select("id")
+        .eq("id", a.sessionId).eq("child_id", a.actor.userId).is("deleted_at", null).maybeSingle();
+      if (error) fail("saveRating.session", error);
+      if (!s) return "not_found";
+      const { data: old, error: e2 } = await t().from("ratings").select("id, created_at").eq("session_id", a.sessionId).maybeSingle();
+      if (e2) fail("saveRating.read", e2);
+      if (old) {
+        if (a.now.getTime() - new Date(old.created_at as string).getTime() > RATING_EDIT_MS) return "already";
+        const { error: e3 } = await t().from("ratings").update({ face: a.face, reasons: a.reasons, comment: a.comment }).eq("id", old.id as string);
+        if (e3) fail("saveRating.update", e3);
+        return "updated";
+      }
+      const { error: e4 } = await t().from("ratings").insert({
+        family_id: a.actor.familyId, child_id: a.actor.userId, session_id: a.sessionId, face: a.face, reasons: a.reasons, comment: a.comment,
+        created_at: a.now.toISOString(),
+      });
+      if (e4?.code === UNIQUE_VIOLATION) return "already"; // two taps at once
+      if (e4) fail("saveRating.insert", e4);
+      return "saved";
+    },
+
+    async sessionRated(sessionId, childId) {
+      const { count, error } = await t().from("ratings").select("id", { count: "exact", head: true }).eq("session_id", sessionId).eq("child_id", childId);
+      if (error) fail("sessionRated", error);
+      return (count ?? 0) > 0;
+    },
+
+    async latestRatings(childId, n) {
+      const { data, error } = await t().from("ratings").select("id, face, reasons")
+        .eq("child_id", childId).order("created_at", { ascending: false }).limit(n);
+      if (error) fail("latestRatings", error);
+      return (data ?? []).map((r) => ({ id: r.id as string, face: r.face as string, reasons: (r.reasons as string[] | null) ?? [] }));
+    },
+
+    async ratingState(problemId, childId) {
+      if (!/^[0-9a-f-]{36}$/i.test(problemId)) return null;
+      const { data: p, error } = await t().from("problems").select("id, session_id")
+        .eq("id", problemId).eq("child_id", childId).is("deleted_at", null).maybeSingle();
+      if (error) fail("ratingState.problem", error);
+      if (!p) return null;
+      const [sess, siblings, rating] = await Promise.all([
+        t().from("study_sessions").select("status").eq("id", p.session_id as string).maybeSingle(),
+        t().from("problems").select("id, status, created_at").eq("session_id", p.session_id as string).is("deleted_at", null).order("created_at", { ascending: true }),
+        t().from("ratings").select("id", { count: "exact", head: true }).eq("session_id", p.session_id as string),
+      ]);
+      if (sess.error) fail("ratingState.session", sess.error);
+      if (siblings.error) fail("ratingState.problems", siblings.error);
+      if (rating.error) fail("ratingState.rating", rating.error);
+      const list = siblings.data ?? [];
+      const mine = list.findIndex((x) => x.id === problemId);
+      return {
+        sessionId: p.session_id as string,
+        sessionStatus: (sess.data?.status as "active" | "ended" | "abandoned" | undefined) ?? "active",
+        rated: (rating.count ?? 0) > 0,
+        earlierEnded: list.slice(0, Math.max(mine, 0)).some((x) => RATING_OUTCOMES.includes(x.status as ProblemStatus)),
+      };
+    },
   };
 }
 
@@ -314,7 +415,7 @@ const monthOf = (now: Date) => `${now.toISOString().slice(0, 7)}-01`;
  * TODO(G7): read-then-write can lose a cent when both children send at the same instant; G7 moves
  * this into an SQL function in the study-launcher repo (the cap check also reads model_calls).
  */
-async function addUsage(db: SupabaseClient, familyId: string, now: Date, cost: number) {
+export async function addUsage(db: SupabaseClient, familyId: string, now: Date, cost: number) {
   const month = monthOf(now);
   const t = db.schema("tutor");
   const { data, error } = await t.from("usage_monthly").select("cost_usd").eq("family_id", familyId).eq("month", month).maybeSingle();

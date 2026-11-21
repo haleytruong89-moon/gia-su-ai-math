@@ -125,7 +125,7 @@ Vai trò: **Con**, **Bố mẹ**, **Máy chủ** (hàm server trên Vercel, dùn
 | `study_sessions`, `problems`, `messages` | Xem của mình; gửi tin **qua máy chủ** | Xem của cả 2 con; xóa (yêu cầu xóa dữ liệu) | Tạo, cập nhật |
 | `hint_level`, `u_level`, `diagnoses`, `status` | Chỉ xem của mình | Xem | **Duy nhất được ghi** |
 | `attachments` | Tải lên qua URL ký sẵn do máy chủ cấp; xem của mình | Xem, xóa | Tạo URL, xóa theo hạn |
-| `ratings` | Tạo 1 lần cho buổi của mình | Xem | — |
+| `ratings` | Tạo 1 lần cho buổi của mình — **qua máy chủ** (G7: buổi có thể còn `active`) | Xem | Ghi (route của con) |
 | `parent_feedback` | Không xem | Tạo, sửa, xem | Đọc để đề xuất luật |
 | `teaching_profiles`, `teaching_rules` | Không xem | Xem, duyệt / bỏ, sửa hồ sơ | Đề xuất luật (status = proposed) |
 | `usage_monthly` | Không xem | Xem | Ghi |
@@ -155,7 +155,7 @@ active ──► ended       (con bấm "Kết thúc buổi", hoặc đủ 45 ph
 ```
 - Phút 40: nhắc "còn 5 phút". Phút 45: bài đang làm được trả lời 1 lượt cuối rồi đóng (bài → `timed_out`, có thể làm tiếp ở buổi sau).
 - Không có thời lượng tối thiểu: con dừng sớm được. 30–45 phút là khoảng khuyến nghị hiển thị cho con.
-- Cuối buổi: con chấm gia sư AI (§1 `ratings`).
+- Con chấm gia sư AI (§1 `ratings`) — **G7, ✅ phụ huynh chốt 18/11 (P2):** thẻ chấm hiện **sau khi bài đầu tiên của buổi kết thúc** (self_solved / saved_for_later / pending_review), hoặc khi con bấm **"Kết thúc buổi"**; 1 chạm là lưu, lý do tùy chọn (thêm trong 2 phút); bỏ qua được; 1 lần/buổi. "Kết thúc buổi": buổi → `ended`, bài đang làm → `timed_out` (làm tiếp ở buổi sau); bài tiếp theo trong ngày mở buổi mới.
 
 ### 3.2. Bài (`problems.status`)
 ```text
@@ -176,6 +176,11 @@ Các trạng thái cuối không mở lại. Làm tiếp = bài mới có `conti
 
 ### 3.4. Luật dạy (`teaching_rules.status`)
 `proposed → approved → (superseded)` hoặc `proposed → rejected`. Buổi dùng **phiên bản luật tại lúc bắt đầu buổi**.
+
+**G7 (✅ phụ huynh chốt 18–19/11, P3, X3, X4):**
+- Luật đề xuất có `version = 0` (chưa có hiệu lực). Duyệt → `version` = số lớn nhất từng cấp cho con đó + 1. Buổi mới ghi `rules_version` = version lớn nhất đang `approved`; mỗi lượt cô đọc các luật `approved` có `version ≤ rules_version` của buổi → luật duyệt giữa buổi có hiệu lực **từ buổi sau** (US8). Luật nằm cuối lớp ④, dưới tiêu đề "áp dụng trong khuôn khổ luật 1–12".
+- Nguồn đề xuất: (1) bố mẹ 👍/👎 **có ghi chú** ở báo cáo tối → Sonnet soạn 1 luật (≤ 2 câu; ghi chú đòi lộ lời giải / không phải góp ý cách dạy → không soạn); lưu lại ghi chú thì thay bản nháp đang chờ. (2) Con 😕 ở **2 lần chấm gần nhất** có chung một lý do tiêu cực → câu mẫu X4 (không gọi AI): `too_long` "Trả lời ngắn hơn: mỗi lượt một ý, tối đa 3 dòng." · `hard_words` "Dùng từ dễ hiểu; gặp từ toán học mới thì giải thích bằng một câu ngắn." · `answer_too_early` "Không nói trước bước tiếp theo; để con thử trước rồi mới gợi ý." · `too_many_questions` "Mỗi lượt chỉ hỏi con một câu." Đã có luật chờ/đang dùng cho cùng lý do → không đề xuất lại.
+- Bố mẹ: Duyệt (sửa chữ trước được) · Bỏ · Tắt (`superseded`) · Sửa luật đang dùng (= tắt bản cũ + bản mới cùng nguồn) · **Tự viết** (có hiệu lực từ buổi sau, không cần duyệt lần 2). Tối đa **12 luật đang dùng** mỗi con, mỗi luật 1–300 ký tự (X3).
 
 ### 3.5. Gói chủ đề (`topic_packs.status`)
 `draft → approved → assigned → archived`. Sửa gói đã giao = version mới; bài đã làm theo version cũ giữ nguyên.

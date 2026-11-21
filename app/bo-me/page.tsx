@@ -18,6 +18,7 @@ export default async function ParentPage() {
       <main className="mx-auto flex max-w-2xl flex-col gap-5 p-4">
         <nav className="flex flex-wrap gap-2">
           <a href="/gia-su/bo-me/bao-cao" className="btn bg-accent text-white no-underline">Báo cáo tối ›</a>
+          <a href="/gia-su/bo-me/luat" className="btn border border-accent text-accent no-underline">Luật dạy ›</a>
         </nav>
         <h1 className="text-2xl font-bold">Hồ sơ dạy học</h1>
         <p className="text-sm text-ink/75">

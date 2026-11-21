@@ -5,10 +5,13 @@ import type { HintLevel } from "@/lib/rules/hints";
 import type { InputKind } from "@/lib/rules/events";
 import {
   bridgeTurnsOf, checklistOf, flagsOf, usableSibling, type Diagnosis, type FoundMessage, type HistoryItem, type ModelCallRecord, type ProblemRow, type ProblemStatus, type SaveReplyInput, type StoredReply,
-  type StuckKind, type TutorRepo,
+  type StuckKind, type TutorRepo, RATING_EDIT_MS, RATING_OUTCOMES,
 } from "@/lib/tutor/repo";
+import { activeRules, type RuleRow } from "@/lib/rules/teachingRules";
 
-interface Sess { id: string; childId: string; dateVn: string; status: "active" | "ended" | "abandoned"; device: string }
+interface Sess { id: string; childId: string; dateVn: string; status: "active" | "ended" | "abandoned"; device: string; rulesVersion: number }
+interface RuleMem extends RuleRow { childId: string; familyId: string; source: string; sourceIds: string[] }
+interface RatingMem { id: string; sessionId: string; childId: string; face: "easy" | "ok" | "hard"; reasons: string[]; comment: string | null; at: Date }
 interface Prob { id: string; childId: string; familyId: string; sessionId: string; status: ProblemStatus; turnCount: number;
   hintLevel: HintLevel; hintLevelMax: HintLevel; nanJumps: number; wrongCount: number; offtopicCount: number; uLevel: 0 | 1 | 2 | 3;
   stuckKind: StuckKind | null; statementConfirmed: boolean; confirmedStatement: string | null;
@@ -28,12 +31,18 @@ export interface Seed {
   calls?: (Partial<CallRow> & { problemId: string })[];
   usage?: { familyId?: string; month: string; costUsd: number; mode?: "normal" | "economy" }[];
   images?: (Partial<ImageRow> & { problemId: string; messageId: string })[];
+  rules?: (Partial<RuleMem> & { id: string })[];
+  ratings?: (Partial<RatingMem> & { sessionId: string })[];
 }
 
 export function memoryRepo(seed: Seed = {}, strongModel = "claude-opus-5-5") {
   let n = 0;
   const id = (p: string) => `${p}${++n}`;
-  const sessions: Sess[] = (seed.sessions ?? []).map((s) => ({ id: id("s"), childId: "c1", dateVn: "2026-11-14", status: "active", device: "laptop", ...s }));
+  const sessions: Sess[] = (seed.sessions ?? []).map((s) => ({ id: id("s"), childId: "c1", dateVn: "2026-11-14", status: "active", device: "laptop", rulesVersion: 0, ...s }));
+  const rules: RuleMem[] = (seed.rules ?? []).map((r) => ({ childId: "c1", familyId: "f1", status: "approved", version: 1, text: "Luật", sourceKey: null,
+    source: "manual", sourceIds: [], ...r }));
+  const ratings: RatingMem[] = (seed.ratings ?? []).map((r) => ({ id: id("r"), childId: "c1", face: "ok", reasons: [], comment: null,
+    at: new Date("2026-11-13T10:00:00Z"), ...r }));
   const problems: Prob[] = (seed.problems ?? []).map((p) => ({ familyId: "f1", sessionId: "s0", status: "in_progress", turnCount: 0,
     hintLevel: 0, hintLevelMax: 0, nanJumps: 0, wrongCount: 0, offtopicCount: 0, uLevel: 0, stuckKind: null, statementConfirmed: false,
     confirmedStatement: null, kuCode: null, examSlot: null, prereqGaps: [], knowledgeVersion: null, ...p }));
@@ -71,7 +80,7 @@ export function memoryRepo(seed: Seed = {}, strongModel = "claude-opus-5-5") {
         active.status = "abandoned";
         for (const p of problems) if (p.sessionId === active.id && p.status === "in_progress") p.status = "abandoned";
       }
-      const s: Sess = { id: id("s"), childId: a.actor.userId, dateVn: a.dateVn, status: "active", device: a.device };
+      const s: Sess = { id: id("s"), childId: a.actor.userId, dateVn: a.dateVn, status: "active", device: a.device, rulesVersion: a.rulesVersion };
       sessions.push(s);
       return { id: s.id, reused: false };
     },
@@ -196,6 +205,52 @@ export function memoryRepo(seed: Seed = {}, strongModel = "claude-opus-5-5") {
       if (failAttention.on) throw new Error("attention down");
       attentionSyncs.push({ familyId: a.familyId, childId: a.childId, dateVn: a.dateVn });
     },
+    async childRules(childId) {
+      return rules.filter((r) => r.childId === childId).map(({ id: rid, status, version, text, sourceKey }) => ({ id: rid, status, version, text, sourceKey }));
+    },
+    async rulesForSession(sessionId, childId) {
+      const sess = sessions.find((x) => x.id === sessionId && x.childId === childId);
+      return sess ? activeRules(await repo.childRules(childId), sess.rulesVersion) : [];
+    },
+    async proposeRule(a) {
+      rules.push({ id: id("rule"), childId: a.childId, familyId: a.familyId, status: "proposed", version: 0, text: a.text, sourceKey: a.sourceKey,
+        source: a.source, sourceIds: a.sourceIds });
+    },
+    async endSession(a) {
+      const sess = sessions.find((x) => x.id === a.sessionId && x.childId === a.actor.userId);
+      if (!sess) return "not_found";
+      if (sess.status !== "active") return "already";
+      sess.status = "ended";
+      for (const p of problems) if (p.sessionId === sess.id && p.status === "in_progress") p.status = "timed_out";
+      return "ended";
+    },
+    async saveRating(a) {
+      const sess = sessions.find((x) => x.id === a.sessionId && x.childId === a.actor.userId);
+      if (!sess) return "not_found";
+      const old = ratings.find((r) => r.sessionId === sess.id);
+      if (old) {
+        if (a.now.getTime() - old.at.getTime() > RATING_EDIT_MS) return "already";
+        Object.assign(old, { face: a.face, reasons: [...a.reasons], comment: a.comment });
+        return "updated";
+      }
+      ratings.push({ id: id("r"), sessionId: sess.id, childId: a.actor.userId, face: a.face, reasons: [...a.reasons], comment: a.comment, at: a.now });
+      return "saved";
+    },
+    async sessionRated(sessionId, childId) {
+      return ratings.some((r) => r.sessionId === sessionId && r.childId === childId);
+    },
+    async latestRatings(childId, n) {
+      return ratings.filter((r) => r.childId === childId).sort((x, y) => y.at.getTime() - x.at.getTime()).slice(0, n)
+        .map((r) => ({ id: r.id, face: r.face, reasons: [...r.reasons] }));
+    },
+    async ratingState(problemId, childId) {
+      const p = problems.find((x) => x.id === problemId && x.childId === childId);
+      const sess = p && sessions.find((x) => x.id === p.sessionId);
+      if (!p || !sess) return null;
+      const mine = problems.filter((x) => x.sessionId === sess.id);
+      const earlierEnded = mine.slice(0, mine.indexOf(p)).some((x) => RATING_OUTCOMES.includes(x.status));
+      return { sessionId: sess.id, sessionStatus: sess.status, rated: ratings.some((r) => r.sessionId === sess.id), earlierEnded };
+    },
   };
-  return Object.assign(repo, { sessions, problems, messages, modelCalls, usage, modes, images, toolCalls, diagnoses, attentionSyncs, failAttention });
+  return Object.assign(repo, { sessions, problems, messages, modelCalls, usage, modes, images, toolCalls, diagnoses, attentionSyncs, failAttention, rules, ratings });
 }

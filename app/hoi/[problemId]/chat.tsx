@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useRef, useState, useSyncExternalStore } from "react";
 import type { Thread, ThreadMessage } from "@/lib/db/supabaseRepo";
 import { prepareImage } from "@/lib/client/image";
 import { BTN_NOT_UNDERSTOOD, BTN_SAVE, PHOTO_COPY, PHOTO_ONLY_TEXT } from "@/lib/copy";
@@ -10,6 +11,8 @@ import { lines } from "@/lib/markdown";
 import { newClientMsgId, postForm, postWithRetry } from "@/lib/client/post";
 import type { InputKind } from "@/lib/rules/events";
 import type { ProblemStatus, StoredReply } from "@/lib/tutor/repo";
+import { shouldShowRating } from "@/lib/rules/rating";
+import { RatingCard } from "./rating-card";
 
 const CLOSED_TEXT: Partial<Record<ProblemStatus, string>> = {
   timed_out: "Bài này đã đủ 20 lượt. Em ghi lại chỗ đã làm được và để dành hỏi thầy nhé.",
@@ -41,7 +44,27 @@ function Bubble({ m }: { m: ThreadMessage }) {
   );
 }
 
-export function Chat({ initial }: { initial: Thread }) {
+export interface RatingInfo { sessionId: string; sessionStatus: "active" | "ended" | "abandoned"; rated: boolean; earlierEnded: boolean }
+
+const skipKey = (sessionId: string) => `gia-su-rate-skip-${sessionId}`;
+const noSubscribe = () => () => {};
+function readSkip(sessionId: string | undefined): boolean {
+  try {
+    return !!sessionId && sessionStorage.getItem(skipKey(sessionId)) !== null;
+  } catch {
+    return false; // storage blocked: the card may show again
+  }
+}
+
+export function Chat({ initial, rating }: { initial: Thread; rating: RatingInfo | null }) {
+  const [rated, setRated] = useState(rating?.rated ?? true);
+  // "Bỏ qua" is remembered for this session on this device (a light convenience, P2).
+  const skippedBefore = useSyncExternalStore(noSubscribe, () => readSkip(rating?.sessionId), () => false);
+  const [skippedNow, setSkipped] = useState(false);
+  const skipped = skippedBefore || skippedNow;
+  const [ending, setEnding] = useState(false);
+  const [sessionOpen, setSessionOpen] = useState(rating?.sessionStatus === "active");
+  const router = useRouter();
   const [messages, setMessages] = useState(initial.messages);
   const [status, setStatus] = useState(initial.status);
   const [confirmed, setConfirmed] = useState(initial.statementConfirmed);
@@ -55,6 +78,35 @@ export function Chat({ initial }: { initial: Thread }) {
   const attempt = useRef<{ id: string; text: string } | null>(null);
   const saveId = useRef<string | null>(null);
   const open = status === "in_progress";
+  const showRating = !!rating && shouldShowRating({ status, rated, earlierEnded: rating.earlierEnded, skipped, endingSession: ending });
+  const leave = () => router.push("/");
+
+  function ratingDone(how: "rated" | "skipped") {
+    if (how === "rated") setRated(true);
+    else {
+      setSkipped(true);
+      try {
+        if (rating) sessionStorage.setItem(skipKey(rating.sessionId), "1");
+      } catch { /* ignore */ }
+    }
+    if (ending) leave();
+  }
+
+  /** "Kết thúc buổi" (§3.1): the server ends the session; the rating card follows if not rated (P2). */
+  async function endSession() {
+    if (!rating || busy) return;
+    setBusy(true);
+    const r = await postWithRetry<{ status: string; rated: boolean }>("/api/session/end", { sessionId: rating.sessionId });
+    setBusy(false);
+    if (!r.ok) {
+      setError(r.message);
+      return;
+    }
+    setSessionOpen(false);
+    if (open) setStatus("timed_out");
+    if (r.data.rated || rated || skipped) leave();
+    else setEnding(true);
+  }
   const last = messages.at(-1);
   const tutorTurn = open && !busy && last?.role === "tutor";
   // "Chưa hiểu" and "Để dành hỏi thầy" are always in the fixed row below, so not repeated here.
@@ -142,12 +194,21 @@ export function Chat({ initial }: { initial: Thread }) {
         )}
       </ol>
 
-      {!open && (
+      {!open && !ending && (
         <div className="flex flex-col gap-2 rounded-2xl bg-white p-4">
           <p className="font-semibold">{CLOSED_TEXT[status] ?? "Bài này đã đóng."}</p>
-          <Link href="/" className="btn self-start bg-accent text-white no-underline">Hỏi bài khác</Link>
+          <div className="flex flex-wrap gap-2">
+            <Link href="/" className="btn bg-accent text-white no-underline">Hỏi bài khác</Link>
+            {sessionOpen && (
+              <button type="button" disabled={busy} onClick={() => void endSession()} className="btn border-[1.5px] border-ink/20 bg-white">
+                Kết thúc buổi
+              </button>
+            )}
+          </div>
         </div>
       )}
+
+      {showRating && rating && <RatingCard sessionId={rating.sessionId} onDone={ratingDone} />}
 
       {open && (
         <form
@@ -187,6 +248,11 @@ export function Chat({ initial }: { initial: Thread }) {
                 <button type="button" disabled={busy} onClick={() => setAskSave(true)} className="btn border-[1.5px] border-ink/20 bg-white disabled:opacity-50">
                   {BTN_SAVE}
                 </button>
+                {sessionOpen && (
+                  <button type="button" disabled={busy} onClick={() => void endSession()} className="btn ml-auto border-[1.5px] border-ink/20 bg-white text-ink/70 disabled:opacity-50">
+                    Kết thúc buổi
+                  </button>
+                )}
               </div>
             )}
             {showMisread && (
