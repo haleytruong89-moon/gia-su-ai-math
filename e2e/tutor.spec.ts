@@ -188,3 +188,27 @@ test("photo: a photo of the work mid-problem goes with the turn", async ({ page,
   const { data: att } = await tutor().from("attachments").select("id").eq("problem_id", photoProblem);
   expect(att).toHaveLength(2);
 });
+
+test("cards (G6): the tutor names a card → the approved card shows; way 2 and 'Em không hiểu đề' need no model call", async ({ page, context }) => {
+  await signIn(context, "child");
+  await page.goto("/gia-su");
+  await page.getByRole("button", { name: "Không biết bắt đầu" }).click();
+  await page.getByLabel("Đề bài").fill("Rút gọn biểu thức có căn bậc hai (đề bịa cho e2e).");
+  await page.getByRole("button", { name: "Gửi" }).click();
+  await page.waitForURL(/\/gia-su\/hoi\//);
+  const id = page.url().split("/hoi/")[1]!;
+  await page.getByLabel("Em trả lời").fill("Căn bậc hai là gì ạ");
+  const answered = page.waitForResponse((r) => r.url().endsWith("/gia-su/api/turn") && r.request().method() === "POST");
+  await page.getByRole("button", { name: "Gửi", exact: true }).click();
+  expect((await answered).status()).toBe(200);
+  await expect(page.locator('[data-card="T9.9#1"]')).toBeVisible();
+  const tutorCalls = async () => (await tutor().from("model_calls").select("id").eq("problem_id", id).eq("purpose", "tutor")).data?.length ?? 0;
+  const before = await tutorCalls();
+  await pressAndWait(page, "Giảng lại cách khác");
+  await expect(page.locator('[data-card="T9.9#2"]')).toBeVisible();
+  await pressAndWait(page, "Em không hiểu đề");
+  await expect(page.getByRole("button", { name: "Em không biết bắt đầu đặt ẩn" })).toBeVisible(); // grade 9: 4 ways
+  expect(await tutorCalls()).toBe(before);
+  const { data: msgs } = await tutor().from("messages").select("card_ref").eq("problem_id", id).eq("role", "tutor").not("card_ref", "is", null);
+  expect(msgs?.map((m) => m.card_ref).sort()).toEqual(["T9.9#1", "T9.9#2"]);
+});

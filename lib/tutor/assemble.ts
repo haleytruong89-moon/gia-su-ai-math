@@ -35,13 +35,15 @@ export function renderStateBlock(s: TurnStateBlock): string {
 
 export function assemble(input: {
   layers: { role: string; rules: string; method: string }; profileText: string; knowledgeCard: string | null;
+  /** G6: MỤC LỤC THẺ of the child's grade, appended to ③ (same cache block; one cache per grade). */
+  cardIndex?: string;
   history: Turn[]; childText: string; childImages?: ImageData[]; state: TurnStateBlock;
 }): { system: SystemBlock[]; messages: Msg[] } {
   const cache = { type: "ephemeral" as const };
   const system: SystemBlock[] = [
     { type: "text", text: input.layers.role },
     { type: "text", text: input.layers.rules },
-    { type: "text", text: input.layers.method, cache_control: cache },       // ①②③ cached together
+    { type: "text", text: input.cardIndex ? `${input.layers.method}\n\n${input.cardIndex}` : input.layers.method, cache_control: cache }, // ①②③ cached together
     { type: "text", text: input.profileText, cache_control: cache },          // ④ per child
     { type: "text", text: input.knowledgeCard ?? "[KIẾN THỨC — chưa xác định]", cache_control: cache }, // ⑤ per problem
   ];

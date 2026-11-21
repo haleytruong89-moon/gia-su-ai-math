@@ -50,3 +50,17 @@ export const PHOTO_COPY = {
 } as const;
 /** Stored as the child's message when a photo is sent without typed text. */
 export const PHOTO_ONLY_TEXT = "📷 Em gửi ảnh";
+
+/** G6 — approved teaching cards (DOMAIN §4.15) and the "đọc đề" diagnosis. */
+export const BTN_NOT_UNDERSTAND_PROBLEM = "Em không hiểu đề";
+export const BTN_CARD_OK = "Em hiểu rồi";
+export const BTN_CARD_AGAIN = "Giảng lại cách khác";
+export const BTN_TRY_AGAIN = "Em thử lại";
+export const CARD_BUTTONS = [BTN_CARD_OK, BTN_CARD_AGAIN] as const;
+export const DOC_DE_ASK = "Em vướng ở chỗ nào?";
+/** Grade 6 gets the first three (no unknowns to set up yet). */
+export const DOC_DE_BUTTONS = ["Em không hiểu đề kể chuyện gì", "Em không biết đề hỏi gì",
+  "Em không biết dùng kiến thức nào", "Em không biết bắt đầu đặt ẩn"] as const;
+export const CARD_AGAIN_INTRO = "Cô giảng cách khác nhé:";
+export const CARDS_DONE = "Cô đã giảng 2 cách rồi. Em để dành bài này hỏi thầy, hay thử lại bước vừa rồi?";
+export const CARD_MISSING = "Thẻ này đang được cập nhật.";

@@ -6,13 +6,13 @@
 // §4.14, §5). G4 adds the tools and math_check (until then self_solved is never allowed).
 import { z } from "zod";
 import type { Actor } from "@/lib/actor";
-import { PHOTO_COPY, PHOTO_ONLY_TEXT, SAFE_BUSY, SPEND_PAUSED, safeLine } from "@/lib/copy";
+import { CARD_BUTTONS, PHOTO_COPY, PHOTO_ONLY_TEXT, SAFE_BUSY, SPEND_PAUSED, safeLine } from "@/lib/copy";
 import { burnAlertDue, consoleAlertDue, economyAlertDue, isSpendLimitError } from "@/lib/rules/cost";
 import { processImage } from "@/lib/images";
 import { MAX_IMAGES_PER_PROBLEM } from "@/lib/rules/photo";
 import { isTooBig } from "@/lib/tutor/form";
 import { childEvents, type InputKind } from "@/lib/rules/events";
-import { applyPreTurn, nextHintLevel } from "@/lib/rules/hints";
+import { applyPreTurn, nextHintLevel, type HintLevel } from "@/lib/rules/hints";
 import { pickModel, rewriteRoute, strongPaused, type ModelTier, type RouteReason } from "@/lib/rules/model";
 import { isNanSignal } from "@/lib/rules/nan";
 import { checksFrom, decideOutcome } from "@/lib/rules/outcome";
@@ -29,6 +29,8 @@ import { dateVn } from "@/lib/time";
 import { RATING_REASONS, ratingProposal, rulesBlock, rulesVersionNow, type RatingReason } from "@/lib/rules/teachingRules";
 import { assemble, type ImageData, type Msg, type Turn } from "@/lib/tutor/assemble";
 import { writeReference, type ChildCheck } from "@/lib/tutor/reference";
+import { card as cardOf, cardFitsGrade, cardForModel, cardIndexText, pickVariant } from "@/lib/knowledge/cards";
+import { lastCardOf, scriptedTurn, type Scripted } from "@/lib/tutor/scripted";
 import { runGuard, type GuardResult } from "@/lib/tutor/guard";
 import type { Layers } from "@/lib/tutor/layers";
 import {
@@ -198,9 +200,14 @@ export async function handleTurn(d: Deps, raw: unknown): Promise<Result> {
     // The first call died before replying: run the turn again with what the child sent then.
     if (problem.status !== "in_progress") return closed(problem.status);
     const stored = problem.thread.find((m) => m.id === seen.messageId)?.inputKind ?? kind;
+    const again = scriptedFor(actor, problem, seen.text, stored);
+    if (again) return saveScripted(d, actor, problem, again);
     return runClaimed(d, actor, problem, seen.messageId, seen.text, stored);
   }
   if (problem.status !== "in_progress") return closed(problem.status);
+  // G6 (Y3): card way 2 and "Em không hiểu đề" are answered by the server, without the model and without a turn.
+  const s = image ? null : scriptedFor(actor, problem, text, kind);
+  if (s) return runScripted(d, actor, problem, clientMsgId, text, kind, s);
   if (image && problem.imageCount >= MAX_IMAGES_PER_PROBLEM) return tooMany;
   const cleaned = await cleanPhoto(image, parsed.data.device ?? "laptop");
   if ("error" in cleaned) return cleaned.error;
@@ -309,6 +316,29 @@ async function syncAttention(d: Deps, actor: ChildActor): Promise<void> {
 
 const closed = (status: ProblemStatus): Result => ({ status: 409, json: { error: "problem_closed", status } });
 
+/** The problem as the server knows it, for "the card example must not use the child's numbers" (C1). */
+const problemTextOf = (p: ProblemRow) => p.confirmedStatement ?? p.statement ?? "";
+
+const scriptedFor = (actor: ChildActor, p: ProblemRow, text: string, kind: InputKind): Scripted | null =>
+  scriptedTurn({ text, kind, grade: actor.grade, lastCard: lastCardOf(p.thread), problemText: problemTextOf(p) });
+
+async function saveScripted(d: Deps, actor: ChildActor, problem: ProblemRow, s: Scripted): Promise<Result> {
+  const reply = await d.repo.saveScriptedReply({ actor, problem, message: s.message, buttons: s.buttons,
+    cardRef: s.kind === "card" ? s.cardRef : null, now: d.now });
+  return { status: 200, json: reply };
+}
+
+async function runScripted(d: Deps, actor: ChildActor, problem: ProblemRow, clientMsgId: string, text: string, kind: InputKind,
+  s: Scripted): Promise<Result> {
+  if (problem.pending) {
+    if (!isStale(problem.pending, d.now)) return pending;
+    await d.repo.deleteMessage(problem.pending.messageId);
+  }
+  const claim = await d.repo.insertChildMessage({ actor, problemId: problem.id, clientMsgId, text, inputKind: kind, now: d.now });
+  if ("conflict" in claim) return pending;
+  return saveScripted(d, actor, problem, s);
+}
+
 async function runTurn(d: Deps, actor: ChildActor, problem: ProblemRow, clientMsgId: string, text: string, kind: InputKind,
   photo: Photo | null): Promise<Result> {
   if (problem.pending) {
@@ -414,7 +444,11 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
     geometryProof: cls.geometry_proof || problem.lastTutorFlags.includes("geometry_proof"), examSlot });
 
   const photosOf = (id: string): ImageData[] => photos.filter((p) => p.messageId === id).map((p) => p.image);
-  const history: Turn[] = problem.history.map((h) => ({ role: h.role, content: h.content, images: photosOf(h.id) }));
+  // A message that showed a card carries the card text for the tutor (it never sees the child's screen).
+  const history: Turn[] = problem.history.map((h) => {
+    const shownCard = h.role === "assistant" ? cardForModel(h.cardRef) : null;
+    return { role: h.role, content: shownCard ? `${h.content}\n\n${shownCard}` : h.content, images: photosOf(h.id) };
+  });
   // The checker needs the problem: the confirmed restatement, else the typed text, else the first photo.
   const typed = problem.statement && problem.statement !== PHOTO_ONLY_TEXT ? problem.statement : null;
   const guardStatement = problem.confirmedStatement ?? typed ?? (text !== PHOTO_ONLY_TEXT ? text : "(đề trong ảnh, chưa xác nhận)");
@@ -424,6 +458,7 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
     layers: d.layers,
     profileText: withRules(actor.profileText, rulesBlock(await d.repo.rulesForSession(problem.sessionId, actor.userId))),
     knowledgeCard: knowledgeCard(kuCode, actor.grade),
+    cardIndex: cardIndexText(actor.grade),
     history,
     childText: text,
     childImages: photosOf(messageId),
@@ -538,6 +573,11 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
     checklistRequired: true,
     checklistAsked: [...new Set([...problem.checklistAsked, ...(shown?.checklist_da_hoi ?? [])])] });
   const safe = safeLine(level);
+  // G6 (§4.15): the tutor names an approved card; the server picks the way (C1) and shows it word for word.
+  const named = shown?.the_hien ? cardOf(shown.the_hien) : null;
+  const way = named && cardFitsGrade(named, actor.grade) && outcome.status === "in_progress"
+    ? pickVariant(named, 1, problemTextOf(problem) || text) : null;
+  const cardRef = named && way ? `${named.code}#${way}` : null;
   // G5: the lesson code may change when the tutor confirms the statement (or when it was unknown); background gaps (§4.13).
   const confirmsNow = !problem.statementConfirmed && shown?.de_da_xac_nhan === true;
   const proposed = shown?.ku_code_de_xuat ?? null;
@@ -555,13 +595,14 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
       ? (problem.history.filter((h) => h.role === "assistant").at(-1)?.content ?? null) : null,
     replyHintLevel: level,
     hintLevel: next.hintLevel,
-    hintLevelMax: next.hintLevelMax,
+    hintLevelMax: cardRef ? (Math.max(next.hintLevelMax, 2) as HintLevel) : next.hintLevelMax, // Y1: a card is H2
     nanJumps: next.nanJumps,
     wrongCount: problem.wrongCount + (verdict === "sai" ? 1 : 0),
     offtopicCount: outcome.offtopicCount,
     uLevel: shown ? (Number(shown.u_level_hien_tai.slice(1)) as 0 | 1 | 2 | 3) : problem.uLevel,
     tutorText: shown?.message ?? safe.message,
-    buttons: shown?.buttons ?? safe.buttons,
+    buttons: cardRef ? [...CARD_BUTTONS] : (shown?.buttons ?? safe.buttons),
+    cardRef,
     calls,
     tools: turnTools,
     kuCode: newKu,

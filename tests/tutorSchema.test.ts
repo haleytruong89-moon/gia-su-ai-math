@@ -64,3 +64,22 @@ describe("parseTutorOutput is lenient on button count/length (now only checked h
     expect(r.ok && [r.value.ku_code_de_xuat, r.value.prereq_gap, r.value.checklist_da_hoi]).toEqual([null, null, [2]]);
   });
 });
+
+describe("G6: the_hien / the_thieu", () => {
+  const base = (fewshot as Record<string, unknown>[])[0]!;
+  it("a card code from the index is kept; a malformed one becomes null; both are optional", () => {
+    const ok = parseTutorOutput(JSON.stringify({ ...base, the_hien: "D6.1", the_thieu: null }));
+    expect(ok.ok && ok.value.the_hien).toBe("D6.1");
+    const bad = parseTutorOutput(JSON.stringify({ ...base, the_hien: "X1.2" }));
+    expect(bad.ok && bad.value.the_hien).toBeNull();
+    expect(parseTutorOutput(JSON.stringify(base)).ok).toBe(true);
+  });
+  it("the_thieu is trimmed and cut at 80 characters", () => {
+    const r = parseTutorOutput(JSON.stringify({ ...base, the_thieu: `  ${"x".repeat(100)} ` }));
+    expect(r.ok && r.value.the_thieu).toHaveLength(80);
+  });
+  it("the JSON schema offers both fields to the model", () => {
+    const props = (tutorOutputJsonSchema as unknown as { properties: Record<string, unknown> }).properties;
+    expect(Object.keys(props)).toEqual(expect.arrayContaining(["the_hien", "the_thieu"]));
+  });
+});

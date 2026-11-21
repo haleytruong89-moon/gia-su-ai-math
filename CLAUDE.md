@@ -69,9 +69,9 @@ cd cas && pip install -r requirements.txt && pytest
 `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `ANTHROPIC_API_KEY` (workspace riêng, D19), `TUTOR_MODEL_MAIN`, `TUTOR_MODEL_LIGHT`, `CAS_URL`, `CAS_SECRET`, `LAUNCHER_URL`, `TUTOR_NOTIFY_SECRET`, `CRON_SECRET`
 
 ## Current status
-- Phase: 3 — Implementation. Last updated: 18/11/2026.
+- Phase: 3 — Implementation. Last updated: 21/11/2026.
 - **Trạng thái chi tiết ở `docs/ROADMAP.json`** (trang bản đồ lộ trình) và `docs/PROGRESS.md`; mục này chỉ tóm tắt.
-- Xong: G0, L-0, G1, L-1, G2 (+ e2e), G3, G4 (`cas` trên Vercel Services, vòng công cụ, cổng "tự làm xong", bài anh em), G5 (kho kiến thức bản sạch, phân loại bài, thẻ ⑤, lookup, dạy bù nền, checklist lớp 6).
-- Tiếp: G7 (báo cáo bố mẹ; phụ huynh chọn làm trước G6, 18/11).
+- Xong: G0, L-0, G1, L-1, G2 (+ e2e), G3, G4 (`cas` trên Vercel Services, vòng công cụ, cổng "tự làm xong", bài anh em), G5 (kho kiến thức bản sạch, phân loại bài, thẻ ⑤, lookup, dạy bù nền, checklist lớp 6), G7 (báo cáo tối, chấm cô + luật dạy, báo tiền, lời giải tham khảo), L-7 (SQL 0024).
+- Đang làm: G6 — G6a thẻ giảng (`knowledge/src/cards`, DOMAIN §4.15), G6b ôn đầu buổi + thẻ cần bổ sung, G6c nội dung thẻ HK1. Sau đó G8, G9.
 - Hồ sơ dạy học (lớp ④) bố mẹ nhập ở `/gia-su/bo-me`, chỉ nằm trong DB — không đưa vào repo.
-- Chưa cho con dùng thật trước G9. Chờ phụ huynh: D23, D26; chạy G0 các ca G4 + G5.
+- Chưa cho con dùng thật trước G9. Chờ phụ huynh: chạy G0 các ca G4 + G5; eval 3 ca thẻ (6.12, 6.13, 9.26).

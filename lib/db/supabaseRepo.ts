@@ -25,12 +25,14 @@ interface ProblemDb {
   ku_code: string | null; exam_slot: string | null; prereq_gaps: string[] | null;
 }
 interface MessageDb { id: string; role: "child" | "tutor" | "system"; content: string; buttons: string[] | null;
-  hint_level: number | null; client_msg_id: string | null; created_at: string; problem_id: string; input_kind: InputKind }
+  hint_level: number | null; client_msg_id: string | null; created_at: string; problem_id: string; input_kind: InputKind;
+  card_ref: string | null }
 
 // offtopic_count and input_kind come from Launcher migration 0018 (G2).
 const PROBLEM_COLS = "id, child_id, family_id, session_id, status, turn_count, hint_level, hint_level_max, nan_jumps, wrong_count, " +
   "offtopic_count, u_level, stuck_kind, statement_confirmed, confirmed_statement, ku_code, exam_slot, prereq_gaps";
-const MESSAGE_COLS = "id, role, content, buttons, hint_level, client_msg_id, created_at, problem_id, input_kind";
+// card_ref comes from Launcher migration 0024 (G6).
+const MESSAGE_COLS = "id, role, content, buttons, hint_level, client_msg_id, created_at, problem_id, input_kind, card_ref";
 
 const BUCKET = "tutor-images"; // private, server only (Launcher 0019)
 const SIGNED_URL_SECONDS = 600;
@@ -38,7 +40,7 @@ const REPLY_COLS = "id, status, turn_count, statement_confirmed";
 
 function replyFrom(p: Pick<ProblemDb, "id" | "status" | "turn_count" | "statement_confirmed">, m: MessageDb): StoredReply {
   return { problemId: p.id, message: m.content, buttons: m.buttons ?? [], hintLevel: m.hint_level ?? 0, status: p.status, turnCount: p.turn_count,
-    statementConfirmed: p.statement_confirmed };
+    statementConfirmed: p.statement_confirmed, cardRef: m.card_ref ?? null };
 }
 
 export function supabaseRepo(db: SupabaseClient = createAdminClient(), strongModel = "claude-opus-5-5"): TutorRepo {
@@ -111,7 +113,8 @@ export function supabaseRepo(db: SupabaseClient = createAdminClient(), strongMod
       const list = (rows ?? []) as (MessageDb & { role: "child" | "tutor" })[];
       const last = list.at(-1);
       const answered = last?.role === "child" ? list.slice(0, -1) : list;
-      const history: HistoryItem[] = answered.map((m) => ({ id: m.id, role: m.role === "child" ? "user" : "assistant", content: m.content }));
+      const history: HistoryItem[] = answered.map((m) => ({ id: m.id, role: m.role === "child" ? "user" : "assistant", content: m.content,
+        cardRef: m.card_ref ?? null }));
 
       const { count: strongCalls, error: e3 } = await t().from("model_calls").select("id", { count: "exact", head: true })
         .eq("problem_id", p.id).eq("purpose", "tutor").eq("model", strongModel);
@@ -134,7 +137,7 @@ export function supabaseRepo(db: SupabaseClient = createAdminClient(), strongMod
         hintLevel: p.hint_level, hintLevelMax: p.hint_level_max, nanJumps: p.nan_jumps, wrongCount: p.wrong_count,
         offtopicCount: p.offtopic_count, uLevel: p.u_level, stuckKind: p.stuck_kind, statementConfirmed: p.statement_confirmed,
         confirmedStatement: p.confirmed_statement, history, imageCount: photos ?? 0,
-        thread: list.map((m) => ({ id: m.id, role: m.role, content: m.content, inputKind: m.input_kind })),
+        thread: list.map((m) => ({ id: m.id, role: m.role, content: m.content, inputKind: m.input_kind, cardRef: m.card_ref ?? null })),
         statement: list.find((m) => m.role === "child")?.content ?? null,
         usedStrong: (strongCalls ?? 0) > 0,
         lastTutorFlags: shown[0] ? flagsOf(shown[0].raw_output) : [],
@@ -207,7 +210,7 @@ export function supabaseRepo(db: SupabaseClient = createAdminClient(), strongMod
       const { data: msg, error: e2 } = p
         ? await t().from("messages").insert({
             family_id: a.actor.familyId, child_id: a.actor.userId, problem_id: a.problem.id, role: "tutor",
-            content: a.tutorText, buttons: a.buttons, hint_level: a.replyHintLevel, created_by: a.actor.userId,
+            content: a.tutorText, buttons: a.buttons, hint_level: a.replyHintLevel, card_ref: a.cardRef, created_by: a.actor.userId,
           }).select(MESSAGE_COLS).single<MessageDb>()
         : { data: null, error: null };
       if (e2) fail("saveReply.message", e2);
@@ -240,6 +243,19 @@ export function supabaseRepo(db: SupabaseClient = createAdminClient(), strongMod
       const { error: e4 } = await t().from("study_sessions").update({ last_seen_at: nowIso, updated_at: nowIso }).eq("id", a.problem.sessionId);
       if (e4) fail("saveReply.session", e4);
       return replyFrom(p as ProblemDb, msg);
+    },
+
+    async saveScriptedReply(a) {
+      const nowIso = a.now.toISOString();
+      const { data: msg, error } = await t().from("messages").insert({
+        family_id: a.actor.familyId, child_id: a.actor.userId, problem_id: a.problem.id, role: "tutor",
+        content: a.message, buttons: a.buttons, hint_level: a.problem.hintLevel, card_ref: a.cardRef, created_by: a.actor.userId,
+      }).select(MESSAGE_COLS).single<MessageDb>();
+      if (error || !msg) fail("saveScriptedReply.message", error);
+      const { error: e2 } = await t().from("study_sessions").update({ last_seen_at: nowIso, updated_at: nowIso }).eq("id", a.problem.sessionId);
+      if (e2) fail("saveScriptedReply.session", e2);
+      return replyFrom({ id: a.problem.id, status: a.problem.status, turn_count: a.problem.turnCount,
+        statement_confirmed: a.problem.statementConfirmed }, msg);
     },
 
     async saveImage(a) {
@@ -461,7 +477,7 @@ export async function addUsage(db: SupabaseClient, familyId: string, now: Date, 
   if (error) fail("usage.add", error);
 }
 
-export interface ThreadMessage { id: string; role: "child" | "tutor"; text: string; buttons: string[]; images: string[] }
+export interface ThreadMessage { id: string; role: "child" | "tutor"; text: string; buttons: string[]; images: string[]; cardRef: string | null }
 export interface Thread {
   problemId: string; status: ProblemStatus; turnCount: number; statementConfirmed: boolean; hasImages: boolean; messages: ThreadMessage[];
 }
@@ -493,6 +509,6 @@ export async function problemThread(problemId: string, childId: string, db: Supa
     problemId, status: p.status as ProblemStatus, turnCount: p.turn_count as number,
     statementConfirmed: p.statement_confirmed as boolean, hasImages: (att?.length ?? 0) > 0,
     messages: (rows ?? []).map((m) => ({ id: m.id, role: m.role === "child" ? "child" : "tutor", text: m.content, buttons: m.buttons ?? [],
-      images: byMessage.get(m.id) ?? [] })),
+      images: byMessage.get(m.id) ?? [], cardRef: m.card_ref ?? null })),
   };
 }

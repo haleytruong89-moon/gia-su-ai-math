@@ -79,7 +79,7 @@
 | D23 | Thông báo đẩy cho bố mẹ: Launcher thêm route nội bộ `POST /api/internal/tutor-notify` (khóa bí mật riêng), dùng lại `lib/push/send.ts`; gia sư AI gọi route này. **Chỉ báo chuyện tiền**: ~45 USD (tạm ngừng Opus), Console hết tiền, dự báo vượt trần (≤ 1 lần/tuần). `cas` lỗi ≥ 2 lần/ngày **không** đẩy — chỉ là cờ trong báo cáo tối + 1 dòng "cần chú ý" | thường | **Chốt 18/11** |
 | D24 | Máy tính đại số C1 = **Python + SymPy** chạy riêng tư trong cùng project Vercel (Vercel Services — đang beta). Không chạy được → tách thành project Vercel riêng có khóa bí mật | thường | *Đề xuất 14/11* |
 | D25 | Kho kiến thức (bản đồ chương trình, hộp công cụ) lưu trong repo `knowledge/*.json`, sinh từ các file md đã duyệt trong hub; có `KNOWLEDGE_VERSION`; mỗi bài ghi version đã dùng | thường | ✅ 16/11 (G5 Q2: dùng `BAN_DO_CHUONG_TRINH_TOAN9` v0.2, `…TOAN6` v0.1, `HOP_CONG_CU_HINH_9` v0.2, `HOP_CONG_CU_RUT_GON_9` v0.1 làm v1; G5 Q1: repo chỉ giữ **bản sạch** — ghi chú riêng về con/thầy/trường bị bỏ, bố mẹ nhập vào Hồ sơ dạy học) |
-| D26 | Ôn cách quãng đầu buổi: tối đa 2 câu, có nút "Để sau"; lịch 1 → 3 → 7 ngày; đúng 3 lần liên tiếp thì thôi ôn (§4.11) | thường | *Đề xuất 14/11* |
+| D26 | Ôn cách quãng đầu buổi: tối đa 2 câu, có nút "Để sau"; lịch 1 → 3 → 7 ngày; đúng 3 lần liên tiếp thì thôi ôn (§4.11) | thường | ✅ 21/11 |
 | D28 | **Chọn model mỗi lượt do máy chủ quyết** (§4.14): mặc định Sonnet; chuyển **Opus** khi (1) bộ kiểm tra chặn câu của Sonnet, (2) con nản hoặc mức ≥ H3, (3) bài hình chứng minh lớp 9, (4) ý chặn đề vào 10, (5) cô báo không chắc. Đã chuyển thì giữ Opus đến hết bài. Lớp 6 chỉ dùng (1), (2), (5) | thường | ✅ 15/11 |
 | D29 | **Không có chế độ tiết kiệm.** Gần trần (~45 USD): báo ngay cho bố mẹ và **tạm ngừng chuyển Opus** (Sonnet vẫn chạy, kể cả lượt viết lại sau khi bị chặn). Trần cứng 50 USD trên Console giữ nguyên | thường | ✅ 15/11 |
 | D27 | Gắn nhãn ý đề vào 10 Hà Nội (`exam_slot`, vd `HN10-2c`) cho bài luyện; báo cáo tối/tuần đếm theo ý chặn | thường | ✅ 16/11 (G5 Q4: Haiku chỉ gắn khi đề rõ là đề vào 10 hoặc con nói vậy; không chắc → để trống) |
@@ -96,7 +96,7 @@ Quy ước chung mọi bảng: `id uuid`, `created_at timestamptz`, `updated_at 
 | `teaching_rules` | `child_id`, `text`, `status` (§3.3), `version`, `source` (parent_feedback / child_rating / manual), `approved_by`, `approved_at` | Luật dạy bố mẹ duyệt |
 | `study_sessions` (**buổi**) | `child_id`, `device` (ipad / boox / laptop), `started_at`, `ended_at`, `status` (§3.1), `profile_version`, `rules_version`, `prompt_version`, `model_main` | 1 buổi 30–45 phút |
 | `problems` (**bài**) | `session_id`, `status` (§3.2), `hint_level`, `hint_level_max` (H0–H5), `wrong_count`, `turn_count`, `nan_jumps`, `u_level` (U0–U3), `topic_tag`, `continues_problem_id`, `pack_id` (null, v1.1), `item_ref` (null, v1.1), `confirmed_statement` | Mỗi bài mở ngữ cảnh AI mới (giữ chi phí ổn định). Trạng thái đếm được do máy chủ giữ |
-| `messages` | `problem_id`, `role` (child / tutor / system), `content` (**chỉ nội dung đã qua kiểm tra**), `buttons jsonb`, `hint_level`, `client_msg_id` (idempotency key, unique) | Bảng con được đọc |
+| `messages` | `problem_id`, `role` (child / tutor / system), `content` (**chỉ nội dung đã qua kiểm tra**), `buttons jsonb`, `hint_level`, `client_msg_id` (idempotency key, unique), `card_ref` (thẻ đã hiện "T6.12#1", G6 §4.15) | Bảng con được đọc |
 | `model_calls` | `message_id`, `model`, `prompt_version`, `raw_output` (bản gốc trước kiểm tra), `guard_result` (pass / rewritten / blocked), `guard_reasons`, `tokens_in`, `tokens_cached`, `tokens_out`, `cost_usd numeric(10,6)` | **Chỉ máy chủ và bố mẹ đọc**; con không bao giờ đọc được |
 | `reference_solutions` | `problem_id`, `content` | Lời giải tham khảo; **chỉ máy chủ đọc**, chỉ gửi cho con sau `self_solved`. **G7 (✅ chốt 18–19/11, P4, X5):** Sonnet viết **sau** lượt `self_solved` (con không phải chờ); máy tính đại số so đáp số của lời giải với đáp số của con đã được kiểm (cùng biểu thức / cùng nghiệm / thỏa hệ). Khớp → lưu, con thấy nút "Xem lời giải tham khảo", bố mẹ thấy trong trang xem lại bài. Không khớp → không lưu, `model_calls(purpose = reference, guard_result = blocked)` + cờ cho bố mẹ. Bài chứng minh (`pending_review`) không có lời giải tham khảo |
 | `attachments` | `problem_id`, `storage_path` (`<child_id>/<problem_id>/<uuid>.jpg`), `width`, `height`, `bytes`, `source_device`, `delete_after` (date) | Bucket private; ảnh đã xóa EXIF và thu nhỏ ở máy chủ trước khi lưu và gửi AI; chỉ nhận jpg/png/heic ≤ 10 MB; URL đọc hạn 10 phút. **G3 (15/11/2026, phụ huynh chốt Q1–Q4; TODO(rule-unconfirmed) tới khi hub DOMAIN v0.6 ghi lại):** cỡ ảnh theo chuẩn Claude ≤ 1568 px & ≤ 1568 token hình (thay "~1000 px"); máy con thu nhỏ trước, gửi ≤ 4 MB; HEIC chỉ khi trình duyệt đọc được; thêm `message_id`; tối đa 4 ảnh/bài; "Chụp lại" = bài mới |
@@ -384,6 +384,24 @@ Máy chủ chọn model **trước** khi gọi; model không tự đổi. Thứ 
 
 *Ước chi phí (G0, effort medium): Sonnet ~0,009 USD/lượt, Opus ~0,022 USD/lượt; nếu ~25–30% lượt chạy Opus → ~13–15 USD/tháng cho ~1.100 lượt.*
 
+### 4.15. Thẻ giảng đã duyệt (G6, thiết kế C) — ✅ phụ huynh chốt 21/11
+- **Cách giảng** nằm trong prompt (lớp ③); **nội dung** nằm trong thẻ đã duyệt `knowledge/src/cards/<MÃ>.md` (merge PR = bố mẹ duyệt). Hai loại: *hiểu bản chất* (mã T6.*/T9.*, giảng thẳng, thân thiện, có "vì sao" cho mọi mẹo nhớ, **không hỏi đáp**) và *đọc đề* (mã D6.*/D9.*, đọc đề → nhận dạng → kiến thức cần dùng).
+- Mỗi thẻ có **2 cách**, ví dụ dùng số khác bài thật. Cô chỉ nêu mã (`the_hien`); **máy chủ** chọn cách và app hiện **nguyên văn**. Thẻ sai lớp hoặc mã không có → không hiện thẻ, giữ lời cô.
+- **C1 — không trùng số:** một cách bị bỏ nếu ≥ 2 số chính của ví dụ (hoặc số duy nhất) có trong đề của con; cách 1 trùng → hiện cách 2; cả hai trùng → không hiện thẻ.
+- **Y1:** hiện thẻ = mức gợi ý H2 → `hint_level_max` ít nhất 2.
+- **Y3:** nút "Giảng lại cách khác" và nút "Em không hiểu đề" do máy chủ trả lời sẵn: **không gọi AI, không tính** vào 20 lượt/bài. Câu "Em vướng ở chỗ nào?" có 4 nút (lớp 6: 3 nút, bỏ "đặt ẩn"); con chọn nút nào thì lượt đó đi qua cô như thường (cô có thể nêu thẻ D…).
+- **C2:** đã giảng 2 cách mà con vẫn bấm "Giảng lại cách khác" → "Để dành hỏi thầy" / "Em thử lại"; báo cáo tối tính là *thẻ chưa đủ* (G6b).
+- Cô thấy chỗ con vướng mà không có thẻ → `the_thieu` (mô tả ngắn); báo cáo tối gom ≥ 2 lần / 7 ngày thành "Thẻ cần bổ sung" (G6b, không push).
+
+| # | Tình huống | Kết quả | |
+|---|---|---|---|
+| a | Lớp 6, bài 3 tàu 10/15/25 ngày, con gõ "BCNN là gì ạ", cô nêu T6.12 | Hiện T6.12 cách 1 (ví dụ 12 và 18); nút "Em hiểu rồi" / "Giảng lại cách khác"; H2 | ✅ |
+| b | Như a nhưng đề có 12 giây và 18 giây | Hiện cách 2 (ví dụ 4 và 6) | ✅ |
+| c | Sau a, con bấm "Giảng lại cách khác" | Cách 2, không gọi AI, số lượt không đổi | ✅ |
+| d | Sau c, con bấm tiếp "Giảng lại cách khác" | "Cô đã giảng 2 cách rồi…" + "Để dành hỏi thầy" / "Em thử lại" | ✅ |
+| e | Con lớp 6 được cô nêu T9.9 | Không hiện thẻ; giữ lời cô | ✅ |
+| f | Con bấm "Em không hiểu đề" (lớp 9) | "Em vướng ở chỗ nào?" + 4 nút, không gọi AI | ✅ |
+
 ## 5. Tình huống khó
 | Tình huống | Cách xử lý |
 |---|---|
@@ -416,7 +434,7 @@ Máy chủ chọn model **trước** khi gọi; model không tự đổi. Thứ 
 2. Các ví dụ ghi "Đề xuất" (4.2 d–e, 4.4 f–g, 4.5 c–e, 4.10 mục 8–10, 4.11, 4.12) chưa hỏi lại phụ huynh.
 3. ~~Đối chiếu Launcher~~ — ✅ đã đọc repo 14/11: `public.profiles`, `auth_role()`, `auth_family_id()`; PIN lưu `profiles.pin_hash` + bảng `pin_devices` (cookie httpOnly theo tên miền Launcher → lý do D20). **Còn:** thời hạn giữ bản backup tuần (`backup.yml`) — đọc khi làm trang bố mẹ.
 4. D19: tạo API key + workspace riêng cho gia sư AI trong Console (phụ huynh).
-5. ~~D20–D27 chờ phụ huynh duyệt~~ — còn D26 chờ (D23 chốt 18/11).
+5. ~~D20–D27 chờ phụ huynh duyệt~~ — ✅ hết (D23 chốt 18/11, D26 chốt 21/11).
 6. ~~Thời hạn Anthropic lưu dữ liệu~~ — ✅ §4.8.
 
 ## 8. Nguồn nội dung đã có (14/11)
@@ -440,4 +458,5 @@ Lưu ý quyền riêng tư: một phiếu của HS-6A có ghi họ tên. Khi đ�
 | 18/11/2026 | §4.10b checklist lớp 6 ✅ (phụ huynh chốt) |
 | 16/11/2026 | G5 (phụ huynh chốt Q1–Q4): D25 ✅, D27 ✅; thêm §4.10b checklist lớp 6 (đề xuất); §4.13 thêm ví dụ chuẩn và cách đếm lượt dạy bù |
 | 14/11/2026 | **v0.4** — bộ năng lực (kho kiến thức, công cụ, ôn cách quãng, dạy bù nền), khớp repo Launcher thật, Q1–Q5, D20–D27 đề xuất, checklist 6–10 |
+| 21/11/2026 | G6 (kế hoạch `docs/superpowers/plans/2026-11-21-g6-cards-and-review.md`; phụ huynh chốt thiết kế C, C1–C6, Y1–Y5 ngày 21/11): D26 ✅; thêm §4.15 thẻ giảng |
 | 19/11/2026 | G7 (kế hoạch `docs/superpowers/plans/2026-11-18-g7-reports.md`; phụ huynh chốt P1–P4 ngày 18/11, X1–X5 ngày 19/11): §4.7 thứ tự 2 dòng "cần chú ý" (X1). X2 (dự báo chi từ ngày 5), X3 (≤ 12 luật/con, ≤ 300 ký tự, luật tự viết có hiệu lực từ buổi sau), X4 (câu luật từ lời chấm của con), X5 (lời giải tham khảo chỉ hiện khi cas xác nhận khớp) ghi vào §4.5 / §3.4 / §1 ở PR G7b, G7c |

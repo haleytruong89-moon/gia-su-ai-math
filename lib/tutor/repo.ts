@@ -11,7 +11,8 @@ import type { Reference, ReferenceCall } from "@/lib/tutor/reference";
 
 export type ChildActor = Extract<Actor, { role: "child" }>;
 /** An answered message of the problem; `id` lets the server put the message's photos back (never sent to the API). */
-export type HistoryItem = { id: string; role: "user" | "assistant"; content: string };
+/** `cardRef` (G6): the approved card shown under a tutor message, "T6.12#1". */
+export type HistoryItem = { id: string; role: "user" | "assistant"; content: string; cardRef?: string | null };
 export type Device = "ipad" | "boox" | "laptop";
 export const STUCK_KINDS = ["chua_hieu_de", "khong_biet_bat_dau", "lam_do_thi_tac", "ra_ket_qua_sai", "khong_hieu_buoc"] as const;
 export type StuckKind = (typeof STUCK_KINDS)[number];
@@ -72,6 +73,8 @@ export interface StoredReply {
   status: ProblemStatus;
   turnCount: number;
   statementConfirmed: boolean;
+  /** G6: the approved card shown under the message ("T6.12#1"), or null. */
+  cardRef: string | null;
 }
 
 export interface FoundMessage { problemId: string; messageId: string; text: string; at: Date; reply: StoredReply | null }
@@ -110,6 +113,8 @@ export interface SaveReplyInput {
   uLevel: 0 | 1 | 2 | 3;
   tutorText: string;
   buttons: string[];
+  /** G6: the approved card shown with this answer ("T6.12#1"), chosen by the server (DOMAIN §4.15). */
+  cardRef: string | null;
   calls: ModelCallRecord[];
   /** tools run for the answers of this turn; `callIndex` = index in `calls` of the answer (final call) they served */
   tools: (ToolRecord & { callIndex: number })[];
@@ -166,6 +171,12 @@ export interface TutorRepo {
    * message, the model_calls and the monthly cost. The cost of every call is recorded even on a conflict.
    */
   saveReply(a: SaveReplyInput): Promise<StoredReply | { conflict: true }>;
+  /**
+   * G6 (Y3): a button turn answered by the server (card way 2, "Em không hiểu đề"): only the tutor message.
+   * No model call, no counter changes; the turn count stays (a scripted turn is not one of the 20).
+   */
+  saveScriptedReply(a: { actor: ChildActor; problem: ProblemRow; message: string; buttons: string[]; cardRef: string | null;
+    now: Date }): Promise<StoredReply>;
   monthUsage(familyId: string, now: Date): Promise<MonthUsage>;
   /** usage_monthly.model_mode = 'economy': no strong model until next month (D29). */
   pauseStrong(familyId: string, now: Date): Promise<void>;

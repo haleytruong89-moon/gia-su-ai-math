@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useRef, useState, useSyncExternalStore } from "react";
 import type { Thread, ThreadMessage } from "@/lib/db/supabaseRepo";
 import { prepareImage } from "@/lib/client/image";
-import { BTN_NOT_UNDERSTOOD, BTN_SAVE, PHOTO_COPY, PHOTO_ONLY_TEXT } from "@/lib/copy";
+import { BTN_NOT_UNDERSTAND_PROBLEM, BTN_NOT_UNDERSTOOD, BTN_SAVE, PHOTO_COPY, PHOTO_ONLY_TEXT } from "@/lib/copy";
 import { MAX_IMAGES_PER_PROBLEM, MISREAD_HINT_AT, misreadCount } from "@/lib/rules/photo";
 import { lines } from "@/lib/markdown";
 import { newClientMsgId, postForm, postWithRetry } from "@/lib/client/post";
@@ -14,6 +14,7 @@ import type { ProblemStatus, StoredReply } from "@/lib/tutor/repo";
 import { shouldShowRating } from "@/lib/rules/rating";
 import { RatingCard } from "./rating-card";
 import { ReferenceSolution } from "./reference-solution";
+import { CardView } from "./card-view";
 
 const CLOSED_TEXT: Partial<Record<ProblemStatus, string>> = {
   timed_out: "Bài này đã đủ 20 lượt. Em ghi lại chỗ đã làm được và để dành hỏi thầy nhé.",
@@ -40,6 +41,7 @@ function Bubble({ m }: { m: ThreadMessage }) {
             {runs.map((r, j) => (r.bold ? <b key={j}>{r.text}</b> : <span key={j}>{r.text}</span>))}
           </p>
         ))}
+        {m.cardRef && <CardView cardRef={m.cardRef} />}
       </div>
     </li>
   );
@@ -110,8 +112,9 @@ export function Chat({ initial, rating }: { initial: Thread; rating: RatingInfo 
   }
   const last = messages.at(-1);
   const tutorTurn = open && !busy && last?.role === "tutor";
-  // "Chưa hiểu" and "Để dành hỏi thầy" are always in the fixed row below, so not repeated here.
-  const buttons = tutorTurn ? last.buttons.filter((b) => b !== BTN_NOT_UNDERSTOOD && b !== BTN_SAVE) : [];
+  // "Chưa hiểu", "Em không hiểu đề" and "Để dành hỏi thầy" are in the fixed row below, so not repeated here.
+  const buttons = tutorTurn
+    ? last.buttons.filter((b) => b !== BTN_NOT_UNDERSTOOD && b !== BTN_SAVE && b !== BTN_NOT_UNDERSTAND_PROBLEM) : [];
 
   const photoCount = messages.reduce((n, m) => n + m.images.length, 0);
   const canAddPhoto = photoCount < MAX_IMAGES_PER_PROBLEM;
@@ -140,13 +143,14 @@ export function Chat({ initial, rating }: { initial: Thread; rating: RatingInfo 
     setAskSave(false);
     const shown = t || PHOTO_ONLY_TEXT;
     setMessages((ms) => (ms.some((m) => m.id === id) ? ms
-      : [...ms, { id, role: "child", text: shown, buttons: [], images: withPhoto ? [withPhoto.previewUrl] : [] }]));
+      : [...ms, { id, role: "child", text: shown, buttons: [], images: withPhoto ? [withPhoto.previewUrl] : [], cardRef: null }]));
     const fields = { problemId: initial.problemId, clientMsgId: id, text: t, kind };
     const r = withPhoto
       ? await postForm<StoredReply>("/api/turn", fields, withPhoto.blob)
       : await postWithRetry<StoredReply>("/api/turn", fields);
     if (r.ok) {
-      setMessages((ms) => [...ms, { id: `${id}-reply`, role: "tutor", text: r.data.message, buttons: r.data.buttons, images: [] }]);
+      setMessages((ms) => [...ms, { id: `${id}-reply`, role: "tutor", text: r.data.message, buttons: r.data.buttons, images: [],
+        cardRef: r.data.cardRef ?? null }]);
       setStatus(r.data.status);
       setConfirmed(r.data.statementConfirmed);
       if (withPhoto) setPhoto(null); // the preview URL stays in use by the bubble
@@ -172,7 +176,7 @@ export function Chat({ initial, rating }: { initial: Thread; rating: RatingInfo 
     setError(null);
     const r = await postWithRetry<{ status: ProblemStatus }>("/api/problem/save", { problemId: initial.problemId, clientMsgId: saveId.current });
     if (r.ok) {
-      setMessages((ms) => [...ms, { id: saveId.current!, role: "child", text: BTN_SAVE, buttons: [], images: [] }]);
+      setMessages((ms) => [...ms, { id: saveId.current!, role: "child", text: BTN_SAVE, buttons: [], images: [], cardRef: null }]);
       setStatus("saved_for_later");
     } else {
       if (r.status === 409 && r.message.startsWith("Bài này đã đóng")) setStatus("timed_out");
@@ -245,6 +249,11 @@ export function Chat({ initial, rating }: { initial: Thread; rating: RatingInfo 
                 {tutorTurn && (
                   <button type="button" onClick={() => void send(BTN_NOT_UNDERSTOOD, "button")} className="btn border-[1.5px] border-ink/20 bg-white">
                     {BTN_NOT_UNDERSTOOD}
+                  </button>
+                )}
+                {tutorTurn && (
+                  <button type="button" onClick={() => void send(BTN_NOT_UNDERSTAND_PROBLEM, "button")} className="btn border-[1.5px] border-ink/20 bg-white">
+                    {BTN_NOT_UNDERSTAND_PROBLEM}
                   </button>
                 )}
                 <button type="button" disabled={busy} onClick={() => setAskSave(true)} className="btn border-[1.5px] border-ink/20 bg-white disabled:opacity-50">

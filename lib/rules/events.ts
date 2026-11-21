@@ -2,7 +2,7 @@
 import { NOT_UNDERSTOOD, type ChildEvent } from "@/lib/rules/nan";
 
 export type InputKind = "text" | "button" | "submit";
-export interface StoredMsg { id: string; role: "child" | "tutor"; content: string; inputKind: InputKind }
+export interface StoredMsg { id: string; role: "child" | "tutor"; content: string; inputKind: InputKind; cardRef?: string | null }
 
 /**
  * Oldest first. A "Chưa hiểu" press gets the root of its re-explanation chain as `replyTo`: the tutor
