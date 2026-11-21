@@ -1007,6 +1007,10 @@
     {
       "date": "2026-11-21",
       "text": "Phụ huynh merge #18 (G7c) và Launcher #98 (L-7, SQL 0024). G7 xong. Mở PR #19 G6a (thẻ giảng)"
+    },
+    {
+      "date": "2026-11-21",
+      "text": "Bộ test sư phạm 3 ca thẻ (6.12, 6.13, 9.26) trên Sonnet: 3/3 đạt, chọn đúng thẻ, 0 lộ đáp số (~0,14 USD cả 3 lần chạy)"
     }
   ]
 }
