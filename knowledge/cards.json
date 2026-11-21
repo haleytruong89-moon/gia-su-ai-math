@@ -1,5 +1,5 @@
 {
-  "version": "2026-11-21.cfaa0607",
+  "version": "2026-11-21.7ce460a8",
   "cards": [
     {
       "code": "D6.1",
@@ -884,7 +884,7 @@
         {
           "n": 1,
           "title": "Ghim kim rồi quay nửa vòng",
-          "body": "**Ví dụ.** Hình bình hành có tâm đối xứng không? Tam giác đều có không?\n\n**Tâm đối xứng là gì?** Là điểm O mà khi **quay hình nửa vòng (180°) quanh O**, hình mới **trùng khít** với hình cũ.\n\nThử bằng giấy:\n\n- Cắt một hình bình hành, kẻ hai đường chéo cắt nhau tại O. Ghim kim ở O rồi xoay nửa vòng → hình **trùng khít** chỗ cũ. Vậy **O là tâm đối xứng** của hình bình hành.\n- Làm như vậy với tam giác đều: xoay nửa vòng thì đỉnh đang chĩa lên lại **chĩa xuống** → không trùng khít. Tam giác đều **không có** tâm đối xứng.\n\n**Vì sao là giao điểm hai đường chéo?** Hai đường chéo của hình bình hành cắt nhau tại **trung điểm** mỗi đường. Quay nửa vòng quanh O thì mỗi đỉnh đổi chỗ với đỉnh **đối diện** (A sang C, B sang D), nên cả hình về đúng chỗ cũ.\n\n📝 **Mẹo nhớ:** *Quay nửa vòng mà trùng khít mới có tâm.* Vì: tâm đối xứng là \"trục quay\", không phải \"đường gấp\".\n\n🔎 **Ghi vào vở:** Hình chữ nhật, hình vuông, hình thoi, hình bình hành đều có tâm đối xứng là **giao điểm hai đường chéo**. Đường tròn có tâm đối xứng là **tâm** của nó.",
+          "body": "**Ví dụ.** Hình bình hành có tâm đối xứng không? Tam giác đều có không?\n\n**Tâm đối xứng là gì?** Là điểm O mà khi **quay hình nửa vòng (180°) quanh O**, hình mới **trùng khít** với hình cũ.\n\nThử bằng giấy:\n\n- Cắt một hình bình hành, kẻ hai đường chéo cắt nhau tại O. Ghim kim ở O rồi xoay nửa vòng → hình **trùng khít** chỗ cũ. Vậy **O là tâm đối xứng** của hình bình hành.\n- Làm như vậy với tam giác đều: xoay nửa vòng thì đỉnh đang chĩa lên lại **chĩa xuống** → không trùng khít. Tam giác đều **không có** tâm đối xứng.\n\n**Vì sao là giao điểm hai đường chéo?** Hai đường chéo của hình bình hành cắt nhau tại **trung điểm** mỗi đường. Quay nửa vòng quanh O thì mỗi đỉnh đổi chỗ với đỉnh **đối diện** (A sang C, B sang D), nên cả hình về đúng chỗ cũ.\n\n📝 **Mẹo nhớ:** *Quay nửa vòng mà trùng khít mới có tâm.* Vì: tâm đối xứng là \"điểm để quay\", không phải \"đường để gấp\".\n\n🔎 **Ghi vào vở:** Hình chữ nhật, hình vuông, hình thoi, hình bình hành đều có tâm đối xứng là **giao điểm hai đường chéo**. Đường tròn có tâm đối xứng là **tâm** của nó.",
           "keyNumbers": [
             "180",
             "360"
