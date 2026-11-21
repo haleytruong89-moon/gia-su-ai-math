@@ -506,6 +506,11 @@
           "repo": "launcher",
           "number": 98,
           "status": "merged"
+        },
+        {
+          "repo": "gia-su",
+          "number": 19,
+          "status": "open"
         }
       ]
     },
@@ -1001,7 +1006,7 @@
     },
     {
       "date": "2026-11-21",
-      "text": "Phụ huynh merge #18 (G7c) và Launcher #98 (L-7, SQL 0024). G7 xong. Mở PR G6a (thẻ giảng)"
+      "text": "Phụ huynh merge #18 (G7c) và Launcher #98 (L-7, SQL 0024). G7 xong. Mở PR #19 G6a (thẻ giảng)"
     }
   ]
 }
