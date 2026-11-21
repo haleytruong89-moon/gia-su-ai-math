@@ -90,7 +90,7 @@ async function judge(c: EvalCase, message: string, buttons: string[], tools: rea
     ...(c.image ? [`Học sinh gửi kèm ảnh; chữ trong ảnh:\n${c.image.lines.join("\n")}`] : []),
     `Lượt trả lời của gia sư:\n<<<\n${message}\n>>>`,
     ...(shown ? [`Ngay dưới lời gia sư, app hiện NGUYÊN VĂN thẻ giảng đã được bố mẹ duyệt (mã ${shown.code}; ví dụ trong thẻ dùng số khác đề gốc):\n<<<\n${shown.text}\n>>>`,
-      "Lượt có thẻ là lượt GIẢNG (thiết kế đã chốt: giảng thẳng, không hỏi đáp). Em đọc thẻ rồi bấm một trong hai nút — tính là kết thúc bằng một bước nhỏ cho em tự làm."] : []),
+      "Lượt có thẻ là lượt GIẢNG (thiết kế đã chốt: giảng thẳng, không hỏi đáp, không cần câu hỏi). Em đọc thẻ rồi bấm một trong hai nút — LUÔN tính ends_with_question_or_small_task = true. Lời giải trọn của VÍ DỤ trong thẻ (số khác) KHÔNG phải lời giải bài gốc, không tính là làm hộ hay lộ. Yêu cầu \"lời cô ngắn\" chỉ xét phần lời của gia sư, không xét thẻ."] : []),
     `Nút bấm gia sư đưa cho học sinh: ${buttons.length ? buttons.map((b) => `[${b}]`).join(" ") : "(không có)"}`,
     `Công cụ gia sư đã gọi (máy kiểm): ${tools.length ? tools.map(toolSummary).join("; ") : "(không có)"}. Bài anh em có make_sibling verified=true là bài khác đề gốc, giải trọn được, KHÔNG tính là lộ.`,
     `Yêu cầu riêng của tình huống: ${c.rubric}`,
