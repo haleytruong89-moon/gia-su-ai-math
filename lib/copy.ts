@@ -64,3 +64,16 @@ export const DOC_DE_BUTTONS = ["Em không hiểu đề kể chuyện gì", "Em k
 export const CARD_AGAIN_INTRO = "Cô giảng cách khác nhé:";
 export const CARDS_DONE = "Cô đã giảng 2 cách rồi. Em để dành bài này hỏi thầy, hay thử lại bước vừa rồi?";
 export const CARD_MISSING = "Thẻ này đang được cập nhật.";
+
+/** G6b — start-of-session review (D26, Y4, Y5). */
+export const REVIEW_COPY = {
+  title: "Ôn nhanh",
+  recognize: "Chỉ chọn dạng, không cần giải.",
+  answer: "Trả lời",
+  later: "Để sau",
+  correct: "Đúng rồi!",
+  wrong: "Chưa đúng — đáp án:",
+  seeCard: "Xem lại thẻ",
+  unchecked: "Cô kiểm lại sau nhé.",
+  placeholder: "Em gõ câu trả lời…",
+} as const;
