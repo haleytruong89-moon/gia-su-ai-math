@@ -45,6 +45,9 @@ export function memoryRepo(seed: Seed = {}, strongModel = "claude-opus-5-5") {
   const images: ImageRow[] = (seed.images ?? []).map((i) => ({ id: id("i"), childId: "c1", path: "c1/x/y.jpg", data: "QUJD",
     width: 10, height: 10, deleteAfter: "2027-01-01", ...i }));
   const toolCalls: ToolRow[] = [];
+  /** G7: every syncAttention call (the real repo rewrites public.learning_attention). */
+  const attentionSyncs: { familyId: string; childId: string; dateVn: string }[] = [];
+  const failAttention = { on: false };
   const diagnoses: (Diagnosis & { problemId: string; childId: string })[] = [];
   const usage = new Map<string, number>();
   const modes = new Map<string, "normal" | "economy">();
@@ -189,6 +192,10 @@ export function memoryRepo(seed: Seed = {}, strongModel = "claude-opus-5-5") {
       p.status = "saved_for_later";
       return "saved";
     },
+    async syncAttention(a) {
+      if (failAttention.on) throw new Error("attention down");
+      attentionSyncs.push({ familyId: a.familyId, childId: a.childId, dateVn: a.dateVn });
+    },
   };
-  return Object.assign(repo, { sessions, problems, messages, modelCalls, usage, modes, images, toolCalls, diagnoses });
+  return Object.assign(repo, { sessions, problems, messages, modelCalls, usage, modes, images, toolCalls, diagnoses, attentionSyncs, failAttention });
 }

@@ -201,7 +201,17 @@ export async function saveForLater(d: Deps, raw: unknown): Promise<Result> {
   if (!problem) return { status: 404, json: { error: "not_found" } };
   const r = await d.repo.saveForLater({ actor, problemId: problem.id, clientMsgId: parsed.data.clientMsgId, now: d.now });
   if (r === "not_open") return closed(problem.status);
+  if (r === "saved") await syncAttention(d, actor);
   return { status: 200, json: { status: "saved_for_later" } };
+}
+
+/** G7: the Launcher's "cần chú ý" lines follow every ended problem. Never breaks the child's turn. */
+async function syncAttention(d: Deps, actor: ChildActor): Promise<void> {
+  try {
+    await d.repo.syncAttention({ familyId: actor.familyId, childId: actor.userId, dateVn: dateVn(d.now), now: d.now });
+  } catch (e) {
+    console.error("attention sync failed", e instanceof Error ? e.message : "unknown");
+  }
 }
 
 const closed = (status: ProblemStatus): Result => ({ status: 409, json: { error: "problem_closed", status } });
@@ -465,5 +475,6 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
     await d.repo.deleteMessage(messageId);
     return pending;
   }
+  if (saved.status !== "in_progress") await syncAttention(d, actor);
   return { status: 200, json: saved };
 }

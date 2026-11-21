@@ -1,8 +1,8 @@
 {
   "schema": 1,
   "project": "Gia sư AI Toán",
-  "updated": "2026-11-18",
-  "updatedNote": "G5 xong; đang sửa lỗi G0 lần 5 (bài anh em); tiếp theo G7 báo cáo bố mẹ",
+  "updated": "2026-11-21",
+  "updatedNote": "G7 đang làm: #15 và L-6 (#93) đã merge; G7a (#16) chờ merge; G7b, G7c xong trên nhánh",
   "vision": {
     "oneLiner": "Một \"cô\" gia sư AI giúp 2 con tự học Toán buổi chiều: gỡ chỗ kẹt bằng câu hỏi gợi mở, không đưa lời giải bài gốc, tối bố mẹ đọc báo cáo 5 phút.",
     "problem": "Buổi chiều 2 con có nhiều thời gian tự học nhưng không có người lớn. Bố mẹ có khoảng 2 giờ buổi tối, gia sư người 2 buổi/tuần. Tốc độ tiến bộ do giờ tự học buổi chiều quyết định.",
@@ -492,32 +492,40 @@
     {
       "id": "G7",
       "title": "Báo cáo bố mẹ + góp ý thành luật dạy",
-      "status": "next",
+      "status": "in_progress",
       "goal": "Tối bố mẹ đọc báo cáo 5 phút, góp ý thành luật dạy; báo chi phí.",
       "features": [
         {
-          "name": "Con chấm cô 1 chạm",
+          "name": "Báo cáo tối gộp 2 con, cờ ⚠️ §4.7, kiến thức nền bị hổng, ý chặn, chi phí",
+          "status": "review"
+        },
+        {
+          "name": "Xem lại từng bài + bố mẹ 👍/👎 kèm ghi chú",
+          "status": "review"
+        },
+        {
+          "name": "2 dòng \"cần chú ý\" mỗi con trên Launcher (X1; máy tính lỗi chỉ là cờ, D23)",
+          "status": "review"
+        },
+        {
+          "name": "Con chấm cô 1 chạm sau bài đầu + nút Kết thúc buổi (P2)",
           "status": "todo"
         },
         {
-          "name": "Báo cáo tối gộp 2 con, cờ ⚠️, kiến thức nền bị hổng, ý chặn",
+          "name": "Góp ý / 😕 ×2 → luật dạy (Sonnet soạn, bố mẹ duyệt, hiệu lực buổi sau)",
           "status": "todo"
         },
         {
-          "name": "Góp ý → luật dạy (đề xuất → duyệt → hiệu lực buổi sau)",
+          "name": "Báo tiền qua Launcher: ~45 USD, Console hết tiền, dự báo vượt trần (D23)",
           "status": "todo"
         },
         {
-          "name": "Lời giải tham khảo sau khi con tự làm xong (Q3 G4)",
+          "name": "Lời giải tham khảo sau khi con tự làm xong, cas kiểm (P4, X5)",
           "status": "todo"
         },
         {
-          "name": "Báo khi máy tính lỗi ≥ 2 lần/ngày; báo khi ~45 USD",
-          "status": "todo"
-        },
-        {
-          "name": "L-2 thông báo đẩy qua Launcher; L-3 thẻ \"Xem gộp\"",
-          "status": "todo"
+          "name": "L-6 Launcher: link báo cáo, route báo tiền, SQL 0023",
+          "status": "done"
         }
       ],
       "acceptance": [
@@ -526,6 +534,18 @@
       ],
       "depends": [
         "G2"
+      ],
+      "prs": [
+        {
+          "repo": "launcher",
+          "number": 93,
+          "status": "merged"
+        },
+        {
+          "repo": "gia-su",
+          "number": 16,
+          "status": "open"
+        }
       ]
     },
     {
@@ -765,6 +785,11 @@
   ],
   "parentTodo": [
     {
+      "text": "Đặt TUTOR_NOTIFY_SECRET trên 2 project Vercel + LAUNCHER_URL bên gia sư (SETUP Launcher mục I) trước G7c",
+      "slice": "G7",
+      "status": "open"
+    },
+    {
       "text": "Sau merge bản sửa G0 (bài anh em + cas + dạy bù nền): chạy lại G0 ca 9.3, 9.23, 6.3, 9.18, 9.19 trên Sonnet + Opus (< 0,2 USD)",
       "slice": "G5",
       "status": "open"
@@ -904,6 +929,14 @@
     {
       "date": "2026-11-18",
       "text": "G0 lần chạy 5 (sau G5): Sonnet 5/10, Opus 5/10, không lộ đáp số; tìm ra lỗi schema make_sibling (API 400 → bài anh em hỏng), cas HTTP 500, rubric 9.18/9.19 → PR #15 sửa (prompt v0.6). D23 chốt: chỉ báo chuyện tiền"
+    },
+    {
+      "date": "2026-11-19",
+      "text": "G7 bắt đầu: phụ huynh chốt X1–X5; Launcher #93 (L-6, SQL 0023) và gia sư G7a (báo cáo tối, 👍/👎, dòng cần chú ý) mở PR"
+    },
+    {
+      "date": "2026-11-21",
+      "text": "Phụ huynh merge #15 (sửa bài anh em, prompt v0.6) và Launcher #93 (L-6, SQL 0023). G7a (#16) rebase lên main"
     }
   ]
 }

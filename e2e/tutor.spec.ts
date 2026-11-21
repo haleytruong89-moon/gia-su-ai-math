@@ -65,6 +65,26 @@ test("'Để dành hỏi thầy' asks first, then closes the problem as saved_fo
   expect(data?.status).toBe("saved_for_later");
 });
 
+test("parent: evening report shows the day's flags; 👎 + note on a tutor turn is saved (G7a)", async ({ page, context }) => {
+  // The problem above went to Opus after 3 × "Chưa hiểu" (nản) and was saved for later.
+  const { data: lines } = await adminClient().from("learning_attention").select("slot, body, source").eq("local_date", new Date(Date.now() + 7 * 3600e3).toISOString().slice(0, 10));
+  expect(lines).toContainEqual(expect.objectContaining({ slot: 1, source: "tutor:toan", body: expect.stringContaining("nản 1 lần") }));
+  await signIn(context, "parent");
+  await page.goto("/gia-su/bo-me/bao-cao");
+  await expect(page.getByRole("heading", { name: "Con thử · lớp 9" })).toBeVisible();
+  await expect(page.getByText(/Nản \/ bỏ dở: .*nản 1 lần/)).toBeVisible();
+  await expect(page.getByText(/Để dành hỏi thầy · gợi ý tới H/).first()).toBeVisible();
+  await page.goto(`/gia-su/bo-me/bao-cao/${problemId}`);
+  await page.getByRole("button", { name: "Cô nên dạy khác" }).first().click();
+  await page.getByPlaceholder("Cô nên làm khác thế nào?").fill("Cô giảng ngắn hơn, mỗi lần một ý");
+  const saved = page.waitForResponse((r) => r.url().endsWith("/gia-su/api/parent/feedback"));
+  await page.getByRole("button", { name: "Gửi" }).click();
+  expect((await saved).status()).toBe(200);
+  await expect(page.getByText("Đã lưu góp ý").first()).toBeVisible();
+  const { data: fb } = await tutor().from("parent_feedback").select("thumb, note").eq("problem_id", problemId);
+  expect(fb).toEqual([{ thumb: "down", note: "Cô giảng ngắn hơn, mỗi lần một ý" }]);
+});
+
 test("parent: the private math checker answers through the server (G4)", async ({ page, context }) => {
   await signIn(context, "parent");
   const r = await page.request.get("/gia-su/api/admin/cas-health");
