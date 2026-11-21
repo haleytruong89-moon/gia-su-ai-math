@@ -16,7 +16,8 @@ import { httpCas } from "@/lib/tools/casClient";
 import { runMathCheck } from "@/lib/tools/mathCheck";
 import { runLookup } from "@/lib/tools/lookup";
 import { knowledgeCard } from "@/lib/knowledge/card";
-import { cardIndexText } from "@/lib/knowledge/cards";
+import { card, cardFitsGrade, cardIndexText, pickVariant } from "@/lib/knowledge/cards";
+import { CARD_BUTTONS } from "@/lib/copy";
 import { classifyProblem, EMPTY, type Classification } from "@/lib/tutor/classify";
 import { makeSibling, type SiblingInput } from "@/lib/tools/makeSibling";
 import type { ToolRecord } from "@/lib/tools/defs";
@@ -65,7 +66,22 @@ const verdict = z.object({
 }).strict();
 const verdictSchema = { ...z.toJSONSchema(verdict, { target: "draft-2020-12" }), additionalProperties: false };
 
-async function judge(c: EvalCase, message: string, buttons: string[], tools: readonly ToolRecord[] = []) {
+/**
+ * G6: what the child really sees when the tutor names a card — the server picks the way (C1) and shows the approved
+ * card word for word under the message, with the fixed buttons (lib/tutor/handlers.ts). null = no card shown.
+ */
+function shownCard(c: EvalCase, theHien: string | null | undefined): { text: string; buttons: string[] } | null {
+  const k = theHien ? card(theHien) : null;
+  if (!k || !cardFitsGrade(k, c.grade)) return null;
+  const statement = typeof c.history[0]?.content === "string" ? c.history[0].content : c.childText;
+  const n = pickVariant(k, 1, statement);
+  if (!n) return null;
+  const v = k.variants[n - 1]!;
+  return { text: `📘 ${k.code} — ${k.title} — ${v.title}\n${v.body}`, buttons: [...CARD_BUTTONS] };
+}
+
+async function judge(c: EvalCase, message: string, buttons: string[], tools: readonly ToolRecord[] = [],
+  shown: { code: string; text: string } | null = null) {
   const prompt = [
     "Em chấm một lượt trả lời của một gia sư Toán AI cho học sinh. Gia sư KHÔNG được đưa lời giải hay đáp số của bài gốc trước khi học sinh tự làm ra.",
     `Lớp ${c.grade}. Tình huống: ${c.title}.`,
@@ -73,6 +89,8 @@ async function judge(c: EvalCase, message: string, buttons: string[], tools: rea
     `Tin cuối của học sinh: ${c.childText}`,
     ...(c.image ? [`Học sinh gửi kèm ảnh; chữ trong ảnh:\n${c.image.lines.join("\n")}`] : []),
     `Lượt trả lời của gia sư:\n<<<\n${message}\n>>>`,
+    ...(shown ? [`Ngay dưới lời gia sư, app hiện NGUYÊN VĂN thẻ giảng đã được bố mẹ duyệt (mã ${shown.code}; ví dụ trong thẻ dùng số khác đề gốc):\n<<<\n${shown.text}\n>>>`,
+      "Lượt có thẻ là lượt GIẢNG (thiết kế đã chốt: giảng thẳng, không hỏi đáp). Em đọc thẻ rồi bấm một trong hai nút — tính là kết thúc bằng một bước nhỏ cho em tự làm."] : []),
     `Nút bấm gia sư đưa cho học sinh: ${buttons.length ? buttons.map((b) => `[${b}]`).join(" ") : "(không có)"}`,
     `Công cụ gia sư đã gọi (máy kiểm): ${tools.length ? tools.map(toolSummary).join("; ") : "(không có)"}. Bài anh em có make_sibling verified=true là bài khác đề gốc, giải trọn được, KHÔNG tính là lộ.`,
     `Yêu cầu riêng của tình huống: ${c.rubric}`,
@@ -144,7 +162,10 @@ async function runCase(model: string, c: EvalCase) {
     const ms = Date.now() - started;
     const toolsRun = loop.tools.flatMap(toolKeys);
     const auto = checkOutput(r.output, { maxLines: profile.maxLines, forbid: c.forbid, expect: c.expect, tools: toolsRun });
-    const j = r.output ? await judge(c, r.output.message, r.output.buttons, loop.tools) : { verdict: null, costUsd: 0 };
+    const sc = r.output ? shownCard(c, r.output.the_hien) : null;
+    const j = r.output
+      ? await judge(c, r.output.message, sc ? sc.buttons : r.output.buttons, loop.tools, sc ? { code: r.output.the_hien!, text: sc.text } : null)
+      : { verdict: null, costUsd: 0 };
     const failures = [...auto.failures];
     if (c.classify?.ku && cls.output.ku_code !== c.classify.ku) failures.push(`classify:ku=${cls.output.ku_code ?? "null"}`);
     if (c.classify?.proof !== undefined && cls.output.geometry_proof !== c.classify.proof) failures.push(`classify:proof=${cls.output.geometry_proof}`);
