@@ -1,5 +1,5 @@
 {
-  "version": "2026-11-21.b7dfe61c",
+  "version": "2026-11-21.3e5b1c07",
   "cards": [
     {
       "code": "D6.1",
@@ -1706,7 +1706,7 @@
         {
           "n": 2,
           "title": "Dịch cụm so sánh thành phương trình",
-          "body": "**Ví dụ.** Hai lớp 9A và 9B có tất cả 80 học sinh. Lớp 9A nhiều hơn lớp 9B 4 bạn. Mỗi lớp có bao nhiêu học sinh?\n\nGọi số học sinh lớp 9A là x, lớp 9B là y (học sinh; x, y nguyên dương).\n\n- \"Tất cả 80\" → **x + y = 80**.\n- \"9A nhiều hơn 9B 4 bạn\" → **x − y = 4** (hoặc x = y + 4).\n\nCộng hai phương trình: 2x = 84 → x = 42, y = 38. Lớp 9A có 42 bạn, lớp 9B có 38 bạn.\n\n**Vì sao phải cẩn thận chiều?** Viết ngược **y − x = 4** là đổi nghĩa thành \"9B nhiều hơn\". Ra số âm hoặc ra kết quả trái đề.\n\n| Cụm trong đề | Viết thành |\n|---|---|\n| A nhiều hơn B 4 | A − B = 4 |\n| A ít hơn B 4 | B − A = 4 |\n| A gấp 3 lần B | A = 3B |\n| A bằng 2/3 B | A = (2/3)B |\n\n📝 **Mẹo nhớ:** *Ai nhiều hơn thì đứng trước dấu trừ; ai \"gấp\" thì đứng một mình một vế.* Vì: hiệu dương nghĩa là số đứng trước lớn hơn; \"A gấp 3 lần B\" nghĩa là phải nhân B lên 3 mới bằng A.\n\n🔎 **Ghi vào vở:** Sau khi viết một phương trình, đọc ngược nó thành lời (\"x trừ y bằng 4 → 9A hơn 9B 4 bạn\") để kiểm.",
+          "body": "**Ví dụ.** Hai lớp A và B có tất cả 80 học sinh. Lớp A nhiều hơn lớp B 4 bạn. Mỗi lớp có bao nhiêu học sinh?\n\nGọi số học sinh lớp A là x, lớp B là y (học sinh; x, y nguyên dương).\n\n- \"Tất cả 80\" → **x + y = 80**.\n- \"Lớp A nhiều hơn lớp B 4 bạn\" → **x − y = 4** (hoặc x = y + 4).\n\nCộng hai phương trình: 2x = 84 → x = 42, y = 38. Lớp A có 42 bạn, lớp B có 38 bạn.\n\n**Vì sao phải cẩn thận chiều?** Viết ngược **y − x = 4** là đổi nghĩa thành \"lớp B nhiều hơn\". Ra số âm hoặc ra kết quả trái đề.\n\n| Cụm trong đề | Viết thành |\n|---|---|\n| A nhiều hơn B 4 | A − B = 4 |\n| A ít hơn B 4 | B − A = 4 |\n| A gấp 3 lần B | A = 3B |\n| A bằng 2/3 B | A = (2/3)B |\n\n📝 **Mẹo nhớ:** *Ai nhiều hơn thì đứng trước dấu trừ; ai \"gấp\" thì đứng một mình một vế.* Vì: hiệu dương nghĩa là số đứng trước lớn hơn; \"A gấp 3 lần B\" nghĩa là phải nhân B lên 3 mới bằng A.\n\n🔎 **Ghi vào vở:** Sau khi viết một phương trình, đọc ngược nó thành lời (\"x trừ y bằng 4 → lớp A hơn lớp B 4 bạn\") để kiểm.",
           "keyNumbers": [
             "80",
             "4"
