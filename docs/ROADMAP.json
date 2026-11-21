@@ -2,7 +2,7 @@
   "schema": 1,
   "project": "Gia sư AI Toán",
   "updated": "2026-11-21",
-  "updatedNote": "G6a, G6b xong (#19, #20). G6c: thẻ HK1 đợt 1 (#21) chờ duyệt; đợt 2 đang soạn",
+  "updatedNote": "G6a, G6b, thẻ đợt 1 xong. Thẻ HK1 đợt 2 (#22) chờ duyệt; tiếp đợt 3 lớp 9",
   "vision": {
     "oneLiner": "Một \"cô\" gia sư AI giúp 2 con tự học Toán buổi chiều: gỡ chỗ kẹt bằng câu hỏi gợi mở, không đưa lời giải bài gốc, tối bố mẹ đọc báo cáo 5 phút.",
     "problem": "Buổi chiều 2 con có nhiều thời gian tự học nhưng không có người lớn. Bố mẹ có khoảng 2 giờ buổi tối, gia sư người 2 buổi/tuần. Tốc độ tiến bộ do giờ tự học buổi chiều quyết định.",
@@ -520,6 +520,11 @@
         {
           "repo": "gia-su",
           "number": 21,
+          "status": "merged"
+        },
+        {
+          "repo": "gia-su",
+          "number": 22,
           "status": "open"
         }
       ]
@@ -1029,6 +1034,10 @@
     {
       "date": "2026-11-21",
       "text": "Phụ huynh merge #20 (G6b ôn đầu buổi + Thẻ cần bổ sung). G6c đợt 1: 10 thẻ lớp 6 Chương I–II (T6.1–T6.10), PR #21 — merge = bố mẹ duyệt nội dung"
+    },
+    {
+      "date": "2026-11-21",
+      "text": "Phụ huynh merge #21 (thẻ HK1 đợt 1, T6.1–T6.10). G6c đợt 2: 10 thẻ lớp 6 phần còn lại HK1 (T6.13–T6.22), PR #22 — merge = bố mẹ duyệt"
     }
   ]
 }

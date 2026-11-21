@@ -1,5 +1,5 @@
 {
-  "version": "2026-11-21.41f64200",
+  "version": "2026-11-21.32e3d7ea",
   "cards": [
     {
       "code": "D6.1",
@@ -946,6 +946,620 @@
             "Phân số"
           ],
           "answer": "BCNN",
+          "check": "exact"
+        }
+      ]
+    },
+    {
+      "code": "T6.13",
+      "grade": 6,
+      "kind": "ban_chat",
+      "ku": "T6.13",
+      "title": "Tập hợp các số nguyên",
+      "variants": [
+        {
+          "n": 1,
+          "title": "Chiếc nhiệt kế",
+          "body": "**Ví dụ.** Sáng nay ở Sa Pa nhiệt độ là −5 °C, ở Mộc Châu là −2 °C. Nơi nào lạnh hơn? So sánh −5 và −2.\n\n**Số âm dùng để làm gì?** Để ghi những thứ **dưới mức 0**: nhiệt độ dưới 0 °C, độ sâu dưới mực nước biển (−20 m), số tiền nợ (−50 nghìn). Số nguyên gồm số nguyên âm, số 0 và số nguyên dương:\n\nℤ = {…; −3; −2; −1; 0; 1; 2; 3; …}.\n\n**Vì sao −5 < −2?** Nhìn chiếc nhiệt kế dựng đứng: vạch 0 ở giữa, càng **xuống dưới càng lạnh**. Vạch −5 nằm **dưới** vạch −2 (xuống thêm 3 nấc nữa), nên −5 °C **lạnh hơn** −2 °C, tức là **−5 < −2**. Sa Pa lạnh hơn.\n\n📝 **Mẹo nhớ:** *Với số âm, \"số\" càng to thì càng nhỏ.* Vì: −5 là \"dưới 0 năm nấc\", −2 là \"dưới 0 hai nấc\"; xuống càng sâu thì càng thấp.\n\n🔎 **Ghi vào vở:** Số âm < 0 < số dương. Mọi số âm đều nhỏ hơn mọi số dương (−100 < 1).",
+          "keyNumbers": [
+            "5",
+            "2"
+          ],
+          "checks": [
+            "-5 < -2",
+            "-5 < 0",
+            "-(-3) == 3"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Trục số và số đối",
+          "body": "**Ví dụ.** Biểu diễn −7, −3, 4 trên trục số. So sánh −7 và −3. Tìm số đối của 4 và của −7.\n\n**Trục số nằm ngang.** Điểm 0 ở giữa. Bên **phải** là số dương 1, 2, 3…; bên **trái** là số âm −1, −2, −3… cách đều nhau.\n\n- Trên trục số nằm ngang, số **bên trái** luôn **nhỏ hơn**. −7 nằm bên trái −3 → **−7 < −3**.\n- **Số đối:** hai số nằm **hai bên** điểm 0 và **cách đều** 0. Số đối của 4 là −4; số đối của −7 là 7 (viết −(−7) = 7). Số đối của 0 là 0.\n\n**Vì sao −(−7) = 7?** \"Số đối\" là đi sang phía bên kia điểm 0, cùng khoảng cách. −7 ở bên trái, cách 0 bảy đơn vị; sang bên kia thì được 7.\n\n📝 **Mẹo nhớ:** *Trái nhỏ, phải lớn; số đối là soi gương qua số 0.* Vì: trục số vẽ từ nhỏ đến lớn theo chiều từ trái sang phải; còn số đối là \"ảnh\" của số qua điểm 0.\n\n🔎 **Ghi vào vở:** Tổng hai số đối bằng 0: 4 + (−4) = 0. Khi so sánh hai số âm, vẽ nhanh một trục số nhỏ ra nháp cho chắc.",
+          "keyNumbers": [
+            "7",
+            "3"
+          ],
+          "checks": [
+            "-7 < -3",
+            "4 + (-4) == 0"
+          ]
+        }
+      ],
+      "review": [
+        {
+          "key": "why1",
+          "kind": "why",
+          "prompt": "Vì sao −5 < −2?",
+          "buttons": [
+            "Trên trục số, −5 nằm bên trái −2",
+            "Vì 5 lớn hơn 2",
+            "Vì hai số âm bằng nhau"
+          ],
+          "answer": "Trên trục số, −5 nằm bên trái −2",
+          "check": "exact"
+        },
+        {
+          "key": "opp1",
+          "kind": "formula",
+          "prompt": "Số đối của −9 là số nào?",
+          "buttons": [
+            "9",
+            "−9",
+            "0"
+          ],
+          "answer": "9",
+          "check": "exact"
+        }
+      ]
+    },
+    {
+      "code": "T6.14",
+      "grade": 6,
+      "kind": "ban_chat",
+      "ku": "T6.14",
+      "title": "Phép cộng, phép trừ số nguyên",
+      "variants": [
+        {
+          "n": 1,
+          "title": "Tiền có và tiền nợ",
+          "body": "**Ví dụ.** Tính: a) (−10) + 7; b) (−4) + (−6); c) 9 + (−5).\n\nCoi số dương là **tiền có**, số âm là **tiền nợ** (đơn vị: nghìn đồng).\n\n- a) Nợ 10, có 7 → trả được 7, **vẫn còn nợ 3**: (−10) + 7 = **−3**.\n- b) Nợ 4, lại nợ thêm 6 → nợ tất cả 10: (−4) + (−6) = **−10**.\n- c) Có 9, nợ 5 → trả xong còn 4: 9 + (−5) = **4**.\n\n**Quy tắc (vì sao như vậy?):**\n\n- **Cùng dấu** (nợ thêm nợ, có thêm có): **cộng** hai phần số, **giữ dấu** chung.\n- **Khác dấu** (có và nợ bù trừ cho nhau): lấy **số lớn trừ số nhỏ** (phần số), **dấu của bên nhiều hơn**. Nợ nhiều hơn có thì kết quả là nợ (âm).\n\n📝 **Mẹo nhớ:** *Cùng dấu thì gộp, khác dấu thì bù trừ.* Vì: có với có thì nhiều thêm; có với nợ thì trả cho nhau, bên nào nhiều hơn thì còn lại bên đó.\n\n🔎 **Ghi vào vở:** Khác dấu thì trước khi trừ, hỏi \"**bên nào nhiều hơn?**\" — đó là dấu của kết quả.",
+          "keyNumbers": [
+            "10",
+            "7"
+          ],
+          "checks": [
+            "-10 + 7 == -3",
+            "-4 + (-6) == -10",
+            "9 + (-5) == 4"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Đi thang máy (phép trừ)",
+          "body": "**Ví dụ.** Tính: a) 3 − 8; b) 2 − (−6).\n\n**Quy tắc:** trừ đi một số = **cộng với số đối** của nó: a − b = a + (−b).\n\n- a) 3 − 8 = 3 + (−8) = **−5**. Hình dung: đang ở tầng 3, đi **xuống** 8 tầng → xuống tầng 0 rồi xuống tiếp 5 tầng hầm → tầng **−5**.\n- b) 2 − (−6) = 2 + 6 = **8**.\n\n**Vì sao trừ một số âm lại thành cộng?** Hãy nghĩ \"−6\" là **khoản nợ 6 nghìn**. \"Trừ đi khoản nợ\" nghĩa là **xóa nợ** cho em → em giàu thêm 6 nghìn. Vậy 2 − (−6) = 2 + 6 = 8.\n\n📝 **Mẹo nhớ:** *Trừ là cộng với số đối.* Vì: bớt đi một thứ cũng giống thêm vào thứ ngược với nó (bớt nợ = thêm tiền).\n\n🔎 **Ghi vào vở:** Bài nhiệt độ, độ cao: \"tăng\" là cộng, \"giảm\" là trừ. Ví dụ 4 °C giảm 7 °C còn 4 − 7 = −3 °C.",
+          "keyNumbers": [
+            "3",
+            "8"
+          ],
+          "checks": [
+            "3 - 8 == -5",
+            "3 - 8 == 3 + (-8)",
+            "2 - (-6) == 8"
+          ]
+        }
+      ],
+      "review": [
+        {
+          "key": "why1",
+          "kind": "why",
+          "prompt": "Vì sao 2 − (−6) = 2 + 6?",
+          "buttons": [
+            "Trừ đi một số là cộng với số đối của nó",
+            "Vì 6 lớn hơn 2",
+            "Vì cứ có dấu trừ là đổi thành cộng"
+          ],
+          "answer": "Trừ đi một số là cộng với số đối của nó",
+          "check": "exact"
+        },
+        {
+          "key": "add1",
+          "kind": "mini_problem",
+          "prompt": "(−12) + 5 bằng bao nhiêu?",
+          "buttons": [
+            "−7",
+            "7",
+            "−17"
+          ],
+          "answer": "−7",
+          "check": "exact"
+        }
+      ]
+    },
+    {
+      "code": "T6.15",
+      "grade": 6,
+      "kind": "ban_chat",
+      "ku": "T6.15",
+      "title": "Quy tắc dấu ngoặc",
+      "variants": [
+        {
+          "n": 1,
+          "title": "Lấy đi cả chiếc túi",
+          "body": "**Ví dụ.** Tính 25 − (15 − 8) bằng hai cách.\n\n- Tính trong ngoặc trước: 25 − 7 = **18**.\n- Bỏ ngoặc: 25 − (15 − 8) = 25 − 15 **+** 8 = 10 + 8 = **18**. Cùng kết quả!\n\n**Vì sao dấu của 8 đổi thành \"+\"?** Hãy coi (15 − 8) là **một chiếc túi**: trong túi có \"thêm 15\" và \"bớt 8\". Dấu \"−\" đứng trước túi nghĩa là **lấy đi cả túi**. Lấy đi cả túi thì:\n\n- \"thêm 15\" bị lấy đi → thành **bớt 15** (−15);\n- \"bớt 8\" bị lấy đi → tức là **không bớt 8 nữa**, trả lại 8 → **+8**.\n\n**Quy tắc.** Bỏ ngoặc có dấu \"**+**\" đằng trước: giữ nguyên dấu mọi số hạng. Bỏ ngoặc có dấu \"**−**\" đằng trước: **đổi dấu tất cả** số hạng trong ngoặc (+ thành −, − thành +).\n\n📝 **Mẹo nhớ:** *Trừ cả túi là đổi dấu cả túi.* Vì: lấy đi một tổng tức là lấy đi **từng** thứ trong tổng đó, kể cả cái \"bớt\" bên trong.\n\n🔎 **Ghi vào vở:** Đổi dấu **tất cả**, không chỉ số đầu tiên: −(a − b + c) = −a + b − c.",
+          "keyNumbers": [
+            "25",
+            "15"
+          ],
+          "checks": [
+            "25 - (15 - 8) == 25 - 15 + 8",
+            "25 - (15 - 8) == 18"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Bỏ ngoặc để tính nhanh",
+          "body": "**Ví dụ.** Tính nhanh: (136 − 47) − (36 − 47).\n\nBỏ ngoặc (ngoặc thứ hai có dấu \"−\" đằng trước nên đổi dấu cả hai số trong đó):\n\n(136 − 47) − (36 − 47) = 136 − 47 − 36 **+ 47**\n= (136 − 36) + (−47 + 47) = 100 + 0 = **100**.\n\n**Vì sao bỏ ngoặc lại nhanh hơn?** Khi đã bỏ ngoặc, ta được **đổi chỗ, nhóm lại** các số hạng tùy ý (như phép cộng). Nhờ vậy gom được 136 − 36 = 100 và −47 + 47 = 0, khỏi tính 89 − (−11).\n\n**Lỗi hay gặp:** viết 136 − 47 − 36 − 47 (quên đổi dấu số thứ hai trong ngoặc). Kết quả sẽ sai hẳn.\n\n📝 **Mẹo nhớ:** *Bỏ ngoặc xong rồi mới gom số đẹp.* Vì: còn ngoặc thì phải tính trong ngoặc trước, không đổi chỗ được.\n\n🔎 **Ghi vào vở:** Sau khi bỏ ngoặc, tìm các cặp **số đối** (−47 và +47) hoặc cặp cộng ra số tròn.",
+          "keyNumbers": [
+            "136",
+            "47"
+          ],
+          "checks": [
+            "(136 - 47) - (36 - 47) == 100",
+            "136 - 47 - 36 + 47 == 100"
+          ]
+        }
+      ],
+      "review": [
+        {
+          "key": "why1",
+          "kind": "why",
+          "prompt": "Vì sao bỏ ngoặc có dấu \"−\" đằng trước phải đổi dấu mọi số hạng trong ngoặc?",
+          "buttons": [
+            "Vì trừ cả tổng là trừ từng số hạng của nó",
+            "Chỉ cần đổi dấu số đầu tiên",
+            "Vì dấu trừ luôn bị bỏ đi"
+          ],
+          "answer": "Vì trừ cả tổng là trừ từng số hạng của nó",
+          "check": "exact"
+        },
+        {
+          "key": "sign1",
+          "kind": "formula",
+          "prompt": "Bỏ ngoặc 10 − (4 − 3) được 10 − 4 ? 3. Dấu ? là dấu gì?",
+          "buttons": [
+            "+",
+            "−"
+          ],
+          "answer": "+",
+          "check": "exact"
+        }
+      ]
+    },
+    {
+      "code": "T6.16",
+      "grade": 6,
+      "kind": "ban_chat",
+      "ku": "T6.16",
+      "title": "Phép nhân số nguyên",
+      "variants": [
+        {
+          "n": 1,
+          "title": "Nhân là cộng lặp, rồi nhìn quy luật",
+          "body": "**Ví dụ.** Tính 3 · (−4). Vì sao (−1) · (−4) = 4?\n\n**Dương nhân âm.** Nhân là cộng lặp: 3 · (−4) = (−4) + (−4) + (−4) = **−12** (nợ 4 nghìn, ba lần → nợ 12 nghìn). Vậy dương · âm = **âm**.\n\n**Âm nhân âm — nhìn quy luật:**\n\n| Phép nhân | Kết quả |\n|---|---|\n| 3 · (−4) | −12 |\n| 2 · (−4) | −8 |\n| 1 · (−4) | −4 |\n| 0 · (−4) | 0 |\n| (−1) · (−4) | **4** |\n\nCứ giảm thừa số đầu đi 1 thì tích **tăng thêm 4**. Đi tiếp qua 0 thì tích phải là 0 + 4 = **4**. Vì vậy âm · âm = **dương**.\n\n**Quy tắc.** Cùng dấu → tích **dương**; khác dấu → tích **âm**. Phần số thì nhân như số tự nhiên.\n\n📝 **Mẹo nhớ:** *Cùng dấu dương, khác dấu âm.* Vì: quy luật trong bảng không được \"gãy\" khi đi qua số 0, nên âm nhân âm phải ra dương.\n\n🔎 **Ghi vào vở:** Số nào nhân với 0 cũng bằng 0. Tính phần số trước, rồi mới quyết định dấu.",
+          "keyNumbers": [
+            "4",
+            "12"
+          ],
+          "checks": [
+            "3*(-4) == -4 + (-4) + (-4)",
+            "3*(-4) == -12",
+            "(-1)*(-4) == 4"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Đếm số thừa số âm",
+          "body": "**Ví dụ.** Tính: a) (−2) · (−3) · (−5); b) (−1) · (−2) · (−3) · (−4).\n\n- a) Có **3** thừa số âm. (−2) · (−3) = 6 (một cặp âm thành dương), còn lại 6 · (−5) = **−30**.\n- b) Có **4** thừa số âm → ghép được **2 cặp**, cả hai cặp đều thành dương: 2 · 12 = **24**.\n\n**Vì sao chỉ cần đếm?** Hai số âm nhân với nhau thành dương, nên các thừa số âm \"**ghép đôi**\" triệt tiêu dấu. Số thừa số âm **chẵn** thì ghép hết → tích dương. **Lẻ** thì thừa một số âm → tích âm.\n\n📝 **Mẹo nhớ:** *Chẵn số âm thì dương, lẻ số âm thì âm.* Vì: mỗi cặp hai số âm \"biến\" thành một số dương.\n\n🔎 **Ghi vào vở:** Lũy thừa của số âm: (−2)³ = −8 (3 thừa số âm, lẻ), (−2)⁴ = 16 (chẵn). Chú ý (−2)² = 4 nhưng −2² = −4.",
+          "keyNumbers": [
+            "2",
+            "3",
+            "5"
+          ],
+          "checks": [
+            "(-2)*(-3)*(-5) == -30",
+            "(-1)*(-2)*(-3)*(-4) == 24"
+          ]
+        }
+      ],
+      "review": [
+        {
+          "key": "why1",
+          "kind": "why",
+          "prompt": "Vì sao (−2) · (−3) · (−5) là số âm?",
+          "buttons": [
+            "Vì có 3 thừa số âm, là số lẻ",
+            "Vì 5 là số lớn nhất",
+            "Vì nhân số âm luôn ra số âm"
+          ],
+          "answer": "Vì có 3 thừa số âm, là số lẻ",
+          "check": "exact"
+        },
+        {
+          "key": "mul1",
+          "kind": "mini_problem",
+          "prompt": "(−6) · (−7) bằng bao nhiêu?",
+          "buttons": [
+            "42",
+            "−42",
+            "13"
+          ],
+          "answer": "42",
+          "check": "exact"
+        }
+      ]
+    },
+    {
+      "code": "T6.17",
+      "grade": 6,
+      "kind": "ban_chat",
+      "ku": "T6.17",
+      "title": "Phép chia hết; ước và bội của số nguyên",
+      "variants": [
+        {
+          "n": 1,
+          "title": "Mỗi ước dương có một \"bạn\" âm",
+          "body": "**Ví dụ.** Tìm tất cả các ước nguyên của 10.\n\n**Nhắc lại.** Với số nguyên, a chia hết cho b (b ≠ 0) khi có số nguyên q để a = b · q. Khi đó b là **ước** của a, a là **bội** của b.\n\n- Ước tự nhiên của 10: 1, 2, 5, 10.\n- Vì 10 = 2 · 5 = **(−2) · (−5)**, nên −2 và −5 cũng là ước của 10. Tương tự 10 = (−1) · (−10).\n- Vậy các ước nguyên của 10 là: **±1; ±2; ±5; ±10** (8 ước).\n\n**Vì sao số âm cũng là ước?** Âm nhân âm ra dương, nên mỗi cách viết 10 thành tích hai số dương đều có một cách viết \"song sinh\" bằng hai số âm.\n\n📝 **Mẹo nhớ:** *Tìm ước dương trước, rồi thêm dấu trừ cho từng ước.* Vì: ước âm luôn là số đối của một ước dương.\n\n🔎 **Ghi vào vở:** Lỗi hay gặp: **quên ước âm**. Đề hỏi \"ước nguyên\" thì số ước gấp đôi số ước tự nhiên. Bội của −3: 0; ±3; ±6; ±9; …",
+          "keyNumbers": [
+            "10",
+            "5"
+          ],
+          "checks": [
+            "10 == (-2)*(-5)",
+            "10 == (-1)*(-10)",
+            "divisors(10) == [1, 2, 5, 10]"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Tìm số nguyên n để chia hết",
+          "body": "**Ví dụ.** Tìm số nguyên n sao cho n − 1 là ước của 4.\n\n**Bước 1 — liệt kê ước nguyên của 4:** ±1; ±2; ±4.\n\n**Bước 2 — cho n − 1 bằng từng ước:**\n\n| n − 1 | 1 | −1 | 2 | −2 | 4 | −4 |\n|---|---|---|---|---|---|---|\n| n | 2 | 0 | 3 | −1 | 5 | −3 |\n\nVậy n ∈ {−3; −1; 0; 2; 3; 5}.\n\n**Vì sao làm vậy?** \"n − 1 là ước của 4\" nghĩa là **n − 1 phải nằm trong danh sách ước của 4**. Danh sách có 6 số, nên có đúng 6 khả năng; mỗi khả năng cho một giá trị n.\n\n📝 **Mẹo nhớ:** *Liệt kê ước đủ cả dấu, rồi lập bảng.* Vì: bỏ sót một ước (nhất là ước âm) là bỏ sót một đáp số.\n\n🔎 **Ghi vào vở:** Thử lại một giá trị: n = −3 → n − 1 = −4, mà 4 : (−4) = −1 là số nguyên ✓.",
+          "keyNumbers": [
+            "4",
+            "1"
+          ],
+          "checks": [
+            "{1 + 1, -1 + 1, 2 + 1, -2 + 1, 4 + 1, -4 + 1} == {2, 0, 3, -1, 5, -3}",
+            "4 % (5 - 1) == 0"
+          ]
+        }
+      ],
+      "review": [
+        {
+          "key": "why1",
+          "kind": "why",
+          "prompt": "Vì sao −3 cũng là ước của 6?",
+          "buttons": [
+            "Vì 6 = (−3) · (−2)",
+            "Vì −3 nhỏ hơn 6",
+            "Ước không có số âm"
+          ],
+          "answer": "Vì 6 = (−3) · (−2)",
+          "check": "exact"
+        },
+        {
+          "key": "cnt1",
+          "kind": "mini_problem",
+          "prompt": "Số 5 có bao nhiêu ước nguyên?",
+          "buttons": [
+            "2",
+            "4",
+            "1"
+          ],
+          "answer": "4",
+          "check": "exact"
+        }
+      ]
+    },
+    {
+      "code": "T6.18",
+      "grade": 6,
+      "kind": "ban_chat",
+      "ku": "T6.18",
+      "title": "Tam giác đều, hình vuông, lục giác đều",
+      "variants": [
+        {
+          "n": 1,
+          "title": "Vẽ tam giác đều bằng compa",
+          "body": "**Ví dụ.** Vẽ tam giác đều ABC có cạnh 4 cm.\n\n1. Dùng thước vẽ đoạn thẳng **AB = 4 cm**.\n2. Mở compa đúng **4 cm**. Đặt mũi nhọn ở A, vẽ một cung tròn.\n3. Giữ nguyên độ mở, đặt mũi nhọn ở B, vẽ cung tròn thứ hai cắt cung thứ nhất tại **C**.\n4. Nối CA, CB. Ta được tam giác đều ABC.\n\n**Vì sao phải dùng compa?** Compa **giữ nguyên một khoảng cách**. Mọi điểm trên cung tâm A đều cách A đúng 4 cm; mọi điểm trên cung tâm B đều cách B đúng 4 cm. Điểm C nằm trên **cả hai cung**, nên CA = CB = 4 cm = AB. Đo bằng thước thì dễ lệch vài mi-li-mét.\n\n**Đặc điểm tam giác đều:** 3 cạnh bằng nhau, 3 góc bằng nhau (mỗi góc 60°). Chu vi = 3 · 4 = 12 cm.\n\n📝 **Mẹo nhớ:** *Ba cạnh bằng nhau thì dùng một độ mở compa.* Vì: chỉ cần giữ một độ mở là vẽ được mọi cạnh bằng nhau.\n\n🔎 **Ghi vào vở:** Vẽ xong, **đo lại** cả ba cạnh. Sai số đo là lỗi hay gặp nhất.",
+          "keyNumbers": [
+            "4",
+            "12"
+          ],
+          "checks": [
+            "3*4 == 12",
+            "3*60 == 180"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Lục giác đều ghép từ 6 tam giác đều",
+          "body": "**Ví dụ.** Lục giác đều ABCDEF có cạnh 2 cm. Tính chu vi và độ dài đường chéo chính AD.\n\n**Ghép hình.** Lấy **6 tam giác đều** cạnh 2 cm, xếp chung một đỉnh O ở giữa (6 góc 60° vừa đủ một vòng 360°). Ta được một lục giác đều.\n\n- Lục giác đều có **6 cạnh bằng nhau, 6 góc bằng nhau**. Chu vi = 6 · 2 = **12 cm**.\n- Đường chéo chính AD đi qua O, gồm **2 cạnh** tam giác: AD = 2 + 2 = **4 cm**. Ba đường chéo chính AD, BE, CF **bằng nhau**.\n\n**So sánh với hình vuông:** hình vuông có 4 cạnh bằng nhau, **4 góc vuông**, hai đường chéo **bằng nhau**.\n\n| Hình | Cạnh | Góc | Đường chéo |\n|---|---|---|---|\n| Tam giác đều | 3 cạnh bằng nhau | 3 góc bằng nhau | (không có) |\n| Hình vuông | 4 cạnh bằng nhau | 4 góc vuông | 2 đường chéo bằng nhau |\n| Lục giác đều | 6 cạnh bằng nhau | 6 góc bằng nhau | 3 đường chéo chính bằng nhau |\n\n📝 **Mẹo nhớ:** *Lục giác đều = 6 tam giác đều quây quanh tâm.* Vì: nhìn được như vậy thì biết ngay đường chéo chính dài gấp đôi cạnh.\n\n🔎 **Ghi vào vở:** Tổ ong, viên gạch lát hình lục giác là lục giác đều trong thực tế.",
+          "keyNumbers": [
+            "2",
+            "6"
+          ],
+          "checks": [
+            "6*2 == 12",
+            "2*2 == 4",
+            "6*60 == 360"
+          ]
+        }
+      ],
+      "review": [
+        {
+          "key": "rec1",
+          "kind": "recognize",
+          "prompt": "Hình nào có 6 cạnh bằng nhau và 6 góc bằng nhau?",
+          "buttons": [
+            "Lục giác đều",
+            "Hình vuông",
+            "Tam giác đều"
+          ],
+          "answer": "Lục giác đều",
+          "check": "exact"
+        },
+        {
+          "key": "why1",
+          "kind": "why",
+          "prompt": "Vì sao vẽ tam giác đều nên dùng compa?",
+          "buttons": [
+            "Compa giữ đúng độ dài các cạnh",
+            "Vì thước không vẽ được",
+            "Cho hình đẹp hơn"
+          ],
+          "answer": "Compa giữ đúng độ dài các cạnh",
+          "check": "exact"
+        }
+      ]
+    },
+    {
+      "code": "T6.19",
+      "grade": 6,
+      "kind": "ban_chat",
+      "ku": "T6.19",
+      "title": "Hình chữ nhật, hình thoi, hình bình hành, hình thang cân",
+      "variants": [
+        {
+          "n": 1,
+          "title": "Họ hàng các tứ giác",
+          "body": "**Ví dụ.** Một hình bình hành có hai cạnh 6 cm và 4 cm. Nó có phải hình thoi không?\n\n| Hình | Cạnh | Góc | Đường chéo |\n|---|---|---|---|\n| Hình chữ nhật | Cạnh đối song song, bằng nhau | 4 góc vuông | Bằng nhau, cắt nhau tại trung điểm |\n| Hình thoi | **4 cạnh bằng nhau**, cạnh đối song song | Góc đối bằng nhau | **Vuông góc**, cắt nhau tại trung điểm |\n| Hình bình hành | Cạnh đối song song, bằng nhau | Góc đối bằng nhau | Cắt nhau tại trung điểm mỗi đường |\n| Hình thang cân | 2 đáy song song, 2 cạnh bên bằng nhau | 2 góc kề một đáy bằng nhau | Bằng nhau |\n\n**Vì sao hình thoi là \"một kiểu\" hình bình hành?** Hình thoi có cạnh đối song song và bằng nhau — đủ điều kiện của hình bình hành. Nó chỉ **thêm** một điều: cả 4 cạnh bằng nhau. Như \"học sinh lớp 6\" là một kiểu \"học sinh\".\n\n**Trả lời ví dụ:** hai cạnh kề 6 cm và 4 cm **không bằng nhau** → không phải hình thoi. Hình thoi cạnh 5 cm thì 4 cạnh đều 5 cm, chu vi 4 · 5 = 20 cm.\n\n📝 **Mẹo nhớ:** *Thoi là bình hành có 4 cạnh bằng nhau; chữ nhật là bình hành có góc vuông.* Vì: cả hai đều giữ tính chất \"cạnh đối song song, bằng nhau\" của bình hành, rồi thêm một điều riêng.\n\n🔎 **Ghi vào vở:** Muốn biết là hình thoi, kiểm **4 cạnh**; muốn biết là hình chữ nhật, kiểm **góc vuông**.",
+          "keyNumbers": [
+            "6",
+            "4"
+          ],
+          "checks": [
+            "2*(6 + 4) == 20",
+            "4*5 == 20"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Bẻ khung hình chữ nhật",
+          "body": "**Ví dụ.** Làm một khung hình chữ nhật bằng 4 que (2 que dài 5 cm, 2 que dài 3 cm), nối bằng đinh ghim ở 4 góc. Đẩy nghiêng khung. Hình mới là hình gì? Điều gì thay đổi, điều gì không?\n\n- Các que **không đổi độ dài** → cạnh đối vẫn bằng nhau, vẫn song song → hình mới là **hình bình hành**. Chu vi vẫn là 2 · (5 + 3) = 16 cm.\n- **Góc** không còn vuông: hai góc nhọn đi, hai góc tù ra.\n- **Hai đường chéo** không còn bằng nhau: một đường dài ra, một đường ngắn lại.\n\n**Vì sao?** Hình chữ nhật chỉ là hình bình hành \"đứng thẳng\". Đẩy nghiêng thì mất góc vuông, kéo theo mất \"hai đường chéo bằng nhau\". Nếu làm khung từ **4 que bằng nhau** (hình vuông) rồi đẩy nghiêng, em được **hình thoi**.\n\n📝 **Mẹo nhớ:** *Đẩy nghiêng chữ nhật thành bình hành, đẩy nghiêng hình vuông thành thoi.* Vì: đẩy nghiêng giữ nguyên các cạnh, chỉ đổi các góc.\n\n🔎 **Ghi vào vở:** Đường chéo **bằng nhau** → nghĩ đến hình chữ nhật (hoặc thang cân). Đường chéo **vuông góc** → nghĩ đến hình thoi. Hình vuông có cả hai.",
+          "keyNumbers": [
+            "5",
+            "3"
+          ],
+          "checks": [
+            "2*(5 + 3) == 16"
+          ]
+        }
+      ],
+      "review": [
+        {
+          "key": "why1",
+          "kind": "why",
+          "prompt": "Vì sao hình thoi cũng là hình bình hành?",
+          "buttons": [
+            "Vì các cạnh đối song song và bằng nhau",
+            "Vì có 4 góc vuông",
+            "Vì hai đường chéo bằng nhau"
+          ],
+          "answer": "Vì các cạnh đối song song và bằng nhau",
+          "check": "exact"
+        },
+        {
+          "key": "rec1",
+          "kind": "recognize",
+          "prompt": "Tứ giác có 4 cạnh bằng nhau nhưng không có góc vuông là hình gì?",
+          "buttons": [
+            "Hình thoi",
+            "Hình chữ nhật",
+            "Hình thang cân"
+          ],
+          "answer": "Hình thoi",
+          "check": "exact"
+        }
+      ]
+    },
+    {
+      "code": "T6.20",
+      "grade": 6,
+      "kind": "ban_chat",
+      "ku": "T6.20",
+      "title": "Chu vi, diện tích các hình đã học",
+      "variants": [
+        {
+          "n": 1,
+          "title": "Hàng rào và gạch lát",
+          "body": "**Ví dụ.** Một mảnh vườn hình chữ nhật dài 12 m, rộng 8 m. Cần bao nhiêu mét hàng rào để rào quanh vườn? Lát kín vườn thì được bao nhiêu mét vuông?\n\n- **Hàng rào** đi **quanh mép** vườn → đó là **chu vi**: P = 2 · (12 + 8) = **40 m**.\n- **Lát gạch** phủ **kín mặt** vườn → đó là **diện tích**: S = 12 · 8 = **96 m²**.\n\n**Vì sao đơn vị khác nhau?** Chu vi là **độ dài** một đường (đo bằng m). Diện tích là số **ô vuông 1 m × 1 m** phủ kín mặt: mỗi hàng 12 ô, có 8 hàng → 96 ô, viết **m²**.\n\n| Hình | Chu vi | Diện tích |\n|---|---|---|\n| Hình chữ nhật (dài a, rộng b) | 2 · (a + b) | a · b |\n| Hình vuông (cạnh a) | 4 · a | a · a |\n\n📝 **Mẹo nhớ:** *Rào quanh là chu vi, phủ kín là diện tích.* Vì: chu vi đo \"đường viền\", diện tích đếm \"ô vuông bên trong\".\n\n🔎 **Ghi vào vở:** Đổi đơn vị **trước khi tính**: 1 m = 100 cm nhưng **1 m² = 10 000 cm²** (vì 100 · 100). Đọc kĩ đề hỏi \"bao nhiêu mét\" hay \"bao nhiêu mét vuông\".",
+          "keyNumbers": [
+            "12",
+            "8"
+          ],
+          "checks": [
+            "2*(12 + 8) == 40",
+            "12*8 == 96",
+            "100*100 == 10000"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Cắt, ghép thành hình chữ nhật",
+          "body": "**Ví dụ.** Tính diện tích: a) hình bình hành cạnh đáy 7 cm, chiều cao 4 cm; b) hình thoi có hai đường chéo 6 cm và 10 cm; c) hình thang có hai đáy 5 cm, 9 cm, chiều cao 4 cm.\n\n- a) **Bình hành:** cắt một tam giác ở bên trái, ghép sang bên phải → được **hình chữ nhật** 7 cm × 4 cm. S = **7 · 4 = 28 cm²** (đáy × chiều cao).\n- b) **Thoi:** vẽ hình chữ nhật có hai cạnh bằng hai đường chéo (6 × 10). Hình thoi chiếm **đúng một nửa** hình chữ nhật đó. S = **6 · 10 : 2 = 30 cm²**.\n- c) **Thang:** ghép thêm một hình thang giống hệt, lật ngược → được **hình bình hành** đáy 5 + 9 = 14 cm, cao 4 cm. Một hình thang là nửa hình đó: S = **(5 + 9) · 4 : 2 = 28 cm²**.\n\n**Vì sao làm vậy?** Cắt ghép **không làm mất** mảnh giấy nào, nên diện tích không đổi. Ta chỉ đưa về hình chữ nhật, hình em đã biết tính.\n\n📝 **Mẹo nhớ:** *Hình lạ thì cắt ghép về hình chữ nhật.* Vì: mọi công thức diện tích ở lớp 6 đều sinh ra từ \"dài × rộng\".\n\n🔎 **Ghi vào vở:** Chiều cao luôn **vuông góc** với đáy, không phải cạnh bên. Công thức thoi, thang có \"**: 2**\", đừng quên.",
+          "keyNumbers": [
+            "7",
+            "9",
+            "10"
+          ],
+          "checks": [
+            "7*4 == 28",
+            "6*10/2 == 30",
+            "(5 + 9)*4/2 == 28"
+          ]
+        }
+      ],
+      "review": [
+        {
+          "key": "why1",
+          "kind": "why",
+          "prompt": "Vì sao diện tích hình thoi bằng nửa tích hai đường chéo?",
+          "buttons": [
+            "Thoi chiếm nửa hình chữ nhật dựng trên 2 đường chéo",
+            "Vì thoi có 4 cạnh bằng nhau",
+            "Vì quy ước như vậy"
+          ],
+          "answer": "Thoi chiếm nửa hình chữ nhật dựng trên 2 đường chéo",
+          "check": "exact"
+        },
+        {
+          "key": "rec1",
+          "kind": "recognize",
+          "prompt": "Sân hình vuông cạnh 5 m. Muốn biết cần bao nhiêu mét lưới để rào quanh sân, ta tính gì?",
+          "buttons": [
+            "Chu vi",
+            "Diện tích"
+          ],
+          "answer": "Chu vi",
+          "check": "exact"
+        }
+      ]
+    },
+    {
+      "code": "T6.21",
+      "grade": 6,
+      "kind": "ban_chat",
+      "ku": "T6.21",
+      "title": "Hình có trục đối xứng",
+      "variants": [
+        {
+          "n": 1,
+          "title": "Gấp đôi tờ giấy",
+          "body": "**Ví dụ.** Hình chữ nhật có mấy trục đối xứng? Đường chéo của hình chữ nhật có phải trục đối xứng không?\n\n**Trục đối xứng là gì?** Là đường thẳng mà khi **gấp tờ giấy theo đường đó**, hai nửa hình **chồng khít** lên nhau.\n\nCắt một hình chữ nhật bằng giấy rồi thử gấp:\n\n- Gấp theo đường nối **trung điểm hai cạnh dài** → hai nửa trùng khít. Gấp theo đường nối **trung điểm hai cạnh ngắn** → trùng khít. Vậy hình chữ nhật có **2 trục**.\n- Gấp theo **đường chéo** → hai nửa lệch nhau, không trùng khít → đường chéo **không phải** trục đối xứng.\n\nHình vuông thì gấp theo **cả hai đường chéo** cũng trùng khít, nên hình vuông có 2 + 2 = **4 trục**.\n\n**Vì sao phải thử gấp?** Nhìn bằng mắt rất dễ đoán nhầm (nhất là đường chéo hình chữ nhật). Gấp giấy là cách kiểm chắc chắn nhất.\n\n📝 **Mẹo nhớ:** *Gấp đôi mà trùng khít mới là trục.* Vì: trục đối xứng chia hình thành hai nửa giống hệt nhau, chỉ lật ngược.\n\n🔎 **Ghi vào vở:** Hình bình hành (không phải chữ nhật, không phải thoi) **không có** trục đối xứng: gấp theo đường nào cũng lệch.",
+          "keyNumbers": [
+            "2",
+            "4"
+          ],
+          "checks": [
+            "2 + 0 == 2",
+            "2 + 2 == 4"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Soi gương",
+          "body": "**Ví dụ.** Đặt một chiếc gương nhỏ dựng đứng lên hình. Nửa hình cộng với ảnh trong gương có tạo thành hình nguyên vẹn không?\n\n- Đặt gương dọc giữa chữ **A** → nửa chữ A và ảnh của nó ghép thành chữ A → đường đặt gương là trục. Chữ **H, M, T** cũng có trục dọc; chữ **B, E** có trục ngang; chữ **H** có cả hai.\n- **Tam giác đều:** đặt gương từ một đỉnh xuống trung điểm cạnh đối diện → được hình nguyên. Có 3 đỉnh → **3 trục**.\n- **Lục giác đều:** 3 đường nối hai đỉnh đối diện và 3 đường nối trung điểm hai cạnh đối diện → **6 trục**.\n- **Đường tròn:** mọi đường thẳng đi qua tâm đều là trục → **vô số** trục.\n\n**Vì sao gương giúp được?** Gương tạo ra **ảnh lật ngược** của nửa hình. Nếu ảnh đó đúng bằng nửa còn lại thì hai nửa đối xứng nhau qua đường đặt gương.\n\n📝 **Mẹo nhớ:** *Hình đều có bao nhiêu cạnh thì có bấy nhiêu trục.* Vì: tam giác đều 3, hình vuông 4, lục giác đều 6 — mỗi đỉnh (hoặc mỗi cặp cạnh) cho một cách gấp trùng khít.\n\n🔎 **Ghi vào vở:** Hình thang cân có **1 trục** (đường nối trung điểm hai đáy). Hình thoi có **2 trục** (hai đường chéo).",
+          "keyNumbers": [
+            "3",
+            "6"
+          ],
+          "checks": [
+            "3 + 3 == 6"
+          ]
+        }
+      ],
+      "review": [
+        {
+          "key": "why1",
+          "kind": "why",
+          "prompt": "Vì sao hình bình hành thường (không phải hình chữ nhật, không phải hình thoi) không có trục đối xứng?",
+          "buttons": [
+            "Gấp theo đường nào cũng không trùng khít",
+            "Vì nó có 4 cạnh",
+            "Vì nó có 2 đường chéo"
+          ],
+          "answer": "Gấp theo đường nào cũng không trùng khít",
+          "check": "exact"
+        },
+        {
+          "key": "cnt1",
+          "kind": "mini_problem",
+          "prompt": "Hình vuông có bao nhiêu trục đối xứng?",
+          "buttons": [
+            "2",
+            "4",
+            "1"
+          ],
+          "answer": "4",
+          "check": "exact"
+        }
+      ]
+    },
+    {
+      "code": "T6.22",
+      "grade": 6,
+      "kind": "ban_chat",
+      "ku": "T6.22",
+      "title": "Hình có tâm đối xứng",
+      "variants": [
+        {
+          "n": 1,
+          "title": "Ghim kim rồi quay nửa vòng",
+          "body": "**Ví dụ.** Hình bình hành có tâm đối xứng không? Tam giác đều có không?\n\n**Tâm đối xứng là gì?** Là điểm O mà khi **quay hình nửa vòng (180°) quanh O**, hình mới **trùng khít** với hình cũ.\n\nThử bằng giấy:\n\n- Cắt một hình bình hành, kẻ hai đường chéo cắt nhau tại O. Ghim kim ở O rồi xoay nửa vòng → hình **trùng khít** chỗ cũ. Vậy **O là tâm đối xứng** của hình bình hành.\n- Làm như vậy với tam giác đều: xoay nửa vòng thì đỉnh đang chĩa lên lại **chĩa xuống** → không trùng khít. Tam giác đều **không có** tâm đối xứng.\n\n**Vì sao là giao điểm hai đường chéo?** Hai đường chéo của hình bình hành cắt nhau tại **trung điểm** mỗi đường. Quay nửa vòng quanh O thì mỗi đỉnh đổi chỗ với đỉnh **đối diện** (A sang C, B sang D), nên cả hình về đúng chỗ cũ.\n\n📝 **Mẹo nhớ:** *Quay nửa vòng mà trùng khít mới có tâm.* Vì: tâm đối xứng là \"điểm để quay\", không phải \"đường để gấp\".\n\n🔎 **Ghi vào vở:** Hình chữ nhật, hình vuông, hình thoi, hình bình hành đều có tâm đối xứng là **giao điểm hai đường chéo**. Đường tròn có tâm đối xứng là **tâm** của nó.",
+          "keyNumbers": [
+            "180",
+            "360"
+          ],
+          "checks": [
+            "180*2 == 360"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Trục là gấp, tâm là quay",
+          "body": "**Ví dụ.** Lập bảng: mỗi hình có bao nhiêu trục đối xứng, có tâm đối xứng không?\n\n| Hình | Số trục | Có tâm? |\n|---|---|---|\n| Tam giác đều | 3 | Không |\n| Hình vuông | 4 | Có |\n| Hình chữ nhật | 2 | Có |\n| Hình thoi | 2 | Có |\n| Hình bình hành | 0 | Có |\n| Hình thang cân | 1 | Không |\n| Lục giác đều | 6 | Có |\n\n**Vì sao không được lẫn trục với tâm?** Trục đối xứng kiểm bằng cách **gấp** (lật một nửa sang). Tâm đối xứng kiểm bằng cách **quay** nửa vòng. Hai phép làm khác nhau, nên một hình có thể có cái này mà không có cái kia:\n\n- Hình bình hành: **có tâm**, **không có trục**.\n- Tam giác đều: **có 3 trục**, **không có tâm**.\n\nHình vuông quay **90°** (một phần tư vòng) đã trùng khít, nên quay **180°** = 2 lần 90° chắc chắn cũng trùng khít → có tâm.\n\n📝 **Mẹo nhớ:** *Trục thì gấp, tâm thì quay.* Vì: mỗi khái niệm gắn với một cách làm, nhớ cách làm là không nhầm.\n\n🔎 **Ghi vào vở:** Chữ **N, S, Z** có tâm đối xứng nhưng không có trục. Chữ **H, O, X** có cả trục lẫn tâm.",
+          "keyNumbers": [
+            "90",
+            "180"
+          ],
+          "checks": [
+            "90*2 == 180"
+          ]
+        }
+      ],
+      "review": [
+        {
+          "key": "why1",
+          "kind": "why",
+          "prompt": "Vì sao tam giác đều không có tâm đối xứng?",
+          "buttons": [
+            "Quay nửa vòng thì không trùng khít",
+            "Vì nó không có trục đối xứng",
+            "Vì nó chỉ có 3 cạnh"
+          ],
+          "answer": "Quay nửa vòng thì không trùng khít",
+          "check": "exact"
+        },
+        {
+          "key": "rec1",
+          "kind": "recognize",
+          "prompt": "Hình nào có tâm đối xứng nhưng không có trục đối xứng?",
+          "buttons": [
+            "Hình bình hành",
+            "Tam giác đều",
+            "Hình thang cân"
+          ],
+          "answer": "Hình bình hành",
           "check": "exact"
         }
       ]
