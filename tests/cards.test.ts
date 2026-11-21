@@ -23,6 +23,13 @@ describe("parseCardMd (G6 design C)", () => {
     expect(() => parseCardMd(md.replace("answer: ƯCLN", "answer: không có trong nút"))).toThrow(/one of the buttons/));
   it("one way only is refused (C2: 2 ways)", () =>
     expect(() => parseCardMd(md.replace(/## Cách 2[\s\S]*?(?=## Câu ôn)/, ""))).toThrow(/2 ways/));
+  it("machine lines may sit in an HTML comment (readable on GitHub); the comment never reaches the child", () => {
+    const wrapped = md.replace(/^(## Cách \d — .*)\n((?:số|kiểm):[\s\S]*?)\n\n/gm, "$1\n<!-- máy kiểm, con không thấy\n$2\n-->\n\n");
+    expect(wrapped).toContain("<!-- máy kiểm");
+    const a = parseCardMd(md), b = parseCardMd(wrapped);
+    expect(b.variants).toEqual(a.variants);
+    expect(b.variants[0].body).not.toMatch(/<!--|-->/);
+  });
   it("a way without its numbers line is refused (needed for the clash check)", () =>
     expect(() => parseCardMd(md.replace("số: 24, 36\n", ""))).toThrow());
   it("no review section is refused", () => expect(() => parseCardMd(md.replace(/## Câu ôn[\s\S]*$/, ""))).toThrow(/Câu ôn/));

@@ -1,5 +1,5 @@
 {
-  "version": "2026-11-21.32e3d7ea",
+  "version": "2026-11-21.c976ab28",
   "cards": [
     {
       "code": "D6.1",
@@ -1560,6 +1560,372 @@
             "Hình thang cân"
           ],
           "answer": "Hình bình hành",
+          "check": "exact"
+        }
+      ]
+    },
+    {
+      "code": "T9.1",
+      "grade": 9,
+      "kind": "ban_chat",
+      "ku": "T9.1",
+      "title": "Phương trình và hệ hai phương trình bậc nhất hai ẩn",
+      "variants": [
+        {
+          "n": 1,
+          "title": "Nghiệm là một cặp số",
+          "body": "**Ví dụ.** Cho phương trình 2x + y = 7. Cặp số nào dưới đây là nghiệm: (1; 5), (3; 1), (3; 2)? Phương trình có bao nhiêu nghiệm?\n\n**Nghiệm là gì?** Phương trình có hai ẩn x và y, nên một nghiệm gồm **hai số đi cùng nhau**, viết là (x; y). Số đứng trước là x, số đứng sau là y.\n\nMuốn biết một cặp có phải nghiệm không, em thay x và y vào rồi xem vế trái có bằng 7 không:\n\n- (1; 5): 2 · 1 + 5 = 7. Bằng 7 → **là nghiệm**.\n- (3; 1): 2 · 3 + 1 = 7. Bằng 7 → **là nghiệm**.\n- (3; 2): 2 · 3 + 2 = 8. Không bằng 7 → **không phải nghiệm**.\n\n**Vì sao có vô số nghiệm?** Em thử chọn x trước rồi tính y:\n\n- x = 0 thì y = 7 − 0 = 7.\n- x = 1 thì y = 7 − 2 = 5.\n- x = 2 thì y = 7 − 4 = 3.\n\nChọn x bằng số nào cũng tính ra được một y đi kèm. Có vô số cách chọn x, nên có **vô số nghiệm**. Vì vậy người ta viết gọn tất cả các nghiệm như sau: x là số tùy ý, còn y = 7 − 2x.\n\n📝 **Mẹo nhớ:** *Một phương trình hai ẩn: chọn một, tính một.* Vì sao nhớ được: chỉ có một phương trình thì phải biết trước một ẩn mới tính được ẩn còn lại.\n\n🔎 **Ghi vào vở:** Cặp (1; 5) là x = 1, y = 5. Cặp (5; 1) là x = 5, y = 1. Đổi chỗ là thành cặp khác. Khi thay số âm, nhớ để trong ngoặc: với (−1; 9) thì 2 · (−1) + 9 = 7.",
+          "keyNumbers": [
+            "2",
+            "7"
+          ],
+          "checks": [
+            "2*1 + 5 == 7",
+            "2*3 + 1 == 7",
+            "2*3 + 2 != 7"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Nghiệm của hệ là điểm chung của hai đường thẳng",
+          "body": "**Ví dụ.** Hệ phương trình x + y = 5 và x − y = 1 có mấy nghiệm?\n\n**Mỗi phương trình là một đường thẳng.** Ở cách 1, em thấy một phương trình hai ẩn có rất nhiều nghiệm. Nếu chấm tất cả các nghiệm đó lên mặt phẳng tọa độ, chúng xếp thành **một đường thẳng**.\n\n- Phương trình x + y = 5 có các nghiệm (0; 5), (5; 0)… → nối lại được đường thứ nhất.\n- Phương trình x − y = 1 có các nghiệm (1; 0), (0; −1)… → nối lại được đường thứ hai.\n\n**Nghiệm của hệ** phải đúng với **cả hai** phương trình, nên nó phải nằm trên **cả hai** đường thẳng. Đó chính là **chỗ hai đường cắt nhau**: điểm (3; 2).\n\nThử lại: 3 + 2 = 5 ✓ và 3 − 2 = 1 ✓. Hệ có **1 nghiệm** là (3; 2).\n\n**Hai đường thẳng có ba cách nằm, nên hệ có ba khả năng:**\n\n| Hai đường thẳng | Hệ có |\n|---|---|\n| Cắt nhau tại một điểm | 1 nghiệm |\n| Song song, không gặp nhau | Không có nghiệm (vô nghiệm) |\n| Trùng nhau | Vô số nghiệm |\n\n📝 **Mẹo nhớ:** *Nghiệm của hệ là chỗ hai đường gặp nhau.* Vì sao nhớ được: đúng cả hai phương trình nghĩa là nằm trên cả hai đường.\n\n🔎 **Ghi vào vở:** Muốn biết một cặp số có phải nghiệm của **hệ** không, phải thay vào **cả hai** phương trình. Chỉ đúng một phương trình thì chưa phải.",
+          "keyNumbers": [
+            "5",
+            "1"
+          ],
+          "checks": [
+            "solve([Eq(x + y, 5), Eq(x - y, 1)], [x, y], dict=True) == [{x: 3, y: 2}]"
+          ]
+        }
+      ],
+      "review": [
+        {
+          "key": "why1",
+          "kind": "why",
+          "prompt": "Vì sao phương trình 2x + y = 7 có vô số nghiệm?",
+          "buttons": [
+            "Chọn x nào cũng tính được y tương ứng",
+            "Vì có hai ẩn nên có hai nghiệm",
+            "Vì 7 là số lẻ"
+          ],
+          "answer": "Chọn x nào cũng tính được y tương ứng",
+          "check": "exact"
+        },
+        {
+          "key": "f1",
+          "kind": "formula",
+          "prompt": "Hai đường thẳng biểu diễn hai phương trình của hệ song song với nhau. Hệ có bao nhiêu nghiệm?",
+          "buttons": [
+            "Vô nghiệm",
+            "1 nghiệm",
+            "Vô số nghiệm"
+          ],
+          "answer": "Vô nghiệm",
+          "check": "exact"
+        }
+      ]
+    },
+    {
+      "code": "T9.2",
+      "grade": 9,
+      "kind": "ban_chat",
+      "ku": "T9.2",
+      "title": "Giải hệ hai phương trình bậc nhất hai ẩn",
+      "variants": [
+        {
+          "n": 1,
+          "title": "Phương pháp cộng: làm một ẩn biến mất",
+          "body": "**Ví dụ.** Giải hệ 3x + 2y = 13 và 5x − 2y = 11.\n\n**Vì sao được cộng hai phương trình?** Mỗi phương trình giống một chiếc cân đang thăng bằng: vế trái nặng bằng vế phải. Gộp hai đĩa trái với nhau, hai đĩa phải với nhau thì cân vẫn thăng bằng: (3x + 2y) + (5x − 2y) = 13 + 11.\n\n- Hệ số của y là **+2 và −2** (đối nhau) → cộng lại thì y **biến mất**: 8x = 24 → **x = 3**.\n- Thay x = 3 vào phương trình đầu: 9 + 2y = 13 → **y = 2**. Nghiệm (3; 2).\n\n**Khi hệ số chưa đối nhau.** Ví dụ hệ 2x + 3y = 12 và 3x + 2y = 13.\n\n- Nhân phương trình đầu với 3: 6x + 9y = 36. Nhân phương trình sau với 2: 6x + 4y = 26.\n- Giờ hệ số của x **bằng nhau** (cùng là 6), nên **trừ** hai phương trình: 5y = 10 → y = 2.\n- Thay vào để tìm x: x = 3.\n\n📝 **Mẹo nhớ:** *Đối nhau thì cộng, bằng nhau thì trừ.* Vì sao nhớ được: cộng hay trừ chỉ để một ẩn biến mất. Hệ số đối nhau (+2 và −2) thì cộng mới mất; bằng nhau (6 và 6) thì trừ mới mất.\n\n🔎 **Ghi vào vở:** Nhân một phương trình với số k thì nhân **mọi hạng tử, cả vế phải**. Lỗi hay gặp nhất: quên nhân vế phải hoặc sai dấu khi trừ (−(−4y) = +4y).",
+          "keyNumbers": [
+            "13",
+            "11"
+          ],
+          "checks": [
+            "solve([Eq(3*x + 2*y, 13), Eq(5*x - 2*y, 11)], [x, y], dict=True) == [{x: 3, y: 2}]",
+            "solve([Eq(2*x + 3*y, 12), Eq(3*x + 2*y, 13)], [x, y], dict=True) == [{x: 3, y: 2}]"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Phương pháp thế: rút một ẩn, thay vào",
+          "body": "**Ví dụ.** Giải hệ x − 2y = 1 và 3x + y = 10.\n\n- **Rút** x từ phương trình đầu (vì x có hệ số 1, rút dễ nhất): x = 1 + 2y.\n- **Thế** vào phương trình sau: 3(1 + 2y) + y = 10 → 3 + 6y + y = 10 → 7y = 7 → **y = 1**.\n- Tính lại x = 1 + 2 · 1 = **3**. Nghiệm (3; 1). Thử lại: 3 − 2 = 1 ✓, 9 + 1 = 10 ✓.\n\n**Vì sao thế được?** Trong một hệ, chữ x ở hai phương trình là **cùng một số**. Đã biết x = 1 + 2y thì chỗ nào có x, em thay bằng 1 + 2y. Phương trình chỉ còn ẩn y, giải như phương trình lớp 8.\n\n📝 **Mẹo nhớ:** *Rút ẩn có hệ số 1 (hoặc −1).* Vì sao nhớ được: rút ẩn đó không sinh ra phân số, tính ít sai hơn.\n\n🔎 **Ghi vào vở — đặt ẩn phụ:** hệ có 1/x, 1/y (hoặc 1/(x + y)…) thì đặt a = 1/x, b = 1/y, **ghi ĐK x ≠ 0, y ≠ 0** trước. Giải ra a, b rồi **đổi lại** x = 1/a, y = 1/b và đối chiếu ĐK.",
+          "keyNumbers": [
+            "10",
+            "2"
+          ],
+          "checks": [
+            "solve([Eq(x - 2*y, 1), Eq(3*x + y, 10)], [x, y], dict=True) == [{x: 3, y: 1}]"
+          ]
+        }
+      ],
+      "review": [
+        {
+          "key": "why1",
+          "kind": "why",
+          "prompt": "Vì sao cộng hai phương trình của hệ với nhau vẫn được phương trình đúng?",
+          "buttons": [
+            "Bằng nhau cộng bằng nhau thì vẫn bằng nhau",
+            "Vì x và y đều là số",
+            "Vì hệ có hai phương trình"
+          ],
+          "answer": "Bằng nhau cộng bằng nhau thì vẫn bằng nhau",
+          "check": "exact"
+        },
+        {
+          "key": "f1",
+          "kind": "formula",
+          "prompt": "Hệ 2x + 3y = 7 và 2x − y = 3. Muốn ẩn x biến mất, em cộng hay trừ hai phương trình?",
+          "buttons": [
+            "Trừ hai phương trình",
+            "Cộng hai phương trình"
+          ],
+          "answer": "Trừ hai phương trình",
+          "check": "exact"
+        }
+      ]
+    },
+    {
+      "code": "T9.3",
+      "grade": 9,
+      "kind": "ban_chat",
+      "ku": "T9.3",
+      "title": "Giải bài toán bằng cách lập hệ phương trình",
+      "variants": [
+        {
+          "n": 1,
+          "title": "Mỗi câu dữ kiện là một phương trình",
+          "body": "**Ví dụ.** Mua 3 cái bút và 2 quyển vở hết 26 nghìn đồng. Mua 1 cái bút và 4 quyển vở hết 32 nghìn đồng. Tính giá một cái bút, giá một quyển vở.\n\n**Năm bước (vì sao từng bước?):**\n\n1. **Gọi ẩn, ghi đơn vị và điều kiện.** Gọi giá một cái bút là x, giá một quyển vở là y (nghìn đồng; x > 0, y > 0). *Ghi điều kiện để cuối bài biết nghiệm nào dùng được: giá tiền không thể âm.*\n2. **Lập hệ.** Câu thứ nhất: 3x + 2y = 26. Câu thứ hai: x + 4y = 32. *Mỗi câu dữ kiện cho **một** phương trình. Có hai ẩn thì cần **hai** phương trình, vì chỉ một phương trình hai ẩn thì có vô số nghiệm (thẻ T9.1).*\n3. **Giải hệ.** Rút x = 32 − 4y, thế vào: 3(32 − 4y) + 2y = 26 → 96 − 10y = 26 → y = 7, x = 4.\n4. **Đối chiếu điều kiện.** x = 4 > 0, y = 7 > 0 ✓.\n5. **Kết luận đúng câu hỏi.** Một cái bút giá **4 nghìn đồng**, một quyển vở giá **7 nghìn đồng**.\n\n📝 **Mẹo nhớ:** *Gọi – Lập – Giải – Đối chiếu – Kết luận.* Vì sao nhớ được: thiếu bước nào cũng mất điểm; nhất là quên đối chiếu (nghiệm âm, không nguyên) và kết luận sai đại lượng đề hỏi.\n\n🔎 **Ghi vào vở:** Thử lại nghiệm bằng **lời của đề**, không chỉ bằng phương trình: 3 bút (12 nghìn) + 2 vở (14 nghìn) = 26 nghìn ✓.",
+          "keyNumbers": [
+            "26",
+            "32"
+          ],
+          "checks": [
+            "solve([Eq(3*x + 2*y, 26), Eq(x + 4*y, 32)], [x, y], dict=True) == [{x: 4, y: 7}]"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Dịch cụm so sánh thành phương trình",
+          "body": "**Ví dụ.** Hai lớp A và B có tất cả 80 học sinh. Lớp A nhiều hơn lớp B 4 bạn. Mỗi lớp có bao nhiêu học sinh?\n\nGọi số học sinh lớp A là x, lớp B là y (học sinh; x, y nguyên dương).\n\n- \"Tất cả 80\" → **x + y = 80**.\n- \"Lớp A nhiều hơn lớp B 4 bạn\" → **x − y = 4** (hoặc x = y + 4).\n\nCộng hai phương trình: 2x = 84 → x = 42, y = 38. Lớp A có 42 bạn, lớp B có 38 bạn.\n\n**Vì sao phải cẩn thận chiều?** Nếu viết ngược **y − x = 4** thì nghĩa đã thành \"lớp B nhiều hơn lớp A\". Khi đó em sẽ ra số âm, hoặc ra kết quả ngược với đề.\n\n| Cụm trong đề | Viết thành |\n|---|---|\n| A nhiều hơn B 4 | A − B = 4 |\n| A ít hơn B 4 | B − A = 4 |\n| A gấp 3 lần B | A = 3B |\n| A bằng 2/3 B | A = (2/3)B |\n\n📝 **Mẹo nhớ:** *\"Nhiều hơn\": số lớn đứng trước dấu trừ. \"Gấp 3 lần\": số lớn = 3 × số nhỏ.* Vì sao nhớ được: lấy số lớn trừ số nhỏ mới ra số dương; còn \"A gấp 3 lần B\" nghĩa là lấy B nhân 3 thì được A.\n\n🔎 **Ghi vào vở:** Sau khi viết một phương trình, đọc ngược nó thành lời (\"x trừ y bằng 4 → lớp A hơn lớp B 4 bạn\") để kiểm.",
+          "keyNumbers": [
+            "80",
+            "4"
+          ],
+          "checks": [
+            "solve([Eq(x + y, 80), Eq(x - y, 4)], [x, y], dict=True) == [{x: 42, y: 38}]"
+          ]
+        }
+      ],
+      "review": [
+        {
+          "key": "why1",
+          "kind": "why",
+          "prompt": "Bài có 2 ẩn. Vì sao phải lập đủ 2 phương trình?",
+          "buttons": [
+            "Một phương trình hai ẩn có vô số nghiệm",
+            "Vì đề có hai câu",
+            "Vì phải nhân 2"
+          ],
+          "answer": "Một phương trình hai ẩn có vô số nghiệm",
+          "check": "exact"
+        },
+        {
+          "key": "rec1",
+          "kind": "recognize",
+          "prompt": "x là số học sinh lớp A, y là số học sinh lớp B. \"Số học sinh lớp A gấp đôi lớp B\" viết thành gì? (chỉ chọn, không cần giải)",
+          "buttons": [
+            "x = 2y",
+            "2x = y",
+            "x + 2 = y"
+          ],
+          "answer": "x = 2y",
+          "check": "exact"
+        }
+      ]
+    },
+    {
+      "code": "T9.4",
+      "grade": 9,
+      "kind": "ban_chat",
+      "ku": "T9.4",
+      "title": "Phương trình quy về phương trình bậc nhất một ẩn",
+      "variants": [
+        {
+          "n": 1,
+          "title": "Tích bằng 0",
+          "body": "**Ví dụ.** Giải phương trình (2x − 6)(x + 5) = 0.\n\n**Vì sao tách được?** Hai số nhân với nhau mà ra 0 thì **ít nhất một số phải bằng 0**. (Thử xem: hai số khác 0 nhân nhau, như 2 · 3 hay (−1) · 5, không bao giờ ra 0.) Vậy:\n\n- 2x − 6 = 0 → **x = 3**, hoặc\n- x + 5 = 0 → **x = −5**.\n\nPhương trình có hai nghiệm x = 3 và x = −5.\n\n**Lỗi hay gặp — chia cho ẩn.** Giải x² = 4x bằng cách chia hai vế cho x thì được x = 4, nhưng **mất nghiệm x = 0**. Lý do: x có thể bằng 0, mà không được chia cho 0. Cách đúng: x² − 4x = 0 → x(x − 4) = 0 → x = 0 hoặc x = 4.\n\n📝 **Mẹo nhớ:** *Đưa hết về một vế, vế kia bằng 0, rồi phân tích thành tích.* Vì sao nhớ được: chỉ khi vế phải là 0 mới dùng được tính chất \"tích bằng 0\".\n\n🔎 **Ghi vào vở:** Không bao giờ chia hai vế cho biểu thức chứa ẩn. Muốn \"bỏ\" nó thì **đặt nhân tử chung**.",
+          "keyNumbers": [
+            "6",
+            "5"
+          ],
+          "checks": [
+            "(2*3 - 6)*(3 + 5) == 0",
+            "(2*(-5) - 6)*(-5 + 5) == 0",
+            "4**2 == 4*4"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Ẩn ở mẫu: ĐKXĐ là hàng rào",
+          "body": "**Ví dụ.** Giải: a) 2/(x + 1) = 1/(x − 1); b) (x + 1)/(x − 2) = 3/(x − 2).\n\n**Bước 1 — ĐKXĐ trước tiên.** Mẫu không được bằng 0.\n\n- a) x + 1 ≠ 0 và x − 1 ≠ 0 → **x ≠ −1, x ≠ 1**.\n- b) x − 2 ≠ 0 → **x ≠ 2**.\n\n**Bước 2 — Quy đồng, khử mẫu, giải.**\n\n- a) 2(x − 1) = x + 1 → 2x − 2 = x + 1 → x = 3.\n- b) x + 1 = 3 → x = 2.\n\n**Bước 3 — Đối chiếu ĐKXĐ.**\n\n- a) x = 3 thỏa mãn ĐKXĐ → nghiệm **x = 3**. Thử: 2/4 = 1/2 ✓.\n- b) x = 2 **vi phạm** ĐKXĐ (làm mẫu bằng 0) → loại. Phương trình **vô nghiệm**.\n\n**Vì sao phải đối chiếu?** Lúc khử mẫu, ta đã nhân hai vế với biểu thức chứa x. Bước này có thể tạo ra một giá trị làm mẫu bằng 0. Giá trị đó không thay được vào đề ban đầu, nên phải loại.\n\n📝 **Mẹo nhớ:** *ĐKXĐ viết trước, đối chiếu viết sau.* Vì sao nhớ được: ĐKXĐ là hàng rào; nghiệm nào nằm ngoài hàng rào thì phải loại.\n\n🔎 **Ghi vào vở:** Kết luận phải nói rõ: \"x = 2 không thỏa mãn ĐKXĐ, phương trình vô nghiệm\". Thiếu câu này là thiếu bước.",
+          "keyNumbers": [
+            "3",
+            "2"
+          ],
+          "checks": [
+            "2/(3 + 1) == 1/(3 - 1)",
+            "2 + 1 == 3"
+          ]
+        }
+      ],
+      "review": [
+        {
+          "key": "why1",
+          "kind": "why",
+          "prompt": "Vì sao giải xong phương trình chứa ẩn ở mẫu phải đối chiếu ĐKXĐ?",
+          "buttons": [
+            "Vì giá trị tìm được có thể làm mẫu bằng 0",
+            "Để bài dài hơn",
+            "Vì nghiệm luôn sai"
+          ],
+          "answer": "Vì giá trị tìm được có thể làm mẫu bằng 0",
+          "check": "exact"
+        },
+        {
+          "key": "m1",
+          "kind": "mini_problem",
+          "prompt": "Phương trình x(x − 7) = 0 có nghiệm là?",
+          "buttons": [
+            "x = 0 hoặc x = 7",
+            "x = 7",
+            "x = −7"
+          ],
+          "answer": "x = 0 hoặc x = 7",
+          "check": "exact"
+        }
+      ]
+    },
+    {
+      "code": "T9.5",
+      "grade": 9,
+      "kind": "ban_chat",
+      "ku": "T9.5",
+      "title": "Bất đẳng thức và tính chất",
+      "variants": [
+        {
+          "n": 1,
+          "title": "Nhân với số âm là \"lật\" qua số 0",
+          "body": "**Ví dụ.** Từ 3 < 5, so sánh: a) 3 + 4 và 5 + 4; b) 2 · 3 và 2 · 5; c) (−2) · 3 và (−2) · 5.\n\n- a) Cộng cùng một số vào hai vế: 7 < 9 → **giữ chiều**.\n- b) Nhân với số **dương** 2: 6 < 10 → **giữ chiều**.\n- c) Nhân với số **âm** −2: −6 và −10. Trên trục số −6 nằm bên phải −10, nên **−6 > −10** → **đổi chiều**.\n\n**Vì sao số âm làm đổi chiều?** Nhân với −2 cũng là nhân với 2 rồi **đổi dấu**. Trên trục số, 6 nằm bên trái 10. Đổi dấu thì −6 và −10 sang phía bên kia số 0, và **đổi chỗ cho nhau**: giờ −10 nằm bên trái −6. Thứ tự bị đảo ngược.\n\n**Tính chất.** a < b thì a + c < b + c; a < b và c > 0 thì ac < bc; a < b và c < 0 thì **ac > bc**.\n\n📝 **Mẹo nhớ:** *Cộng trừ tùy ý, nhân chia số âm thì quay đầu.* Vì sao nhớ được: số âm đảo thứ tự trên trục số, còn cộng trừ chỉ trượt cả hai số đi cùng một đoạn.\n\n🔎 **Ghi vào vở:** Chia cho số âm cũng đổi chiều (chia cho −2 là nhân với −1/2). Nhân với 0 thì hai vế đều bằng 0, không còn \"<\" nữa.",
+          "keyNumbers": [
+            "3",
+            "5"
+          ],
+          "checks": [
+            "2*3 < 2*5",
+            "-2*3 > -2*5",
+            "3 + 4 < 5 + 4"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Bình phương không bao giờ âm",
+          "body": "**Ví dụ.** Chứng minh rằng với mọi số a, b: a² + b² ≥ 2ab. Khi nào xảy ra dấu \"=\"?\n\n**Ý chính:** bình phương của **mọi** số đều **không âm**: (a − b)² ≥ 0.\n\n- Khai triển: (a − b)² = a² − 2ab + b².\n- Vậy a² − 2ab + b² ≥ 0 → cộng 2ab vào hai vế (giữ chiều): **a² + b² ≥ 2ab**.\n- Dấu \"=\" khi (a − b)² = 0, tức là **a = b**.\n\nThử số: a = 3, b = 1: 9 + 1 = 10 ≥ 6 ✓. a = b = 2: 8 = 8 (dấu bằng) ✓.\n\n**Vì sao bắt đầu từ (a − b)²?** Muốn chứng minh A ≥ B, cách chắc chắn nhất là chỉ ra **A − B viết được thành một bình phương**. Bình phương thì luôn ≥ 0, nên không cần thử từng số.\n\n📝 **Mẹo nhớ:** *Muốn chứng minh ≥ 0, tìm cách viết thành bình phương.* Vì sao nhớ được: (số nào đó)² không bao giờ âm — đó là \"viên gạch chắc chắn\" của bất đẳng thức.\n\n🔎 **Ghi vào vở:** Luôn nói rõ **dấu \"=\" xảy ra khi nào**. Đề hỏi \"giá trị nhỏ nhất\" thì dấu \"=\" cho biết lúc nào đạt được.",
+          "keyNumbers": [
+            "3",
+            "1"
+          ],
+          "checks": [
+            "3**2 + 1**2 >= 2*3*1",
+            "simplify((x - y)**2 - (x**2 - 2*x*y + y**2)) == 0"
+          ]
+        }
+      ],
+      "review": [
+        {
+          "key": "why1",
+          "kind": "why",
+          "prompt": "Vì sao nhân hai vế của bất đẳng thức với số âm phải đổi chiều?",
+          "buttons": [
+            "Vì số âm đảo thứ tự trên trục số",
+            "Vì số âm nhỏ hơn 0",
+            "Không cần đổi chiều"
+          ],
+          "answer": "Vì số âm đảo thứ tự trên trục số",
+          "check": "exact"
+        },
+        {
+          "key": "f1",
+          "kind": "formula",
+          "prompt": "Biết a < b. Điền dấu thích hợp: −3a ? −3b",
+          "buttons": [
+            ">",
+            "<",
+            "="
+          ],
+          "answer": ">",
+          "check": "exact"
+        }
+      ]
+    },
+    {
+      "code": "T9.6",
+      "grade": 9,
+      "kind": "ban_chat",
+      "ku": "T9.6",
+      "title": "Bất phương trình bậc nhất một ẩn",
+      "variants": [
+        {
+          "n": 1,
+          "title": "Giải như phương trình, trừ một chỗ",
+          "body": "**Ví dụ.** Giải bất phương trình 7 − 3x ≥ 1.\n\n- Chuyển 7 sang vế phải (đổi dấu): −3x ≥ 1 − 7 → −3x ≥ −6.\n- Chia hai vế cho **−3** (số âm) → **đổi chiều**: x **≤** 2.\n- Nghiệm: **x ≤ 2**.\n\n**Thử lại để thấy vì sao phải đổi chiều.** x = 0 (≤ 2): 7 − 0 = 7 ≥ 1 ✓. x = 2: 7 − 6 = 1 ≥ 1 ✓. x = 3 (> 2): 7 − 9 = −2, **không** ≥ 1 ✗. Nếu quên đổi chiều (viết x ≥ 2) thì x = 3 lại được tính là nghiệm — sai.\n\n**Vì sao chuyển vế vẫn giữ chiều?** Chuyển vế là **cộng (hoặc trừ) cùng một số** vào hai vế, mà cộng trừ không đổi chiều bất đẳng thức. Chỉ **nhân, chia với số âm** mới đổi chiều.\n\n📝 **Mẹo nhớ:** *Giải như phương trình; chia số âm thì quay dấu.* Vì sao nhớ được: mọi bước khác giữ nguyên thứ tự, chỉ số âm đảo thứ tự trên trục số.\n\n🔎 **Ghi vào vở:** Giải xong, thử **một số trong tập nghiệm** và **một số ngoài tập nghiệm**. Một số đúng, một số sai là yên tâm.",
+          "keyNumbers": [
+            "7",
+            "3"
+          ],
+          "checks": [
+            "7 - 3*0 >= 1",
+            "7 - 3*2 >= 1",
+            "(7 - 3*3 >= 1) == False"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Dịch \"nhiều nhất\", \"ít nhất\", \"không quá\"",
+          "body": "**Ví dụ.** Bạn Minh có 100 nghìn đồng, mua một hộp bút giá 28 nghìn và một số quyển vở giá 9 nghìn một quyển. Minh mua được **nhiều nhất** bao nhiêu quyển vở?\n\n- Gọi số vở là x (quyển, x nguyên dương).\n- Tổng tiền **không được vượt quá** 100 nghìn: 28 + 9x **≤** 100.\n- 9x ≤ 72 → x ≤ 8. \"Nhiều nhất\" → **8 quyển**. Thử: 28 + 72 = 100 ✓; 9 quyển thì 28 + 81 = 109 > 100 ✗.\n\n| Cụm trong đề | Dấu |\n|---|---|\n| không quá, không vượt quá, tối đa | ≤ |\n| ít nhất, tối thiểu, không ít hơn | ≥ |\n| vượt quá, nhiều hơn | > |\n| chưa đến, ít hơn | < |\n\n**Vì sao bài \"nhiều nhất\" lại ra dấu ≤?** Tiền mua **không được quá** 100 nghìn, nên viết 28 + 9x ≤ 100. Giải ra x ≤ 8: số vở có thể là 1, 2, …, 8. Trong các số đó, **lớn nhất** là 8.\n\n📝 **Mẹo nhớ:** *\"Không quá\" là có trần (≤), \"ít nhất\" là có sàn (≥).* Vì sao nhớ được: trần nhà là mức cao nhất, không được vượt lên; sàn nhà là mức thấp nhất, không được xuống dưới.\n\n🔎 **Ghi vào vở:** Bài thực tế phải kiểm **x nguyên** (số quyển, số người). Nếu được x ≤ 8,6 thì nhiều nhất là **8**, không làm tròn lên 9.",
+          "keyNumbers": [
+            "28",
+            "9",
+            "100"
+          ],
+          "checks": [
+            "28 + 9*8 <= 100",
+            "(28 + 9*9 <= 100) == False"
+          ]
+        }
+      ],
+      "review": [
+        {
+          "key": "why1",
+          "kind": "why",
+          "prompt": "Giải −2x > 6 được x < −3. Vì sao dấu > đổi thành <?",
+          "buttons": [
+            "Vì đã chia hai vế cho số âm −2",
+            "Vì 6 là số dương",
+            "Vì x đứng ở vế trái"
+          ],
+          "answer": "Vì đã chia hai vế cho số âm −2",
+          "check": "exact"
+        },
+        {
+          "key": "rec1",
+          "kind": "recognize",
+          "prompt": "\"Số tiền mua không quá 50 nghìn đồng\" viết bằng dấu nào? (chỉ chọn, không cần giải)",
+          "buttons": [
+            "≤ 50",
+            "< 50",
+            "≥ 50"
+          ],
+          "answer": "≤ 50",
           "check": "exact"
         }
       ]
