@@ -2,7 +2,7 @@
   "schema": 1,
   "project": "Gia sư AI Toán",
   "updated": "2026-11-21",
-  "updatedNote": "G7c (#18) và L-7 (Launcher #98) chờ merge; G6a (thẻ giảng) xong trên nhánh, mở PR sau khi 2 PR kia merge",
+  "updatedNote": "G7 xong (#18 merge). G6a (thẻ giảng) PR mở; G6b mở sau khi G6a merge",
   "vision": {
     "oneLiner": "Một \"cô\" gia sư AI giúp 2 con tự học Toán buổi chiều: gỡ chỗ kẹt bằng câu hỏi gợi mở, không đưa lời giải bài gốc, tối bố mẹ đọc báo cáo 5 phút.",
     "problem": "Buổi chiều 2 con có nhiều thời gian tự học nhưng không có người lớn. Bố mẹ có khoảng 2 giờ buổi tối, gia sư người 2 buổi/tuần. Tốc độ tiến bộ do giờ tự học buổi chiều quyết định.",
@@ -477,7 +477,7 @@
       "features": [
         {
           "name": "L-7 Launcher: SQL 0024 (card_ref, câu ôn từ thẻ)",
-          "status": "review"
+          "status": "done"
         },
         {
           "name": "G6a Thẻ giảng: định dạng + kiểm SymPy, hiện nguyên văn, đổi cách khi trùng số, \"Em không hiểu đề\" 4 nút",
@@ -505,14 +505,14 @@
         {
           "repo": "launcher",
           "number": 98,
-          "status": "open"
+          "status": "merged"
         }
       ]
     },
     {
       "id": "G7",
       "title": "Báo cáo bố mẹ + góp ý thành luật dạy",
-      "status": "in_progress",
+      "status": "done",
       "goal": "Tối bố mẹ đọc báo cáo 5 phút, góp ý thành luật dạy; báo chi phí.",
       "features": [
         {
@@ -537,11 +537,11 @@
         },
         {
           "name": "Báo tiền qua Launcher: ~45 USD, Console hết tiền, dự báo vượt trần (D23)",
-          "status": "review"
+          "status": "done"
         },
         {
           "name": "Lời giải tham khảo sau khi con tự làm xong, cas kiểm (P4, X5)",
-          "status": "review"
+          "status": "done"
         },
         {
           "name": "L-6 Launcher: link báo cáo, route báo tiền, SQL 0023",
@@ -574,7 +574,7 @@
         {
           "repo": "gia-su",
           "number": 18,
-          "status": "open"
+          "status": "merged"
         }
       ]
     },
@@ -822,7 +822,7 @@
     {
       "text": "Merge Launcher #98 (L-7, SQL 0024: messages.card_ref, câu ôn từ thẻ) trước PR G6a",
       "slice": "G6",
-      "status": "open"
+      "status": "done"
     },
     {
       "text": "Đặt TUTOR_NOTIFY_SECRET trên 2 project Vercel + LAUNCHER_URL bên gia sư (SETUP Launcher mục I) trước G7c",
@@ -997,6 +997,10 @@
     {
       "date": "2026-11-21",
       "text": "Phụ huynh chốt Y1–Y5 (G6). Mở Launcher #98 (L-7, SQL 0024). G6a làm xong trên nhánh, chờ #18 + #98 merge rồi mở PR"
+    },
+    {
+      "date": "2026-11-21",
+      "text": "Phụ huynh merge #18 (G7c) và Launcher #98 (L-7, SQL 0024). G7 xong. Mở PR G6a (thẻ giảng)"
     }
   ]
 }
