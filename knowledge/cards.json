@@ -1,0 +1,381 @@
+{
+  "version": "2026-11-21.5dbe13b9",
+  "cards": [
+    {
+      "code": "D6.1",
+      "grade": 6,
+      "kind": "doc_de",
+      "ku": "T6.11",
+      "title": "Đọc đề \"chia đều — nhiều nhất\" → ƯCLN",
+      "variants": [
+        {
+          "n": 1,
+          "title": "Chia tổ",
+          "body": "**Đề:** Lớp có 20 bạn nam và 30 bạn nữ, chia thành các tổ sao cho mỗi tổ có số nam như nhau và số nữ như nhau. Chia được nhiều nhất bao nhiêu tổ?\n\n**① Kể lại.** Chia cả lớp thành các tổ \"giống hệt nhau\", không bạn nào bị lẻ ra.\n\n**② Đề hỏi gì?** **Số tổ**, và phải là số **nhiều nhất**.\n\n**③ Thử tay.**\n\n- 2 tổ: mỗi tổ 10 nam, 15 nữ ✓.\n- 3 tổ: 20 nam chia 3 bị lẻ ✗, có bạn nam không vào được tổ nào.\n\n→ Số tổ phải **chia hết cả 20 lẫn 30**, tức là **ước chung** của 20 và 30.\n\n**④ Dịch từ khóa.** \"như nhau, không thừa\" → **chia hết** → ước chung. \"nhiều nhất\" → **lớn nhất** → **ƯCLN**(20, 30) = 10. Vậy chia được nhiều nhất 10 tổ, mỗi tổ 2 nam và 3 nữ.\n\n**⑤ Kiểm tra hợp lý.** Số tổ **không thể lớn hơn** 20 và 30 (vì không có tổ nào trống). ƯCLN luôn **nhỏ hơn hoặc bằng** các số đã cho ✓.\n\n🔎 **Ghi vào vở:** *\"chia đều\", \"như nhau\", \"không thừa\" + \"nhiều nhất / lớn nhất\" → ƯCLN.*",
+          "keyNumbers": [
+            "20",
+            "30"
+          ],
+          "checks": [
+            "gcd(20, 30) == 10",
+            "20 % 3 != 0",
+            "20 / 10 == 2",
+            "30 / 10 == 3"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Viết lại câu hỏi thành câu toán",
+          "body": "**Đề:** Có 48 quyển vở và 36 cái bút, chia đều vào các phần quà sao cho số vở và số bút ở mỗi phần như nhau. Làm được nhiều nhất bao nhiêu phần quà?\n\n**Mẹo đọc:** em **viết lại câu hỏi** bằng một câu toán, bỏ hết chuyện vở, bút.\n\n- \"Chia đều 48 vở vào các phần\" → số phần **chia hết 48**.\n- \"Chia đều 36 bút vào các phần\" → số phần **chia hết 36**.\n- \"Nhiều nhất\" → số **lớn nhất**.\n\n→ Câu toán: **\"Tìm số lớn nhất chia hết cả 48 và 36\"** → ƯCLN(48, 36) = 12. Vậy làm được 12 phần quà, mỗi phần 4 quyển vở và 3 cái bút.\n\n**Kiểm tra hợp lý:** 12 phần × 4 vở = 48 ✓; 12 phần × 3 bút = 36 ✓.\n\n🔎 **Ghi vào vở — phân biệt nhanh:** đáp số **nhỏ hơn** các số đã cho → thường là **ƯCLN**. Đáp số **lớn hơn** → thường là **BCNN**.",
+          "keyNumbers": [
+            "48",
+            "36"
+          ],
+          "checks": [
+            "gcd(48, 36) == 12",
+            "48 / 12 == 4",
+            "36 / 12 == 3"
+          ]
+        }
+      ],
+      "review": [
+        {
+          "key": "rec1",
+          "kind": "recognize",
+          "prompt": "\"Có 56 bông hồng và 42 bông cúc, bó thành các bó như nhau, không thừa bông nào. Bó được nhiều nhất bao nhiêu bó?\" Dùng kiến thức nào? (chỉ chọn dạng, không cần giải)",
+          "buttons": [
+            "ƯCLN",
+            "BCNN",
+            "Phép chia có dư"
+          ],
+          "answer": "ƯCLN",
+          "check": "exact"
+        },
+        {
+          "key": "why1",
+          "kind": "why",
+          "prompt": "Trong bài \"chia đều nhiều nhất\", vì sao số phần phải là ước chung?",
+          "buttons": [
+            "Vì mỗi loại phải chia hết cho số phần",
+            "Vì số phần phải lớn hơn các số đã cho",
+            "Vì đề có chữ \"nhiều nhất\""
+          ],
+          "answer": "Vì mỗi loại phải chia hết cho số phần",
+          "check": "exact"
+        }
+      ]
+    },
+    {
+      "code": "D6.2",
+      "grade": 6,
+      "kind": "doc_de",
+      "ku": "T6.12",
+      "title": "Đọc đề \"cùng lặp lại — ít nhất\" và \"trong khoảng\" → BCNN, BC",
+      "variants": [
+        {
+          "n": 1,
+          "title": "Lịch đi bơi",
+          "body": "**Đề:** Bạn Lan cứ 6 ngày đi bơi một lần, bạn Mai cứ 8 ngày đi bơi một lần. Hôm nay hai bạn cùng đi bơi. Sau ít nhất bao nhiêu ngày hai bạn lại cùng đi bơi?\n\n**① Kể lại.** Hai bạn đi bơi theo \"nhịp\" riêng. Hỏi lần sớm nhất hai nhịp trùng nhau.\n\n**② Đề hỏi gì?** **Số ngày**, và phải **ít nhất**.\n\n**③ Thử tay.**\n\n- Lan bơi vào ngày: 6, 12, 18, **24**, 30, …\n- Mai bơi vào ngày: 8, 16, **24**, 32, …\n\n→ Ngày cùng bơi phải là **bội của 6** và **bội của 8**, tức là **bội chung**.\n\n**④ Dịch từ khóa.** \"cứ … ngày một lần\" → bội. \"lại cùng\" → bội **chung**. \"ít nhất\" → **nhỏ nhất** → **BCNN**(6, 8) = 24.\n\n**⑤ Kiểm tra hợp lý.** Đáp số phải **lớn hơn hoặc bằng** 6 và 8 (chưa qua 6 ngày thì Lan chưa bơi lần nào) ✓.\n\n🔎 **Ghi vào vở:** *\"cứ … một lần\", \"lại cùng\", \"trùng nhau\" + \"ít nhất / sớm nhất\" → BCNN.*",
+          "keyNumbers": [
+            "6",
+            "8"
+          ],
+          "checks": [
+            "ilcm(6, 8) == 24",
+            "24 % 6 == 0",
+            "24 % 8 == 0"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Xếp hàng vừa đủ, trong khoảng",
+          "body": "**Đề:** Số học sinh của một trường khi xếp hàng 3, hàng 4 hay hàng 5 đều vừa đủ. Biết số học sinh trong khoảng từ 100 đến 150. Tìm số học sinh.\n\n**Mẹo đọc: dịch từng câu một.**\n\n- \"Xếp hàng 3 vừa đủ\" → số học sinh **chia hết cho 3**.\n- \"hàng 4\", \"hàng 5\" cũng vừa đủ → **chia hết cho 4** và **cho 5**.\n- \"Trong khoảng 100 đến 150\" → chọn bội nằm trong khoảng.\n\n→ Số học sinh là **bội chung** của 3, 4, 5. Các bội chung là bội của BCNN(3, 4, 5) = 60: 60, 120, 180, … Trong khoảng 100 đến 150 chỉ có **120**.\n\n**Kiểm tra hợp lý:** 120 : 3 = 40, 120 : 4 = 30, 120 : 5 = 24, đều vừa đủ ✓. Lỗi hay gặp: dừng ở 60, **quên điều kiện khoảng**.\n\n🔎 **Ghi vào vở:** *\"vừa đủ, không thừa ai\" → chia hết. Có \"trong khoảng\" → tìm BCNN rồi chọn bội nằm trong khoảng.*",
+          "keyNumbers": [
+            "3",
+            "4",
+            "5",
+            "100",
+            "150"
+          ],
+          "checks": [
+            "ilcm(3, 4, 5) == 60",
+            "120 % 60 == 0",
+            "120 / 3 == 40",
+            "120 / 4 == 30",
+            "120 / 5 == 24"
+          ]
+        }
+      ],
+      "review": [
+        {
+          "key": "rec1",
+          "kind": "recognize",
+          "prompt": "\"Một đoàn khách xếp hàng 6 hay hàng 9 đều vừa đủ, số khách từ 40 đến 60. Tìm số khách.\" Dùng kiến thức nào? (chỉ chọn dạng, không cần giải)",
+          "buttons": [
+            "ƯCLN",
+            "BCNN rồi chọn trong khoảng",
+            "Phân số của một số"
+          ],
+          "answer": "BCNN rồi chọn trong khoảng",
+          "check": "exact"
+        },
+        {
+          "key": "why1",
+          "kind": "why",
+          "prompt": "Vì sao bài \"lại cùng nhau sau ít nhất bao nhiêu ngày\" dùng BCNN?",
+          "buttons": [
+            "Vì ngày đó phải là bội của mọi nhịp, và là sớm nhất",
+            "Vì phải chia đều",
+            "Vì đáp số nhỏ hơn các số đã cho"
+          ],
+          "answer": "Vì ngày đó phải là bội của mọi nhịp, và là sớm nhất",
+          "check": "exact"
+        }
+      ]
+    },
+    {
+      "code": "D9.1",
+      "grade": 9,
+      "kind": "doc_de",
+      "ku": "T9.3",
+      "title": "Đọc đề \"làm chung — làm riêng\" → hệ phương trình",
+      "variants": [
+        {
+          "n": 1,
+          "title": "Bảng 3 cột",
+          "body": "**Đề:** Hai vòi nước cùng chảy vào một bể cạn thì sau 6 giờ đầy bể. Nếu mở vòi I trong 2 giờ, rồi mở vòi II trong 3 giờ thì được 2/5 bể. Hỏi mỗi vòi chảy một mình thì sau bao lâu đầy bể?\n\n**① Kể lại.** Hai vòi chảy nhanh chậm khác nhau. Biết lúc chảy chung, và một lần chảy \"lệch giờ\". Hỏi thời gian của từng vòi.\n\n**② Đề hỏi gì?** Thời gian vòi I chảy một mình, thời gian vòi II chảy một mình → **2 ẩn**.\n\n**③ Chọn ẩn.** Vòi I một mình đầy bể sau **x** giờ, vòi II sau **y** giờ (x > 6, y > 6, vì một vòi chảy chậm hơn hai vòi cùng chảy).\n\n**④ Lập bảng** (coi cả bể là 1):\n\n| | Thời gian đầy bể | 1 giờ chảy được |\n|---|---|---|\n| Vòi I | x giờ | 1/x bể |\n| Vòi II | y giờ | 1/y bể |\n| Cả hai | 6 giờ | 1/6 bể |\n\n**Vì sao cộng được?** Trong 1 giờ, nước của vòi I và vòi II **cùng đổ vào một bể**, nên phần bể của mỗi vòi **cộng lại**: 1/x + 1/y = 1/6. **Thời gian thì không cộng được**: không phải x + y = 6. Hai vòi cùng chảy thì phải **nhanh hơn**, nên mất ít giờ hơn mỗi vòi.\n\nCâu \"vòi I chảy 2 giờ, vòi II chảy 3 giờ được 2/5 bể\": 2 · (1/x) + 3 · (1/y) = 2/5.\n\n**Hệ phương trình:** 1/x + 1/y = 1/6 và 2/x + 3/y = 2/5. Đặt u = 1/x, v = 1/y thì thành hệ bậc nhất quen thuộc. Giải ra x = 10, y = 15.\n\n**⑤ Kiểm tra hợp lý.** 10 > 6 và 15 > 6 ✓. 1/10 + 1/15 = 1/6 ✓.\n\n🔎 **Ghi vào vở:** *Làm chung → coi cả công việc là 1 → **cộng phần việc mỗi giờ (năng suất)**, không cộng thời gian.*",
+          "keyNumbers": [
+            "6",
+            "2/5"
+          ],
+          "checks": [
+            "solve([Eq(1/x + 1/y, Rational(1, 6)), Eq(2/x + 3/y, Rational(2, 5))], [x, y], dict=True) == [{x: 10, y: 15}]"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Coi công việc là một chiếc bánh",
+          "body": "**Đề:** Hai đội cùng làm một con đường thì 12 ngày xong. Nếu đội I làm 4 ngày, rồi đội II làm tiếp 9 ngày thì được một nửa con đường. Hỏi mỗi đội làm một mình thì bao lâu xong?\n\n**Hình dung:** cả con đường là **một chiếc bánh**. Đội I làm một mình hết x ngày, nên **mỗi ngày \"ăn\" 1/x chiếc bánh**. Đội II hết y ngày, mỗi ngày ăn 1/y chiếc bánh.\n\n- Hai đội cùng làm 12 ngày hết bánh → mỗi ngày cả hai ăn 1/12 chiếc → **1/x + 1/y = 1/12**.\n- Đội I ăn 4 ngày, đội II ăn 9 ngày, được nửa chiếc → **4/x + 9/y = 1/2**.\n\nGiải hệ (đặt u = 1/x, v = 1/y) được x = 20, y = 30.\n\n**Kiểm tra hợp lý:** cả hai đội đều lâu hơn 12 ngày ✓. 4/20 + 9/30 = 1/5 + 3/10 = 1/2 ✓.\n\n🔎 **Ghi vào vở — dấu hiệu dạng này:** \"cùng làm … thì xong\", \"làm một mình thì bao lâu\", \"vòi nước\", \"hai đội, hai người, hai máy\".",
+          "keyNumbers": [
+            "12",
+            "1/2"
+          ],
+          "checks": [
+            "solve([Eq(1/x + 1/y, Rational(1, 12)), Eq(4/x + 9/y, Rational(1, 2))], [x, y], dict=True) == [{x: 20, y: 30}]"
+          ]
+        }
+      ],
+      "review": [
+        {
+          "key": "why1",
+          "kind": "why",
+          "prompt": "Trong bài làm chung, vì sao ta cộng 1/x + 1/y mà không cộng x + y?",
+          "buttons": [
+            "Vì phần việc mỗi giờ thì cộng được, thời gian thì không",
+            "Vì x và y là phân số",
+            "Vì đề cho cả bể là 1"
+          ],
+          "answer": "Vì phần việc mỗi giờ thì cộng được, thời gian thì không",
+          "check": "exact"
+        },
+        {
+          "key": "rec1",
+          "kind": "recognize",
+          "prompt": "\"Hai người cùng sơn một bức tường thì 8 giờ xong; người I sơn một mình nhanh hơn người II 12 giờ.\" Phương trình về phần việc mỗi giờ có dạng nào? (chỉ chọn dạng, không cần giải)",
+          "buttons": [
+            "1/x + 1/(x + 12) = 1/8",
+            "x + (x + 12) = 8",
+            "x · (x + 12) = 8"
+          ],
+          "answer": "1/x + 1/(x + 12) = 1/8",
+          "check": "exact"
+        }
+      ]
+    },
+    {
+      "code": "T6.11",
+      "grade": 6,
+      "kind": "ban_chat",
+      "ku": "T6.11",
+      "title": "Ước chung, ƯCLN",
+      "variants": [
+        {
+          "n": 1,
+          "title": "Chia quà vào túi",
+          "body": "**Ví dụ.** Cô có 12 cái kẹo và 18 cái bánh, muốn chia đều vào các túi sao cho túi nào cũng giống hệt nhau, không thừa cái nào.\n\n- Chia được 1, 2, 3 hoặc 6 túi. Đó là **ước chung** của 12 và 18: ƯC(12, 18) = {1; 2; 3; 6}.\n- **Nhiều túi nhất** là 6 túi → **ƯCLN**(12, 18) = 6.\n\n**Vì sao?** Số túi phải chia hết **cả** số kẹo **lẫn** số bánh, nên số túi phải là ước của 12 **và** là ước của 18. ƯCLN là số túi lớn nhất làm được cả hai việc đó.\n\n**Nhìn bằng thừa số nguyên tố.** 12 = 2 · 2 · 3 và 18 = 2 · 3 · 3. Số túi phải \"nằm gọn\" trong cả hai số, nên chỉ được dùng những thừa số **cả hai cùng có**: một số 2 và một số 3. Lấy thêm số 2 thứ hai thì 18 không chia được; lấy thêm số 3 thứ hai thì 12 không chia được. Vậy ƯCLN = 2 · 3 = 6.\n\n**Quy tắc.** Phân tích ra thừa số nguyên tố → chọn các thừa số **chung** → mỗi thừa số lấy **số mũ nhỏ nhất** → nhân lại. Muốn tìm ƯC: tìm ƯCLN trước, rồi lấy **các ước của ƯCLN**.\n\n📝 **Mẹo nhớ:** *ƯCLN lấy chung, mũ thấp nhất.* Vì: ƯCLN phải chia được **mọi** số, nên chỉ giữ phần **số nào cũng có**.\n\n🔎 **Ghi vào vở — dấu hiệu trong đề:** \"chia đều\", \"chia thành các nhóm như nhau\", \"nhiều nhất\", \"lớn nhất\", \"cắt thành các đoạn bằng nhau dài nhất\" → **ƯCLN**.",
+          "keyNumbers": [
+            "12",
+            "18"
+          ],
+          "checks": [
+            "gcd(12, 18) == 6",
+            "12 % 6 == 0",
+            "18 % 6 == 0"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Cắt dây thành đoạn bằng nhau",
+          "body": "**Ví dụ.** Hai sợi dây dài 24 m và 36 m. Cắt cả hai thành các đoạn **bằng nhau**, không thừa, mỗi đoạn **dài nhất** là bao nhiêu?\n\n- Độ dài mỗi đoạn phải đo vừa khít cả 24 lẫn 36 → là ước chung của 24 và 36.\n- Dài nhất là 12 m (sợi 24 m được 2 đoạn, sợi 36 m được 3 đoạn) → ƯCLN(24, 36) = 12.\n\n**Vì sao?** Hãy coi mỗi số là một \"túi thừa số\": 24 = 2 · 2 · 2 · 3 và 36 = 2 · 2 · 3 · 3. Phần **giống nhau** của hai túi là 2 · 2 · 3 = 12. Đó là số lớn nhất \"chui vừa\" cả hai túi.\n\n**Viết gọn bằng lũy thừa.** 24 = 2³ · 3, 36 = 2² · 3². Thừa số chung là 2 và 3. Số 2: mũ 3 và mũ 2 → lấy 2. Số 3: mũ 1 và mũ 2 → lấy 1. ƯCLN = 2² · 3 = 12. Các ước chung là các ước của 12: {1; 2; 3; 4; 6; 12}.\n\n**Quy tắc.** Thừa số **chung**, số mũ **nhỏ nhất**. ƯC = ước của ƯCLN.\n\n📝 **Mẹo nhớ:** *ƯCLN lấy chung, mũ thấp nhất.* Vì: lấy mũ cao hơn thì sẽ có một số không chia hết (lấy 2³ = 8 thì 36 không chia hết cho 8).\n\n🔎 **Ghi vào vở — dấu hiệu trong đề:** \"dài nhất\", \"nhiều nhất\", \"chia đều\" → ƯCLN.",
+          "keyNumbers": [
+            "24",
+            "36"
+          ],
+          "checks": [
+            "gcd(24, 36) == 12",
+            "24 / 12 == 2",
+            "36 / 12 == 3",
+            "36 % 8 != 0"
+          ]
+        }
+      ],
+      "review": [
+        {
+          "key": "why1",
+          "kind": "why",
+          "prompt": "Vì sao ƯCLN chỉ lấy các thừa số chung, với số mũ nhỏ nhất?",
+          "buttons": [
+            "Để chia được mọi số đã cho",
+            "Để được số lớn nhất",
+            "Vì quy tắc như vậy"
+          ],
+          "answer": "Để chia được mọi số đã cho",
+          "check": "exact"
+        },
+        {
+          "key": "rec1",
+          "kind": "recognize",
+          "prompt": "\"Có 30 quả cam và 45 quả quýt, chia đều vào các đĩa như nhau. Chia được nhiều nhất bao nhiêu đĩa?\" Dùng kiến thức nào? (chỉ chọn dạng, không cần giải)",
+          "buttons": [
+            "ƯCLN",
+            "BCNN",
+            "Phân số"
+          ],
+          "answer": "ƯCLN",
+          "check": "exact"
+        }
+      ]
+    },
+    {
+      "code": "T6.12",
+      "grade": 6,
+      "kind": "ban_chat",
+      "ku": "T6.12",
+      "title": "Bội chung, BCNN",
+      "variants": [
+        {
+          "n": 1,
+          "title": "Chiếc hộp đựng vừa",
+          "body": "**Ví dụ.** Tìm số nhỏ nhất (khác 0) chia hết cho cả 12 và 18.\n\n**Vì sao?** Em hãy tưởng tượng BCNN là **một chiếc hộp** phải đựng vừa cả số 12 lẫn số 18.\n\n- 12 = 2 · 2 · 3 → hộp phải có ít nhất **hai số 2** và **một số 3**.\n- 18 = 2 · 3 · 3 → hộp phải có ít nhất **một số 2** và **hai số 3**.\n\nMuốn đựng vừa cả hai, hộp cần **hai số 2** (vì 12 cần hai) và **hai số 3** (vì 18 cần hai): 2 · 2 · 3 · 3 = **36**. Thiếu bất kỳ số nào thì một trong hai số không \"vào\" được hộp, tức là không chia hết.\n\n**Viết gọn bằng lũy thừa.** 12 = 2² · 3, 18 = 2 · 3² → BCNN = 2² · 3² = 36. Các bội chung là các bội của 36: 36, 72, 108, …\n\n**Quy tắc.** Lấy **tất cả** thừa số (chung và riêng) → mỗi thừa số lấy **số mũ lớn nhất** → nhân lại. BC = bội của BCNN.\n\n📝 **Mẹo nhớ:** *BCNN gom hết, mũ cao nhất.* Vì: hộp phải đựng vừa **mọi** số, nên số nào cần bao nhiêu thừa số thì hộp phải có đủ bấy nhiêu.\n\n🔎 **Ghi vào vở — dấu hiệu trong đề:** \"cùng lặp lại\", \"lại cùng nhau\", \"ít nhất bao lâu\", \"số nhỏ nhất chia hết cho…\", \"xếp hàng 2, hàng 3… đều vừa đủ\" → **BCNN**.",
+          "keyNumbers": [
+            "12",
+            "18"
+          ],
+          "checks": [
+            "ilcm(12, 18) == 36",
+            "72 % 36 == 0",
+            "108 % 36 == 0"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Hai đèn nhấp nháy",
+          "body": "**Ví dụ.** Đèn xanh cứ 4 giây nháy một lần, đèn đỏ cứ 6 giây nháy một lần. Lúc đầu hai đèn cùng nháy. Sau ít nhất bao nhiêu giây chúng lại cùng nháy?\n\n- Đèn xanh nháy ở giây: 4, 8, **12**, 16, 20, **24**, …\n- Đèn đỏ nháy ở giây: 6, **12**, 18, **24**, …\n- Cùng nháy ở các giây 12, 24, … (bội chung). Sớm nhất là 12 → BCNN(4, 6) = 12.\n\n**Vì sao?** Thời điểm cùng nháy phải là bội của 4 **và** bội của 6. \"Ít nhất\" nên ta lấy bội chung **nhỏ nhất**. Nhìn bằng thừa số: 4 = 2 · 2, 6 = 2 · 3. Số cần tìm phải chứa đủ \"hai số 2\" của 4 và \"số 3\" của 6 → 2 · 2 · 3 = 12.\n\n**Quy tắc.** Thừa số chung **và** riêng, số mũ **lớn nhất**. Số nhỏ thì có thể liệt kê bội như trên; số lớn thì phân tích thừa số cho nhanh.\n\n📝 **Mẹo nhớ:** *BCNN gom hết, mũ cao nhất.* Vì: thiếu một thừa số của số nào thì số đó không chia hết.\n\n🔎 **Ghi vào vở — dấu hiệu trong đề:** \"cùng lúc lại\", \"ít nhất\", \"lần tiếp theo cùng\" → BCNN. \"Trong khoảng từ … đến …\" → tìm BCNN rồi chọn bội nằm trong khoảng.",
+          "keyNumbers": [
+            "4",
+            "6"
+          ],
+          "checks": [
+            "ilcm(4, 6) == 12",
+            "24 % 4 == 0",
+            "24 % 6 == 0"
+          ]
+        }
+      ],
+      "review": [
+        {
+          "key": "why1",
+          "kind": "why",
+          "prompt": "Vì sao BCNN lấy mỗi thừa số với số mũ lớn nhất?",
+          "buttons": [
+            "Để chia hết cho mọi số đã cho",
+            "Để được số nhỏ nhất",
+            "Vì quy tắc như vậy"
+          ],
+          "answer": "Để chia hết cho mọi số đã cho",
+          "check": "exact"
+        },
+        {
+          "key": "rec1",
+          "kind": "recognize",
+          "prompt": "\"Hai xe buýt cứ 10 phút và 15 phút xuất bến một lần, cùng xuất bến lúc 6 giờ. Lúc nào chúng lại cùng xuất bến?\" Dùng kiến thức nào? (chỉ chọn dạng, không cần giải)",
+          "buttons": [
+            "ƯCLN",
+            "BCNN",
+            "Phân số"
+          ],
+          "answer": "BCNN",
+          "check": "exact"
+        }
+      ]
+    },
+    {
+      "code": "T9.9",
+      "grade": 9,
+      "kind": "ban_chat",
+      "ku": "T9.9",
+      "title": "Rút gọn biểu thức chứa căn",
+      "variants": [
+        {
+          "n": 1,
+          "title": "Nhận ra hằng đẳng thức trong căn",
+          "body": "**Ví dụ.** Rút gọn C = 1/(√x − 4) − 8/(x − 16).\n\n**Rút gọn là gì?** Viết biểu thức cho **gọn nhất** mà **giá trị không đổi** với mọi x hợp lệ. Thử x = 9: biểu thức ban đầu bằng 1/7, và biểu thức sau khi rút gọn cũng phải ra 1/7.\n\n**Bước 1 — ĐKXĐ (vì sao phải có?).** Căn của số âm không có nghĩa, và không được chia cho 0. Nên x ≥ 0 và x ≠ 16. **ĐKXĐ: x ≥ 0, x ≠ 16.**\n\n**Bước 2 — Nhìn ra \"bí mật\" của mẫu.** Khi x ≥ 0 thì x = (√x)². Nên x − 16 = (√x)² − 4² = (√x − 4)(√x + 4). Đây chính là hằng đẳng thức a² − b² = (a − b)(a + b) của lớp 8, chỉ là a = √x.\n\n**Bước 3 — Quy đồng.** Mẫu chung là (√x − 4)(√x + 4):\nC = (√x + 4 − 8) / ((√x − 4)(√x + 4)) = (√x − 4) / ((√x − 4)(√x + 4)).\n\n**Bước 4 — Rút gọn đến tận cùng.** Tử và mẫu cùng có (√x − 4) → gạch đi: **C = 1/(√x + 4)** với x ≥ 0, x ≠ 16. Kiểm lại với x = 9: 1/(3 + 4) = 1/7 ✓.\n\n📝 **Mẹo nhớ:** *Thấy \"x trừ số chính phương\" → nghĩ ngay (√x − a)(√x + a).* Vì: với x ≥ 0 thì x = (√x)², nên x − a² là hiệu hai bình phương.\n\n🔎 **Ghi vào vở — thói quen tự soát:** ① Viết ĐKXĐ trước. ② Phân tích mẫu. ③ Thu gọn tử. ④ Tử và mẫu còn nhân tử chung không? ⑤ Thử một giá trị x để kiểm.",
+          "keyNumbers": [
+            "16",
+            "4"
+          ],
+          "checks": [
+            "simplify(1/(sqrt(x) - 4) - 8/(x - 16) - 1/(sqrt(x) + 4)) == 0",
+            "simplify((x - 16) - (sqrt(x) - 4)*(sqrt(x) + 4)) == 0",
+            "(1/(sqrt(x) + 4)).subs(x, 9) == Rational(1, 7)"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Đặt t = √x: bài căn thành bài phân thức lớp 8",
+          "body": "**Ví dụ.** Rút gọn D = 1/(√x − 6) − 12/(x − 36).\n\n**Vì sao làm được?** Căn chỉ là \"lớp áo\" bên ngoài. Đặt **t = √x** (nhớ t ≥ 0). Vì x = t² nên D = 1/(t − 6) − 12/(t² − 36). Giờ nó là **phân thức đại số lớp 8** em đã quen!\n\n**Làm như lớp 8.** t² − 36 = (t − 6)(t + 6).\nD = (t + 6 − 12) / ((t − 6)(t + 6)) = (t − 6) / ((t − 6)(t + 6)) = 1/(t + 6) (với t ≠ 6).\n\n**Mặc lại \"lớp áo\".** Thay t = √x: **D = 1/(√x + 6)**. Điều kiện t ≥ 0, t ≠ 6 nghĩa là x ≥ 0, x ≠ 36.\n\n📝 **Mẹo nhớ:** *Rối vì căn → đặt t = √x (t ≥ 0) → làm như phân thức lớp 8 → thay lại.* Vì: x = t² khi t = √x ≥ 0, nên mọi \"x\" đều viết được theo t.\n\n🔎 **Ghi vào vở — khi nào dùng:** biểu thức có cả √x và x (như x − 36, x + 4√x + 4, x − 2√x). Nếu thấy hằng đẳng thức ngay thì không cần đặt t.",
+          "keyNumbers": [
+            "36",
+            "6"
+          ],
+          "checks": [
+            "simplify(1/(t - 6) - 12/(t**2 - 36) - 1/(t + 6)) == 0",
+            "simplify(1/(sqrt(x) - 6) - 12/(x - 36) - 1/(sqrt(x) + 6)) == 0"
+          ]
+        }
+      ],
+      "review": [
+        {
+          "key": "why1",
+          "kind": "why",
+          "prompt": "Vì sao với x ≥ 0 ta viết được x − 25 = (√x − 5)(√x + 5)?",
+          "buttons": [
+            "Vì x = (√x)² nên đây là hiệu hai bình phương",
+            "Vì căn của tích bằng tích các căn",
+            "Vì quy đồng mẫu"
+          ],
+          "answer": "Vì x = (√x)² nên đây là hiệu hai bình phương",
+          "check": "exact"
+        },
+        {
+          "key": "mini1",
+          "kind": "mini_problem",
+          "prompt": "Rút gọn (x − 25)/(√x − 5) với x ≥ 0, x ≠ 25. Em gõ kết quả (viết căn là sqrt(x)).",
+          "buttons": [],
+          "answer": "sqrt(x) + 5",
+          "check": "math_check"
+        }
+      ]
+    }
+  ]
+}

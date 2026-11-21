@@ -14,7 +14,9 @@
     "e2e": "playwright test",
     "roadmap:page": "node scripts/build-roadmap-page.mjs",
     "knowledge": "tsx scripts/knowledge/sanitize.ts && tsx scripts/knowledge/build.ts",
-    "knowledge:check": "tsx scripts/knowledge/build.ts --check"
+    "knowledge:check": "tsx scripts/knowledge/build.ts --check",
+    "cards": "tsx scripts/knowledge/cards.ts",
+    "cards:check": "tsx scripts/knowledge/cards.ts --check"
   },
   "devDependencies": {
     "@playwright/test": "^1.65.1",
