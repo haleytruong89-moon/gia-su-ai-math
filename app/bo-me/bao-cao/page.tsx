@@ -5,6 +5,8 @@ import { loadDayReport, type ChildDay } from "@/lib/report/load";
 import { addDays, dateVn } from "@/lib/time";
 import { TopBar } from "../../top-bar";
 import { CostActions } from "./cost-actions";
+import { GapCopy } from "./gap-copy";
+import type { CardGap } from "@/lib/report/cardGaps";
 
 export const dynamic = "force-dynamic";
 
@@ -64,6 +66,7 @@ function Child({ c }: { c: ChildDay }) {
           ))}
         </ol>
       )}
+      {c.review.asked > 0 && <p className="text-sm">Ôn đầu buổi: {c.review.asked} câu, đúng {c.review.correct}</p>}
       {c.ratings.length > 0 && (
         <p className="text-sm">
           Con chấm cô:{" "}
@@ -72,6 +75,29 @@ function Child({ c }: { c: ChildDay }) {
             .join(" · ")}
         </p>
       )}
+    </section>
+  );
+}
+
+const GAP_KIND: Record<CardGap["kind"], string> = {
+  the_thieu: "chưa có thẻ", no_card: "thẻ chưa soạn", unknown_ku: "chưa rõ bài SGK", het_cach: "2 cách chưa đủ",
+};
+
+/** G6b (C5): only when there is something; one copyable request per gap. */
+function CardGaps({ gaps, names }: { gaps: CardGap[]; names: Map<string, string> }) {
+  if (!gaps.length) return null;
+  return (
+    <section aria-label="Thẻ cần bổ sung" className="flex flex-col gap-3 rounded-2xl border border-ink/10 bg-white p-4">
+      <h2 className="text-lg font-bold">📘 Thẻ cần bổ sung</h2>
+      <ul className="flex flex-col gap-3">
+        {gaps.map((g) => (
+          <li key={`${g.grade}|${g.kind}|${g.key}`} className="flex flex-col gap-1 rounded-xl border border-ink/10 p-3 text-sm">
+            <p className="font-semibold">Lớp {g.grade} · {g.kind === "het_cach" ? g.key.replace(/^het_cach:/, "") : g.key}</p>
+            <p className="text-ink/75">{GAP_KIND[g.kind]} · {g.count} lần ({g.days.join(", ")}) · {g.childIds.map((id) => names.get(id) ?? "con").join(", ")}</p>
+            <GapCopy request={g.request} />
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }
@@ -109,6 +135,7 @@ export default async function ReportPage({ searchParams }: { searchParams: Promi
         {report.children.map((c) => (
           <Child key={c.childId} c={c} />
         ))}
+        <CardGaps gaps={report.cardGaps} names={new Map(report.children.map((c) => [c.childId, c.name]))} />
         <p className="text-xs text-ink/60">
           Cờ ⚠️ theo DOMAIN §4.7. Hai cờ đầu của mỗi con cũng hiện ở thẻ &quot;Học với app&quot; trên Launcher.
         </p>
