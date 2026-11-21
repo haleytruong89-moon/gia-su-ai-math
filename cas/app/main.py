@@ -41,6 +41,8 @@ def check(req: CheckRequest, x_cas_secret: str = Header(default="")):
         return {"ok": False, "error": str(exc)}
     except FutureTimeout:
         return {"ok": False, "error": "timeout"}
+    except Exception as exc:  # any other SymPy failure: an answer, not HTTP 500 (G0 18/11)
+        return {"ok": False, "error": f"internal:{type(exc).__name__}"}
 
 
 @app.get("/health")
