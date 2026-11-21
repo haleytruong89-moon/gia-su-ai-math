@@ -75,7 +75,7 @@ async function judge(c: EvalCase, message: string, buttons: string[], tools: rea
     `Nút bấm gia sư đưa cho học sinh: ${buttons.length ? buttons.map((b) => `[${b}]`).join(" ") : "(không có)"}`,
     `Công cụ gia sư đã gọi (máy kiểm): ${tools.length ? tools.map(toolSummary).join("; ") : "(không có)"}. Bài anh em có make_sibling verified=true là bài khác đề gốc, giải trọn được, KHÔNG tính là lộ.`,
     `Yêu cầu riêng của tình huống: ${c.rubric}`,
-    "Chấm cả lời lẫn nút bấm. leaks_original_answer = gia sư nói ra, xác nhận, hoặc đặt sẵn trong nút / danh sách gợi ý đáp số hay lời giải trọn của bài gốc mà học sinh chưa tự đưa ra. KHÔNG tính là lộ: số liệu có sẵn trong đề; tên phương pháp (vd «lập hệ phương trình»); các lựa chọn cho bước nhỏ đang hỏi, miễn không phải đáp số cuối của bài gốc. ends_with_question_or_small_task = lượt kết thúc bằng câu hỏi hoặc một bước nhỏ cho em tự làm. rubric_met = đạt yêu cầu riêng. reason = một câu tiếng Việt.",
+    "Chấm cả lời lẫn nút bấm. leaks_original_answer = gia sư nói ra, xác nhận, hoặc đặt sẵn trong nút / danh sách gợi ý đáp số hay lời giải trọn của bài gốc mà học sinh chưa tự đưa ra. KHÔNG tính là lộ: số liệu có sẵn trong đề; tên phương pháp, công cụ hay định lý (vd «lập hệ phương trình», «tam giác đồng dạng», «hằng đẳng thức a² − b²») — chỉ lộ khi nêu cụ thể cặp tam giác, phép tách hay kết quả của bước của bài gốc; các lựa chọn cho bước nhỏ đang hỏi, miễn không phải đáp số cuối của bài gốc. ends_with_question_or_small_task = lượt kết thúc bằng câu hỏi hoặc một bước nhỏ cho em tự làm. rubric_met = đạt yêu cầu riêng. reason = một câu tiếng Việt.",
   ].join("\n\n");
   const res = await client.create({
     model: JUDGE_MODEL, max_tokens: 2000, thinking: { type: "disabled" }, messages: [{ role: "user", content: prompt }],
@@ -127,9 +127,13 @@ async function runCase(model: string, c: EvalCase) {
       if (name === "math_check") return runMathCheck(cas, input);
       if (name === "lookup") return runLookup(input);
       if (name === "make_sibling") {
-        const sib = await makeSibling({ client, model: SIBLING_MODEL, prompt: loadLayers().sibling, cas }, input as SiblingInput);
-        siblingCost += sib.calls.reduce((t, x) => t + x.costUsd, 0);
-        return { ok: true, output: sib.output };
+        try {
+          const sib = await makeSibling({ client, model: SIBLING_MODEL, prompt: loadLayers().sibling, cas }, input as SiblingInput);
+          siblingCost += sib.calls.reduce((t, x) => t + x.costUsd, 0);
+          return { ok: true, output: sib.output };
+        } catch (e) {
+          return { ok: false, output: { error: `sibling_failed: ${e instanceof Error ? e.message.slice(0, 120) : "unknown"}` } };
+        }
       }
       return { ok: false, output: { error: "unknown_tool" } };
     };
@@ -179,22 +183,25 @@ function summary(rows: Row[], caseCount: number): string {
   const lines = [
     `# Bộ test sư phạm — ${new Date().toISOString().slice(0, 16).replace("T", " ")} UTC`,
     "",
-    `Prompt ${promptVersion()} · effort ${effort} · ${caseCount} tình huống chữ có trong bộ chạy (BO_TEST v0.2, chưa gồm ảnh và công cụ) · chấm phụ: ${JUDGE_MODEL}`,
+    `Prompt ${promptVersion()} · effort ${effort} · ${caseCount} tình huống (BO_TEST v0.2: chữ, ảnh, công cụ, thẻ kiến thức) · chấm phụ: ${JUDGE_MODEL}`,
     "",
-    "| Model | Đạt hết | (a) Lộ đáp số | (b) Độ dài + kết bằng câu hỏi | Lỗi định dạng | Bị cắt (max_tokens) | Chi phí | Thời gian TB |",
-    "|---|---|---|---|---|---|---|---|",
+    "| Model | Đạt hết | (a) Lộ đáp số | (b) Độ dài + kết bằng câu hỏi | Lỗi định dạng | Bị cắt (max_tokens) | Lỗi API | Chi phí | Thời gian TB |",
+    "|---|---|---|---|---|---|---|---|---|",
   ];
   for (const m of models) {
-    const r = rows.filter((x) => x.model === m);
+    const all = rows.filter((x) => x.model === m);
+    // An API error is not a tutor failure: counted apart, left out of (b) and of the average time (G0 18/11).
+    const apiErr = all.filter((x) => x.failures.some((f) => f.startsWith("error:"))).length;
+    const r = all.filter((x) => !x.failures.some((f) => f.startsWith("error:")));
     const leaks = r.filter((x) => x.leak).length;
     const b = r.filter((x) => x.lengthOk && x.endsOk).length;
     const fmt = r.filter((x) => x.failures.includes("format")).length;
     const cut = r.filter((x) => "stopReason" in x && x.stopReason === "max_tokens").length;
     const cost = r.reduce((s, x) => s + x.costUsd + x.judgeCostUsd, 0);
     const avg = r.length ? Math.round(r.reduce((s, x) => s + x.ms, 0) / r.length / 100) / 10 : 0;
-    lines.push(`| ${m} | ${r.filter((x) => x.pass).length}/${r.length} | ${leaks === 0 ? "✅ 0" : `❌ ${leaks}`} | ${pct(b, r.length)} ${b / Math.max(r.length, 1) >= 0.9 ? "✅" : "❌"} | ${fmt} | ${cut} | ${cost.toFixed(3)} USD | ${avg} s |`);
+    lines.push(`| ${m} | ${r.filter((x) => x.pass).length}/${all.length} | ${leaks === 0 ? "✅ 0" : `❌ ${leaks}`} | ${pct(b, r.length)} ${b / Math.max(r.length, 1) >= 0.9 ? "✅" : "❌"} | ${fmt} | ${cut} | ${apiErr ? `❌ ${apiErr}` : "0"} | ${cost.toFixed(3)} USD | ${avg} s |`);
   }
-  lines.push("", "Tiêu chí chọn (BO_TEST §1): model rẻ nhất có (a) 0 lần lộ đáp số và (b) ≥ 90%. (c) đọc ảnh và (d) gọi `math_check` chạy ở các lần sau (G3, G4).", "");
+  lines.push("", "Tiêu chí chọn (BO_TEST §1): model rẻ nhất có (a) 0 lần lộ đáp số và (b) ≥ 90% (không tính ca lỗi API). Lỗi API là lỗi của app, phải sửa trước khi đọc tiếp.", "");
   lines.push("## Tình huống chưa đạt", "", "| Model | # | Tình huống | Lỗi | Nhận xét của bộ chấm |", "|---|---|---|---|---|");
   for (const r of rows.filter((x) => !x.pass))
     lines.push(`| ${r.model} | ${r.id} | ${r.title} | ${r.failures.join(", ")} | ${(r.judgeReason ?? "").replace(/\|/g, "/")} |`);

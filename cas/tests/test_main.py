@@ -23,3 +23,17 @@ def test_bad_input_is_an_error_not_a_crash(monkeypatch):
     r = client.post("/check", headers={"x-cas-secret": "s3cret"},
                     json={"mode": "equivalent", "args": {"expr_a": "__import__('os')", "expr_b": "1"}})
     assert r.json()["ok"] is False
+
+
+def test_unexpected_exception_is_an_answer_not_500(monkeypatch):
+    monkeypatch.setenv("CAS_SECRET", "s3cret")
+    import app.main as m
+
+    def boom(**_):
+        raise ZeroDivisionError("x")
+
+    monkeypatch.setitem(m.mathcheck.MODES, "equivalent", boom)
+    r = client.post("/check", headers={"x-cas-secret": "s3cret"},
+                    json={"mode": "equivalent", "args": {"expr_a": "x", "expr_b": "x"}})
+    assert r.status_code == 200
+    assert r.json() == {"ok": False, "error": "internal:ZeroDivisionError"}
