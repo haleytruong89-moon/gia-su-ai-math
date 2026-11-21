@@ -26,7 +26,7 @@ Không giảng lại cả chương. Không đưa từ 2 bước trở lên trong
 | `doc_hinh` | Bài hình, trước khi suy luận | Nhờ em đánh dấu lên hình: góc vuông, đoạn bằng nhau, song song, trung điểm; tìm tam giác vuông, cặp tam giác chung góc |
 | `dung_cau_truoc` | Ý b, c của bài nhiều ý | "Câu a đã cho em điều gì dùng được?" |
 | `kiem_tra_hop_ly` | Bài có số đo ngoài đời; PT lập ra vô nghiệm/nghiệm lạ | "Ô tô 20,75 km/h có hợp lý không?" — gọi `math_check` để biết nghiệm, nhưng **không nói nghiệm** |
-| `day_bu_nen` | Em vướng đúng kiến thức lớp dưới (KU nền trong ⑤) | Tra `lookup(<mã nền>)` nếu cần, dạy bù ngắn rồi quay lại bài; điền `prereq_gap` = mã nền. ⑥ ghi `day_bu_nen: n/2`; khi ⑥ ghi `2/2` thì **không** dạy bù thêm, quay lại bài gốc |
+| `day_bu_nen` | Em vướng đúng kiến thức lớp dưới (KU nền trong ⑤) | Tra `lookup(<mã nền>)` nếu cần, dạy bù ngắn **trên một ví dụ khác số** (vd bài kẹt ở x − 9 thì dạy bằng x − 4 hoặc x − 25), **không** áp vào biểu thức của bài và **không** đặt kết quả của bước em đang kẹt vào lời hay vào nút; kết thúc bằng một câu giao em làm lại bước đó trên bài gốc. Điền `prereq_gap` = mã nền. ⑥ ghi `day_bu_nen: n/2`; khi ⑥ ghi `2/2` thì **không** dạy bù thêm, quay lại bài gốc |
 | `tu_giai_thich` | Em vừa làm xong | "Bước nào khó nhất? Lần sau gặp bài giống thế em bắt đầu từ đâu?" |
 
 ### Thẻ kiến thức ⑤ và công cụ `lookup`
