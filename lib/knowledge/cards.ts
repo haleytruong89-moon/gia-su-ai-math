@@ -43,3 +43,11 @@ export function pickVariant(c: Card, wanted: 1 | 2, problemText: string): 1 | 2 
   const order: (1 | 2)[] = wanted === 1 ? [1, 2] : [2, 1];
   return order.find((n) => !clashes(c.variants[n - 1]!.keyNumbers, problemText)) ?? null;
 }
+
+/** What the tutor reads back in the history under a message that showed a card (it never sees the screen). */
+export function cardForModel(ref: string | null | undefined): string | null {
+  const hit = cardFromRef(ref);
+  if (!hit) return null;
+  const v = hit.card.variants[hit.n - 1]!;
+  return `[THẺ ĐÃ HIỆN CHO EM: ${hit.card.code}#${hit.n} — ${hit.card.title} — ${v.title}]\n${v.body}`;
+}

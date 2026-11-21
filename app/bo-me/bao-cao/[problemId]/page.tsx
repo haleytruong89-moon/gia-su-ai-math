@@ -5,6 +5,7 @@ import { STATUS_LABEL } from "@/lib/report/labels";
 import { kuTitle, loadParentThread } from "@/lib/report/load";
 import { TopBar } from "../../../top-bar";
 import { FeedbackButtons } from "../feedback-buttons";
+import { CardView } from "../../../hoi/[problemId]/card-view";
 
 export const dynamic = "force-dynamic";
 
@@ -55,6 +56,7 @@ export default async function ProblemReviewPage({ params }: { params: Promise<{ 
                   {runs.map((r, j) => (r.bold ? <b key={j}>{r.text}</b> : <span key={j}>{r.text}</span>))}
                 </p>
               ))}
+              {m.cardRef && <CardView cardRef={m.cardRef} />}
               {m.buttons.length > 0 && <p className="mt-1 text-sm text-ink/60">Nút: {m.buttons.join(" · ")}</p>}
               {m.role === "tutor" && <FeedbackButtons problemId={t.problemId} messageId={m.id} initial={t.feedback[m.id] ?? null} />}
             </li>

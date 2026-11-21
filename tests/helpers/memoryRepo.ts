@@ -19,7 +19,7 @@ interface Prob { id: string; childId: string; familyId: string; sessionId: strin
 interface ImageRow { id: string; problemId: string; messageId: string; childId: string; path: string; data: string; width: number;
   height: number; deleteAfter: string }
 interface MsgRow { id: string; childId: string; problemId: string; role: "child" | "tutor"; text: string; buttons: string[];
-  inputKind: InputKind; hintLevel: number | null; clientMsgId: string | null; at: Date; reply?: StoredReply }
+  inputKind: InputKind; hintLevel: number | null; clientMsgId: string | null; at: Date; reply?: StoredReply; cardRef?: string | null }
 type ToolRow = { problemId: string; tool: string; input: unknown; output: unknown; ok: boolean; ms: number; callRow: number };
 type CallRow = ModelCallRecord & { problemId: string; childMessageId: string; tutorMessageId: string | null; promptVersion: string };
 
@@ -109,7 +109,8 @@ export function memoryRepo(seed: Seed = {}, strongModel = "claude-opus-5-5") {
       const list = messages.filter((m) => m.problemId === p.id);
       const last = list[list.length - 1];
       const answered = last?.role === "child" ? list.slice(0, -1) : list;
-      const history: HistoryItem[] = answered.map((m) => ({ id: m.id, role: m.role === "child" ? "user" : "assistant", content: m.text }));
+      const history: HistoryItem[] = answered.map((m) => ({ id: m.id, role: m.role === "child" ? "user" : "assistant", content: m.text,
+        cardRef: m.cardRef ?? null }));
       const pending = last?.role === "child" ? { messageId: last.id, clientMsgId: last.clientMsgId, text: last.text, at: last.at } : null;
       const calls = modelCalls.filter((c) => c.problemId === p.id);
       const lastShown = calls.filter((c) => c.purpose === "tutor" && c.shown).at(-1);
@@ -118,7 +119,7 @@ export function memoryRepo(seed: Seed = {}, strongModel = "claude-opus-5-5") {
         hintLevel: p.hintLevel, hintLevelMax: p.hintLevelMax, nanJumps: p.nanJumps, wrongCount: p.wrongCount,
         offtopicCount: p.offtopicCount, uLevel: p.uLevel, stuckKind: p.stuckKind, statementConfirmed: p.statementConfirmed,
         confirmedStatement: p.confirmedStatement, history, imageCount: images.filter((i) => i.problemId === p.id).length,
-        thread: list.map((m) => ({ id: m.id, role: m.role, content: m.text, inputKind: m.inputKind })),
+        thread: list.map((m) => ({ id: m.id, role: m.role, content: m.text, inputKind: m.inputKind, cardRef: m.cardRef ?? null })),
         statement: list.find((m) => m.role === "child")?.text ?? null,
         usedStrong: calls.some((c) => c.purpose === "tutor" && c.model === strongModel),
         lastTutorFlags: lastShown ? flagsOf(lastShown.raw) : [],
@@ -176,9 +177,9 @@ export function memoryRepo(seed: Seed = {}, strongModel = "claude-opus-5-5") {
           kuCode: a.kuCode, prereqGaps: [...a.prereqGaps] });
         for (const dg of a.diagnoses) diagnoses.push({ ...dg, problemId: p.id, childId: p.childId });
         reply = { problemId: p.id, message: a.tutorText, buttons: a.buttons, hintLevel: a.replyHintLevel, status: p.status, turnCount: p.turnCount,
-          statementConfirmed: p.statementConfirmed };
+          statementConfirmed: p.statementConfirmed, cardRef: a.cardRef };
         t = { id: id("m"), childId: p.childId, problemId: p.id, role: "tutor", text: a.tutorText, buttons: a.buttons, inputKind: "text",
-          hintLevel: a.replyHintLevel, clientMsgId: null, at: a.now, reply };
+          hintLevel: a.replyHintLevel, clientMsgId: null, at: a.now, reply, cardRef: a.cardRef };
         messages.push(t);
       }
       const first = modelCalls.length;
@@ -188,6 +189,15 @@ export function memoryRepo(seed: Seed = {}, strongModel = "claude-opus-5-5") {
       for (const tr of a.tools)
         toolCalls.push({ problemId: p.id, tool: tr.tool, input: tr.input, output: tr.output, ok: tr.ok, ms: tr.ms, callRow: first + tr.callIndex });
       return reply ?? { conflict: true as const };
+    },
+    async saveScriptedReply(a) {
+      const p = problems.find((x) => x.id === a.problem.id);
+      if (!p) throw new Error("no problem");
+      const reply: StoredReply = { problemId: p.id, message: a.message, buttons: a.buttons, hintLevel: p.hintLevel, status: p.status,
+        turnCount: p.turnCount, statementConfirmed: p.statementConfirmed, cardRef: a.cardRef };
+      messages.push({ id: id("m"), childId: p.childId, problemId: p.id, role: "tutor", text: a.message, buttons: a.buttons, inputKind: "text",
+        hintLevel: p.hintLevel, clientMsgId: null, at: a.now, reply, cardRef: a.cardRef });
+      return reply;
     },
     async monthUsage(familyId, now) {
       const k = monthKey(familyId, now);
