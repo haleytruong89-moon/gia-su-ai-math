@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { siblingJsonSchema } from "@/lib/tools/makeSibling";
+import { ruleDraftJsonSchema } from "@/lib/tutor/ruleDraft";
 import { classifyJsonSchema } from "@/lib/tutor/classify";
 import { guardJsonSchema } from "@/lib/tutor/guard";
 import { tutorOutputJsonSchema } from "@/lib/tutor/schema";
@@ -22,7 +23,7 @@ function problems(node: unknown, path = "$"): string[] {
 
 describe("schemas sent as structured output", () => {
   it.each([
-    ["tutor", tutorOutputJsonSchema], ["classify", classifyJsonSchema], ["guard", guardJsonSchema], ["sibling", siblingJsonSchema],
+    ["tutor", tutorOutputJsonSchema], ["classify", classifyJsonSchema], ["guard", guardJsonSchema], ["sibling", siblingJsonSchema], ["rule_draft", ruleDraftJsonSchema],
   ])("%s schema uses only what the API accepts", (_name, schema) => {
     expect(problems(schema)).toEqual([]);
   });
