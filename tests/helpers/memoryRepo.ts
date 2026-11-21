@@ -8,6 +8,8 @@ import {
   type StuckKind, type TutorRepo, RATING_EDIT_MS, RATING_OUTCOMES,
 } from "@/lib/tutor/repo";
 import { activeRules, type RuleRow } from "@/lib/rules/teachingRules";
+import { reopenAfterMistake, type ReviewResult } from "@/lib/rules/review";
+import type { StoredReviewItem } from "@/lib/tutor/repo";
 
 interface Sess { id: string; childId: string; dateVn: string; status: "active" | "ended" | "abandoned"; device: string; rulesVersion: number }
 interface RuleMem extends RuleRow { childId: string; familyId: string; source: string; sourceIds: string[] }
@@ -33,7 +35,10 @@ export interface Seed {
   images?: (Partial<ImageRow> & { problemId: string; messageId: string })[];
   rules?: (Partial<RuleMem> & { id: string })[];
   ratings?: (Partial<RatingMem> & { sessionId: string })[];
+  reviewItems?: (Partial<ReviewMem> & { id: string })[];
 }
+interface ReviewMem extends StoredReviewItem { childId: string; familyId: string; source: string; deleted: boolean; itemKey: string | null }
+interface AttemptMem { childId: string; itemId: string; result: ReviewResult; answer: string | null; clientMsgId: string; at: Date }
 
 export function memoryRepo(seed: Seed = {}, strongModel = "claude-opus-5-5") {
   let n = 0;
@@ -54,6 +59,10 @@ export function memoryRepo(seed: Seed = {}, strongModel = "claude-opus-5-5") {
   const images: ImageRow[] = (seed.images ?? []).map((i) => ({ id: id("i"), childId: "c1", path: "c1/x/y.jpg", data: "QUJD",
     width: 10, height: 10, deleteAfter: "2027-01-01", ...i }));
   const toolCalls: ToolRow[] = [];
+  const reviewItems: ReviewMem[] = (seed.reviewItems ?? []).map((r) => ({ childId: "c1", familyId: "f1", kuCode: "T6.12", cardCode: null,
+    kind: "formula", prompt: "Câu hỏi?", buttons: [], answer: "đáp án", answerCheck: "exact", box: 1, dueDateVn: "2026-11-21",
+    correctStreak: 0, status: "active", source: "seed", deleted: false, itemKey: null, ...r }));
+  const reviewAttempts: AttemptMem[] = [];
   /** G7: every syncAttention call (the real repo rewrites public.learning_attention). */
   const attentionSyncs: { familyId: string; childId: string; dateVn: string }[] = [];
   const failAttention = { on: false };
@@ -279,6 +288,44 @@ export function memoryRepo(seed: Seed = {}, strongModel = "claude-opus-5-5") {
       return ratings.filter((r) => r.childId === childId).sort((x, y) => y.at.getTime() - x.at.getTime()).slice(0, n)
         .map((r) => ({ id: r.id, face: r.face, reasons: [...r.reasons] }));
     },
+    async addReviewItems(a) {
+      let added = 0;
+      for (const it of a.items) {
+        if (reviewItems.some((r) => r.childId === a.actor.userId && r.cardCode === it.cardCode && r.itemKey === it.itemKey && !r.deleted)) continue;
+        reviewItems.push({ id: id("rv"), childId: a.actor.userId, familyId: a.actor.familyId, kuCode: it.kuCode, cardCode: it.cardCode,
+          kind: it.kind, prompt: it.prompt, buttons: [...it.buttons], answer: it.answer, answerCheck: it.answerCheck, box: 1,
+          dueDateVn: it.dueDateVn, correctStreak: 0, status: "active", source: "card", deleted: false, itemKey: it.itemKey });
+        added++;
+      }
+      return added;
+    },
+    async reopenReviews(a) {
+      let n = 0;
+      for (const r of reviewItems) {
+        if (r.childId !== a.childId || r.kuCode !== a.kuCode || r.deleted || r.status !== "retired") continue;
+        Object.assign(r, reopenAfterMistake(r, a.todayVn));
+        n++;
+      }
+      return n;
+    },
+    async reviewItemsOf(childId) {
+      return reviewItems.filter((r) => r.childId === childId && !r.deleted && r.status === "active").map((r) => ({ ...r }));
+    },
+    async reviewItem(itemId, childId) {
+      const r = reviewItems.find((x) => x.id === itemId && x.childId === childId && !x.deleted);
+      return r ? { ...r } : null;
+    },
+    async reviewAttempt(childId, clientMsgId) {
+      const a = reviewAttempts.find((x) => x.childId === childId && x.clientMsgId === clientMsgId);
+      return a ? { itemId: a.itemId, result: a.result } : null;
+    },
+    async saveReviewAnswer(a) {
+      if (reviewAttempts.some((x) => x.childId === a.actor.userId && x.clientMsgId === a.clientMsgId)) return "already";
+      reviewAttempts.push({ childId: a.actor.userId, itemId: a.item.id, result: a.result, answer: a.answer, clientMsgId: a.clientMsgId, at: a.now });
+      const r = reviewItems.find((x) => x.id === a.item.id);
+      if (r) Object.assign(r, { box: a.next.box, dueDateVn: a.next.dueDateVn, correctStreak: a.next.correctStreak, status: a.next.status });
+      return "saved";
+    },
     async ratingState(problemId, childId) {
       const p = problems.find((x) => x.id === problemId && x.childId === childId);
       const sess = p && sessions.find((x) => x.id === p.sessionId);
@@ -288,5 +335,6 @@ export function memoryRepo(seed: Seed = {}, strongModel = "claude-opus-5-5") {
       return { sessionId: sess.id, sessionStatus: sess.status, rated: ratings.some((r) => r.sessionId === sess.id), earlierEnded };
     },
   };
-  return Object.assign(repo, { sessions, problems, messages, modelCalls, usage, modes, images, toolCalls, diagnoses, attentionSyncs, failAttention, rules, ratings, alerts, references });
+  return Object.assign(repo, { sessions, problems, messages, modelCalls, usage, modes, images, toolCalls, diagnoses, attentionSyncs, failAttention, rules, ratings, alerts, references,
+    reviewItems, reviewAttempts });
 }

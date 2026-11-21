@@ -10,9 +10,19 @@ import type { HintLevel } from "@/lib/rules/hints";
 import { deleteAfterVn } from "@/lib/rules/photo";
 import { syncAttention } from "@/lib/report/attentionSync";
 import { activeRules, type RuleRow } from "@/lib/rules/teachingRules";
-import { bridgeTurnsOf, checklistOf, flagsOf, RATING_EDIT_MS, RATING_OUTCOMES, usableSibling, type FoundMessage, type HistoryItem, type ProblemRow, type ProblemStatus, type StoredReply, type StuckKind, type TutorRepo } from "@/lib/tutor/repo";
+import { reopenAfterMistake } from "@/lib/rules/review";
+import { bridgeTurnsOf, checklistOf, flagsOf, RATING_EDIT_MS, RATING_OUTCOMES, usableSibling, type FoundMessage, type HistoryItem, type ProblemRow, type ProblemStatus, type StoredReply, type StoredReviewItem, type StuckKind, type TutorRepo } from "@/lib/tutor/repo";
 
 const UNIQUE_VIOLATION = "23505";
+
+// card_code / item_key come from Launcher migration 0024 (G6). Server only: `answer` never goes to a browser.
+const REVIEW_COLS = "id, ku_code, card_code, kind, prompt, buttons, answer, answer_check, box, due_date_vn, correct_streak, status";
+interface ReviewDb { id: string; ku_code: string; card_code: string | null; kind: StoredReviewItem["kind"]; prompt: string; buttons: unknown;
+  answer: string; answer_check: "exact" | "math_check"; box: 1 | 2 | 3 | 4; due_date_vn: string; correct_streak: number;
+  status: StoredReviewItem["status"] }
+const reviewFrom = (r: ReviewDb): StoredReviewItem => ({ id: r.id, kuCode: r.ku_code, cardCode: r.card_code, kind: r.kind, prompt: r.prompt,
+  buttons: Array.isArray(r.buttons) ? r.buttons.filter((b): b is string => typeof b === "string") : [], answer: r.answer,
+  answerCheck: r.answer_check, box: r.box, dueDateVn: r.due_date_vn, correctStreak: r.correct_streak, status: r.status });
 
 function fail(where: string, error: { message: string } | null): never {
   throw new Error(`${where}: ${error?.message ?? "no row"}`);
@@ -438,6 +448,67 @@ export function supabaseRepo(db: SupabaseClient = createAdminClient(), strongMod
         .eq("child_id", childId).order("created_at", { ascending: false }).limit(n);
       if (error) fail("latestRatings", error);
       return (data ?? []).map((r) => ({ id: r.id as string, face: r.face as string, reasons: (r.reasons as string[] | null) ?? [] }));
+    },
+
+    async addReviewItems(a) {
+      let added = 0;
+      for (const it of a.items) {
+        const { error } = await t().from("review_items").insert({
+          family_id: a.actor.familyId, child_id: a.actor.userId, ku_code: it.kuCode, card_code: it.cardCode, item_key: it.itemKey,
+          kind: it.kind, prompt: it.prompt, answer: it.answer, answer_check: it.answerCheck, buttons: it.buttons, box: it.box,
+          due_date_vn: it.dueDateVn, status: it.status, source: it.source, created_by: a.actor.userId,
+        });
+        if (error?.code === UNIQUE_VIOLATION) continue; // already in the queue (review_items_card_uidx)
+        if (error) fail("addReviewItems", error);
+        added++;
+      }
+      return added;
+    },
+
+    async reopenReviews(a) {
+      const { data, error } = await t().from("review_items").select(REVIEW_COLS).eq("child_id", a.childId).eq("ku_code", a.kuCode)
+        .eq("status", "retired").is("deleted_at", null).returns<ReviewDb[]>();
+      if (error) fail("reopenReviews.read", error);
+      for (const r of data ?? []) {
+        const n = reopenAfterMistake(reviewFrom(r), a.todayVn);
+        const { error: e2 } = await t().from("review_items").update({ status: n.status, box: n.box, correct_streak: n.correctStreak,
+          due_date_vn: n.dueDateVn, updated_at: a.now.toISOString() }).eq("id", r.id).eq("status", "retired");
+        if (e2) fail("reopenReviews.update", e2);
+      }
+      return data?.length ?? 0;
+    },
+
+    async reviewItemsOf(childId) {
+      const { data, error } = await t().from("review_items").select(REVIEW_COLS).eq("child_id", childId).eq("status", "active")
+        .is("deleted_at", null).returns<ReviewDb[]>();
+      if (error) fail("reviewItemsOf", error);
+      return (data ?? []).map(reviewFrom);
+    },
+
+    async reviewItem(itemId, childId) {
+      if (!/^[0-9a-f-]{36}$/i.test(itemId)) return null;
+      const { data, error } = await t().from("review_items").select(REVIEW_COLS).eq("id", itemId).eq("child_id", childId)
+        .is("deleted_at", null).maybeSingle<ReviewDb>();
+      if (error) fail("reviewItem", error);
+      return data ? reviewFrom(data) : null;
+    },
+
+    async reviewAttempt(childId, clientMsgId) {
+      const { data, error } = await t().from("review_attempts").select("review_item_id, result").eq("child_id", childId)
+        .eq("client_msg_id", clientMsgId).maybeSingle();
+      if (error) fail("reviewAttempt", error);
+      return data ? { itemId: data.review_item_id as string, result: data.result as "correct" | "wrong" | "skipped" } : null;
+    },
+
+    async saveReviewAnswer(a) {
+      const { error } = await t().from("review_attempts").insert({ family_id: a.actor.familyId, child_id: a.actor.userId,
+        review_item_id: a.item.id, answer: a.answer, result: a.result, client_msg_id: a.clientMsgId });
+      if (error?.code === UNIQUE_VIOLATION) return "already";
+      if (error) fail("saveReviewAnswer.attempt", error);
+      const { error: e2 } = await t().from("review_items").update({ box: a.next.box, due_date_vn: a.next.dueDateVn,
+        correct_streak: a.next.correctStreak, status: a.next.status, updated_at: a.now.toISOString() }).eq("id", a.item.id);
+      if (e2) fail("saveReviewAnswer.item", e2);
+      return "saved";
     },
 
     async ratingState(problemId, childId) {
