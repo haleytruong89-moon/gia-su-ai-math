@@ -9,6 +9,8 @@ import { fail } from "./childDay";
 import { kuTitle, loadChildDay, PROBLEM_COLS } from "./childDay";
 import { costFlag, dayFlags, type Flag } from "./flags";
 import { factsFromRows, type ProblemRowLite } from "./facts";
+import type { CardGap } from "./cardGaps";
+import { loadCardGaps, loadReviewDay } from "./gapsLoad";
 
 export { kuTitle };
 
@@ -22,11 +24,15 @@ export interface ChildDay {
   flags: Flag[];
   problems: ReportProblem[];
   ratings: { face: "easy" | "ok" | "hard"; reasons: string[] }[];
+  /** G6b: start-of-session review of the day (answered questions, right ones). */
+  review: { asked: number; correct: number };
 }
 export interface DayReport {
   date: string;
   children: ChildDay[];
   cost: { costUsd: number; mode: "normal" | "economy"; flag: string | null };
+  /** G6b (C5): what the tutor met without an approved card, ≥ 2 times in the last 7 days. */
+  cardGaps: CardGap[];
 }
 
 export async function loadDayReport(parent: ParentActor, date: string, db: SupabaseClient = createAdminClient()): Promise<DayReport> {
@@ -40,7 +46,8 @@ export async function loadDayReport(parent: ParentActor, date: string, db: Supab
     : { data: [], error: null };
   if (e2) fail("report.minutes", e2);
   const children = await Promise.all((kids ?? []).map(async (k): Promise<ChildDay> => {
-    const d = await loadChildDay(db, parent.familyId, k.id as string, date);
+    const [d, review] = await Promise.all([loadChildDay(db, parent.familyId, k.id as string, date),
+      loadReviewDay(db, parent.familyId, k.id as string, date)]);
     return {
       childId: k.id as string,
       name: (k.display_name as string | null) ?? "Con",
@@ -50,6 +57,7 @@ export async function loadDayReport(parent: ParentActor, date: string, db: Supab
       flags: dayFlags(factsFromRows(d), kuTitle),
       problems: d.problems.map((p) => ({ ...p, kuTitle: p.ku_code ? kuTitle(p.ku_code) : null })),
       ratings: d.ratings,
+      review,
     };
   }));
   const month = `${new Date().toISOString().slice(0, 7)}-01`;
@@ -58,7 +66,9 @@ export async function loadDayReport(parent: ParentActor, date: string, db: Supab
   if (e3) fail("report.usage", e3);
   const costUsd = Number(usage?.cost_usd ?? 0);
   const mode = usage?.model_mode === "economy" ? "economy" : "normal";
-  return { date, children, cost: { costUsd, mode, flag: costFlag({ costUsd, mode }) } };
+  const grades = new Map((kids ?? []).filter((k) => k.grade === 6 || k.grade === 9).map((k) => [k.id as string, k.grade as 6 | 9]));
+  const cardGaps = await loadCardGaps(db, parent.familyId, grades, date);
+  return { date, children, cost: { costUsd, mode, flag: costFlag({ costUsd, mode }) }, cardGaps };
 }
 
 export interface ParentThread extends Thread {

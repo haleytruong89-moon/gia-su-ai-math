@@ -104,3 +104,30 @@ describe("scripted buttons (Y3: no model call, no turn counted)", () => {
     expect(c.calls).toBe(1);
   });
 });
+
+describe("the review queue (G6b, Y2, §4.11)", () => {
+  const afterCard = seed(SHIPS, [{ problemId: "p1", role: "child", text: "BCNN là gì ạ" },
+    { problemId: "p1", role: "tutor", text: "Cô giảng nhé:", cardRef: "T6.12#1" }]);
+  it("'Em hiểu rồi' under a card → its questions, due tomorrow; the model still answers the turn", async () => {
+    const { d, repo, c } = deps(afterCard);
+    await handleTurn(d, turn(1, "Em hiểu rồi", "button"));
+    expect(c.calls).toBe(1);
+    expect(repo.reviewItems.length).toBeGreaterThan(0);
+    expect(repo.reviewItems.every((r) => r.cardCode === "T6.12" && r.dueDateVn === "2026-11-22" && r.box === 1 && r.status === "active")).toBe(true);
+  });
+  it("pressed again later → no duplicates", async () => {
+    const { d, repo } = deps(afterCard);
+    await handleTurn(d, turn(1, "Em hiểu rồi", "button"));
+    const n = repo.reviewItems.length;
+    repo.messages.push({ ...repo.messages.at(-1)!, id: "mX", cardRef: "T6.12#2", text: "Cô giảng cách khác nhé:", role: "tutor" });
+    await handleTurn(d, turn(2, "Em hiểu rồi", "button"));
+    expect(repo.reviewItems.length).toBe(n);
+  });
+  it("a real mistake on the lesson reopens its retired question (box 1, tomorrow)", async () => {
+    const s = seed(SHIPS);
+    s.reviewItems = [{ id: "r1", kuCode: "T6.12", status: "retired", box: 4, correctStreak: 3, dueDateVn: "2026-11-01" }];
+    const { d, repo } = deps(s, out({ danh_gia_luot_em: "sai", ku_code_de_xuat: "T6.12" }));
+    await handleTurn(d, turn(1, "Em ra 30 ngày"));
+    expect(repo.reviewItems[0]).toMatchObject({ status: "active", box: 1, correctStreak: 0, dueDateVn: "2026-11-22" });
+  });
+});
