@@ -15,6 +15,10 @@ export const tutorOutput = z.object({
   checklist_da_hoi: z.array(z.number().int().min(1).max(10)),
   ket_qua_bai: z.enum(["in_progress", "self_solved", "pending_review", "saved_for_later"]),
   flags: z.array(z.enum(["geometry_proof", "tutor_unsure", "off_topic", "injection_attempt"])),
+  /** G6: the approved card to show (code from MỤC LỤC THẺ); the app shows it verbatim. */
+  the_hien: z.string().regex(/^(T6|T9|N7|N8|TH|D6|D9)\.[0-9]{1,2}$/).nullable().optional(),
+  /** G6 (C5): no card fits where the child is stuck → a short description of the missing card. */
+  the_thieu: z.string().max(80).nullable().optional(),
 }).strict();
 export type TutorOutput = z.infer<typeof tutorOutput>;
 
@@ -28,6 +32,8 @@ function normalize(raw: unknown): unknown {
     o.buttons = o.buttons.filter((b): b is string => typeof b === "string" && b.trim().length > 0 && b.length <= 40).slice(0, 4);
   // A malformed knowledge code is not worth losing the reply over: treat it as unknown.
   for (const k of ["ku_code_de_xuat", "prereq_gap"]) if (typeof o[k] === "string" && !KU.test(o[k] as string)) o[k] = null;
+  if (typeof o.the_hien === "string" && !/^(T6|T9|N7|N8|TH|D6|D9)\.[0-9]{1,2}$/.test(o.the_hien)) o.the_hien = null;
+  if (typeof o.the_thieu === "string") o.the_thieu = o.the_thieu.trim().slice(0, 80) || null;
   if (Array.isArray(o.checklist_da_hoi)) o.checklist_da_hoi = o.checklist_da_hoi.filter((n) => Number.isInteger(n) && n >= 1 && n <= 10);
   return o;
 }

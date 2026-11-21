@@ -43,6 +43,12 @@ describe("assemble", () => {
     expect(last[1]!.text).toContain("[EM]\nĐây là bài làm");
     expect(JSON.stringify(out).match(/"ephemeral"/g)).toHaveLength(4); // the API allows 4
   });
+  it("G6: the card index rides in the cached method block (one cache per grade)", () => {
+    const out = assemble({ layers: { role: "①", rules: "②", method: "③" }, profileText: "④", knowledgeCard: null,
+      cardIndex: "[MỤC LỤC THẺ]", history: [], childText: "x", state });
+    expect(out.system[2]!.text).toBe("③\n\n[MỤC LỤC THẺ]");
+    expect(out.system[2]!.cache_control).toBeTruthy();
+  });
   it("text-only turns keep string content (and 3 breakpoints)", () => {
     const out = assemble({ layers: { role: "①", rules: "②", method: "③" }, profileText: "④", knowledgeCard: null,
       history: [{ role: "user", content: "đề" }], childText: "x", state });

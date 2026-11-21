@@ -29,6 +29,7 @@ import { dateVn } from "@/lib/time";
 import { RATING_REASONS, ratingProposal, rulesBlock, rulesVersionNow, type RatingReason } from "@/lib/rules/teachingRules";
 import { assemble, type ImageData, type Msg, type Turn } from "@/lib/tutor/assemble";
 import { writeReference, type ChildCheck } from "@/lib/tutor/reference";
+import { card as cardOf, cardFitsGrade, cardIndexText, pickVariant } from "@/lib/knowledge/cards";
 import { runGuard, type GuardResult } from "@/lib/tutor/guard";
 import type { Layers } from "@/lib/tutor/layers";
 import {
@@ -424,6 +425,7 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
     layers: d.layers,
     profileText: withRules(actor.profileText, rulesBlock(await d.repo.rulesForSession(problem.sessionId, actor.userId))),
     knowledgeCard: knowledgeCard(kuCode, actor.grade),
+    cardIndex: cardIndexText(actor.grade),
     history,
     childText: text,
     childImages: photosOf(messageId),
