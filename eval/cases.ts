@@ -46,6 +46,11 @@ const NHOM = "Một lớp có 24 bạn nữ và 16 bạn nam. Cô giáo muốn c
 const RUY_BANG = "Có ba sợi ruy băng dài 140 cm, 168 cm và 210 cm. Bạn Mai muốn cắt cả ba sợi thành các đoạn dài bằng nhau, không thừa, và mỗi đoạn dài nhất có thể. Mỗi đoạn dài bao nhiêu xăng-ti-mét? Cắt được tất cả bao nhiêu đoạn?";
 const RUT_GON = "Cho biểu thức P = √x/(√x − 3) + 2√x/(√x + 3) − (3x + 9)/(x − 9) với x ≥ 0, x ≠ 9. Rút gọn P.";
 const P_NGUYEN = "Cho P = 3/(3 − √x) với x ≥ 0, x ≠ 9. Tìm các giá trị nguyên của x để P nhận giá trị nguyên.";
+const CHIA_TO = "Lớp 6A có 24 bạn nam và 36 bạn nữ. Cô giáo muốn chia lớp thành các tổ sao cho số bạn nam ở các tổ bằng nhau và số bạn nữ ở các tổ bằng nhau. Có thể chia được nhiều nhất bao nhiêu tổ?";
+const VOI = "Hai vòi nước cùng chảy vào một bể cạn thì sau 4 giờ 48 phút đầy bể. Nếu chảy riêng thì vòi thứ nhất đầy bể nhanh hơn vòi thứ hai 4 giờ. Hỏi nếu chảy riêng thì mỗi vòi chảy bao lâu đầy bể?";
+/** G6: the tutor asked where the child is stuck (scripted "Em vướng ở chỗ nào?") and the child pressed a way. */
+const docDe = (statement: string): Msg[] => started(statement, [
+  { role: "user", content: "Em không hiểu đề" }, { role: "assistant", content: "Em vướng ở chỗ nào?" }]);
 const CAY = "Số cây của một vườn trong khoảng từ 100 đến 200 cây. Nếu trồng thành hàng 8 cây hay hàng 9 cây thì đều vừa đủ. Hỏi vườn có bao nhiêu cây?";
 
 /** The problem was typed, the tutor restated it and the child confirmed: the usual start of a later turn. */
@@ -206,6 +211,19 @@ export const CASES: EvalCase[] = [
     childText: "BCNN(3, 5, 7) = 105, bội trong khoảng 200 đến 300 là 210. Vậy có 210 bông.", kuCode: "T6.12",
     state: { submitted: true, hintLevel: 0, turn: 4 }, answer: "210 bông", expect: { notSelfSolved: true, toolsInclude: ["math_check"] },
     rubric: "Ghi nhận em làm đúng; trước khi chốt hỏi em tự soát một mục checklist lớp 6 (đối chiếu điều kiện trong khoảng, hoặc câu trả lời có đơn vị); chưa coi là xong ở lượt này." },
+  // ---------- G6: approved cards (DOMAIN §4.15) ----------
+  { id: "6.12", grade: 6, title: "Em hỏi 'BCNN là gì' → thẻ T6.12, lời cô ngắn", history: started(TAU), childText: "BCNN là gì ạ",
+    kuCode: "T6.12", state: { hintLevel: 1, turn: 3 }, forbid: ["60"], answer: "60 ngày", expect: { theHien: "T6.12" },
+    rubric: "the_hien = T6.12; message chỉ 1–2 câu nối vào thẻ, không tự giảng lại nội dung thẻ, không nói 60." },
+  { id: "6.13", grade: 6, title: "Đọc đề: 'không biết dùng kiến thức nào' ở bài chia tổ → thẻ D6.1", history: docDe(CHIA_TO),
+    childText: "Em không biết dùng kiến thức nào", kuCode: "T6.11", state: { hintLevel: 1, turn: 4 }, forbid: ["12"],
+    answer: "12 tổ (mỗi tổ 2 nam, 3 nữ)", expect: { theHien: "D6.1" },
+    rubric: "the_hien = D6.1 (đọc đề chia đều – nhiều nhất); message ngắn, không nói 12, không tính ƯCLN hộ em." },
+  // ---------- G6 grade 9 ----------
+  { id: "9.26", grade: 9, title: "Đọc đề: 'không biết bắt đầu đặt ẩn' ở bài vòi nước → thẻ D9.1", history: docDe(VOI),
+    childText: "Em không biết bắt đầu đặt ẩn", kuCode: "T9.3", state: { hintLevel: 1, turn: 4 }, forbid: ["8", "12"],
+    answer: "Vòi thứ nhất 8 giờ, vòi thứ hai 12 giờ", expect: { theHien: "D9.1" },
+    rubric: "the_hien = D9.1 (làm chung – làm riêng); message ngắn, không đặt sẵn phương trình của bài, không nói 8 hay 12." },
 ];
 
 /** Checker-only cases (BO_TEST 9.24, 9.25): a fake tutor answer goes straight to the Haiku guard, which must FAIL it. */

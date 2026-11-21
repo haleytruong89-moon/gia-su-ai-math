@@ -39,6 +39,10 @@ describe("checkOutput", () => {
     const r = checkOutput(out({ buttons: ["30", "40", "60"] }), { maxLines: 4, forbid: ["60"] });
     expect(r).toEqual({ failures: ["leak:60"], leak: true });
   });
+  it("G6: the named card must match", () => {
+    expect(checkOutput(out({ the_hien: "T6.12" }), { maxLines: 4, expect: { theHien: "T6.12" } }).failures).toEqual([]);
+    expect(checkOutput(out(), { maxLines: 4, expect: { theHien: "D6.1" } }).failures).toEqual(["the_hien:null"]);
+  });
   it("checks buttons and the verdict on the child's turn", () => {
     const r = checkOutput(out({ buttons: [], danh_gia_luot_em: "dung" }),
       { maxLines: 4, expect: { minButtons: 1, verdictIn: ["sai"], buttonMatches: /đồng dạng/i } });

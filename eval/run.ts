@@ -16,6 +16,7 @@ import { httpCas } from "@/lib/tools/casClient";
 import { runMathCheck } from "@/lib/tools/mathCheck";
 import { runLookup } from "@/lib/tools/lookup";
 import { knowledgeCard } from "@/lib/knowledge/card";
+import { cardIndexText } from "@/lib/knowledge/cards";
 import { classifyProblem, EMPTY, type Classification } from "@/lib/tutor/classify";
 import { makeSibling, type SiblingInput } from "@/lib/tools/makeSibling";
 import type { ToolRecord } from "@/lib/tools/defs";
@@ -116,7 +117,8 @@ async function runCase(model: string, c: EvalCase) {
   const profile = TEST_PROFILES[c.grade];
   const cls = await classifyCase(c);
   const { system, messages } = assemble({
-    layers: loadLayers(), profileText: profile.text, knowledgeCard: knowledgeCard(cls.output.ku_code, c.grade), history: c.history,
+    layers: loadLayers(), profileText: profile.text, knowledgeCard: knowledgeCard(cls.output.ku_code, c.grade),
+    cardIndex: cardIndexText(c.grade), history: c.history,
     childText: c.childText, childImages: c.image ? [await sheet(c.image.lines, { rotate: c.image.rotate })] : undefined,
     state: { ...baseState, grade: c.grade, maxLines: profile.maxLines, kuCode: cls.output.ku_code, examSlot: cls.output.exam_slot, ...c.state },
   });

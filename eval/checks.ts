@@ -17,6 +17,8 @@ export interface Expect {
   /** G5: the teaching technique must be one of these; the background gap must be this code. */
   kyThuat?: TutorOutput["ky_thuat"][];
   prereqGap?: string;
+  /** G6: the approved card the tutor must name (`the_hien`), or null for "no card". */
+  theHien?: string | null;
 }
 export interface CheckSpec { maxLines: number; forbid?: string[]; expect?: Expect; tools?: string[] }
 
@@ -65,5 +67,6 @@ export function checkOutput(o: TutorOutput | null, spec: CheckSpec): { failures:
   for (const k of e.toolsInclude ?? []) if (!(spec.tools ?? []).includes(k)) f.push(`tool_missing:${k}`);
   if (e.kyThuat && !e.kyThuat.includes(o.ky_thuat)) f.push(`ky_thuat:${o.ky_thuat}`);
   if (e.prereqGap !== undefined && o.prereq_gap !== e.prereqGap) f.push(`prereq_gap:${o.prereq_gap ?? "null"}`);
+  if (e.theHien !== undefined && (o.the_hien ?? null) !== e.theHien) f.push(`the_hien:${o.the_hien ?? "null"}`);
   return { failures: f, leak: leaks.length > 0 };
 }
