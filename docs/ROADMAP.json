@@ -2,7 +2,7 @@
   "schema": 1,
   "project": "Gia sư AI Toán",
   "updated": "2026-11-21",
-  "updatedNote": "G7c (#18) và L-7 (Launcher #98) chờ merge; G6a (thẻ giảng) xong trên nhánh, mở PR sau khi 2 PR kia merge",
+  "updatedNote": "G7c (#18) và L-7 (Launcher #98) chờ merge; G6a, G6b xong trên nhánh, mở PR lần lượt sau khi 2 PR kia merge",
   "vision": {
     "oneLiner": "Một \"cô\" gia sư AI giúp 2 con tự học Toán buổi chiều: gỡ chỗ kẹt bằng câu hỏi gợi mở, không đưa lời giải bài gốc, tối bố mẹ đọc báo cáo 5 phút.",
     "problem": "Buổi chiều 2 con có nhiều thời gian tự học nhưng không có người lớn. Bố mẹ có khoảng 2 giờ buổi tối, gia sư người 2 buổi/tuần. Tốc độ tiến bộ do giờ tự học buổi chiều quyết định.",
@@ -485,7 +485,7 @@
         },
         {
           "name": "G6b Ôn đầu buổi (D26) + \"Thẻ cần bổ sung\" trong báo cáo tối",
-          "status": "todo"
+          "status": "review"
         },
         {
           "name": "G6c Nội dung thẻ HK1 cả 2 lớp (đợt ≈ 10 bài, merge = duyệt)",
@@ -996,7 +996,7 @@
     },
     {
       "date": "2026-11-21",
-      "text": "Phụ huynh chốt Y1–Y5 (G6). Mở Launcher #98 (L-7, SQL 0024). G6a làm xong trên nhánh, chờ #18 + #98 merge rồi mở PR"
+      "text": "Phụ huynh chốt Y1–Y5 (G6). Mở Launcher #98 (L-7, SQL 0024). G6a (thẻ giảng) và G6b (ôn đầu buổi + thẻ cần bổ sung) làm xong trên nhánh, chờ #18 + #98 merge rồi mở PR lần lượt"
     }
   ]
 }
