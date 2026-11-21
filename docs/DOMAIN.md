@@ -76,7 +76,7 @@
 | D20 | Gia sư AI chạy **dưới địa chỉ Launcher**: `…/gia-su` (Launcher chuyển tiếp sang deploy riêng của `gia-su-ai`). Con không phải đăng nhập lần 2, dùng luôn PIN; extension không cần mở thêm tên miền | [one-way] | ✅ 14/11 (phụ huynh duyệt 22:37) |
 | D21 | File SQL của schema `tutor` nằm trong **repo `study-launcher`** (`supabase/migrations/00NN_tutor_*.sql`) → tự chạy khi phụ huynh merge, như hiện nay. Repo `gia-su-ai` không có migration | [one-way] | ✅ 14/11 (merge PR #75) |
 | D22 | Mở schema `tutor` cho Data API (Supabase → API settings → Exposed schemas). Con chỉ **đọc** qua RLS; mọi ghi đi qua máy chủ `gia-su-ai` (service role) — giống mẫu Launcher | thường | ✅ 14/11 (đã bật Exposed schemas) |
-| D23 | Thông báo đẩy cho bố mẹ: Launcher thêm route nội bộ `POST /api/internal/tutor-notify` (khóa bí mật riêng), dùng lại `lib/push/send.ts`; gia sư AI gọi route này | thường | *Đề xuất 14/11* |
+| D23 | Thông báo đẩy cho bố mẹ: Launcher thêm route nội bộ `POST /api/internal/tutor-notify` (khóa bí mật riêng), dùng lại `lib/push/send.ts`; gia sư AI gọi route này. **Chỉ báo chuyện tiền**: ~45 USD (tạm ngừng Opus), Console hết tiền, dự báo vượt trần (≤ 1 lần/tuần). `cas` lỗi ≥ 2 lần/ngày **không** đẩy — chỉ là cờ trong báo cáo tối + 1 dòng "cần chú ý" | thường | **Chốt 18/11** |
 | D24 | Máy tính đại số C1 = **Python + SymPy** chạy riêng tư trong cùng project Vercel (Vercel Services — đang beta). Không chạy được → tách thành project Vercel riêng có khóa bí mật | thường | *Đề xuất 14/11* |
 | D25 | Kho kiến thức (bản đồ chương trình, hộp công cụ) lưu trong repo `knowledge/*.json`, sinh từ các file md đã duyệt trong hub; có `KNOWLEDGE_VERSION`; mỗi bài ghi version đã dùng | thường | ✅ 16/11 (G5 Q2: dùng `BAN_DO_CHUONG_TRINH_TOAN9` v0.2, `…TOAN6` v0.1, `HOP_CONG_CU_HINH_9` v0.2, `HOP_CONG_CU_RUT_GON_9` v0.1 làm v1; G5 Q1: repo chỉ giữ **bản sạch** — ghi chú riêng về con/thầy/trường bị bỏ, bố mẹ nhập vào Hồ sơ dạy học) |
 | D26 | Ôn cách quãng đầu buổi: tối đa 2 câu, có nút "Để sau"; lịch 1 → 3 → 7 ngày; đúng 3 lần liên tiếp thì thôi ôn (§4.11) | thường | *Đề xuất 14/11* |
@@ -416,7 +416,7 @@ Máy chủ chọn model **trước** khi gọi; model không tự đổi. Thứ 
 2. Các ví dụ ghi "Đề xuất" (4.2 d–e, 4.4 f–g, 4.5 c–e, 4.10 mục 8–10, 4.11, 4.12) chưa hỏi lại phụ huynh.
 3. ~~Đối chiếu Launcher~~ — ✅ đã đọc repo 14/11: `public.profiles`, `auth_role()`, `auth_family_id()`; PIN lưu `profiles.pin_hash` + bảng `pin_devices` (cookie httpOnly theo tên miền Launcher → lý do D20). **Còn:** thời hạn giữ bản backup tuần (`backup.yml`) — đọc khi làm trang bố mẹ.
 4. D19: tạo API key + workspace riêng cho gia sư AI trong Console (phụ huynh).
-5. ~~D20–D27 chờ phụ huynh duyệt~~ — còn D23, D26 chờ (16/11).
+5. ~~D20–D27 chờ phụ huynh duyệt~~ — còn D26 chờ (D23 chốt 18/11).
 6. ~~Thời hạn Anthropic lưu dữ liệu~~ — ✅ §4.8.
 
 ## 8. Nguồn nội dung đã có (14/11)

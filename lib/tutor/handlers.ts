@@ -455,9 +455,15 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
       if (name === "lookup") return runLookup(input);
       if (name === "make_sibling") {
         if (left() < SIBLING_NEEDS_MS) return { ok: false, output: { error: "no_time" } };
-        const r = await makeSibling({ client: d.client, model: d.models.main, prompt: d.layers.sibling, cas: d.cas }, input as SiblingInput);
-        siblingCalls.push(...r.calls);
-        return { ok: true, output: r.output };
+        try {
+          const r = await makeSibling({ client: d.client, model: d.models.main, prompt: d.layers.sibling, cas: d.cas }, input as SiblingInput);
+          siblingCalls.push(...r.calls);
+          return { ok: true, output: r.output };
+        } catch (e) {
+          // A broken sibling never costs the child's turn (G0 18/11): the tutor goes on without one.
+          console.error("make_sibling failed", e instanceof Error ? e.message : "unknown");
+          return { ok: false, output: { error: "sibling_failed" } };
+        }
       }
       return { ok: false, output: { error: "unknown_tool" } };
     };
