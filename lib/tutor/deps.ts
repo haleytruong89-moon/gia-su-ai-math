@@ -1,9 +1,11 @@
 import "server-only";
+import { after } from "next/server";
 // lib/tutor/deps.ts — real dependencies for the route handlers.
 import { realClient } from "@/lib/anthropic";
 import { getActor } from "@/lib/auth";
 import { supabaseRepo } from "@/lib/db/supabaseRepo";
 import { casUrl, serverEnv } from "@/lib/env";
+import { launcherNotify } from "@/lib/notify";
 import { httpCas } from "@/lib/tools/casClient";
 import { fakeAllowed, fakeClient } from "@/lib/tutor/fakeClient";
 import { readBody } from "@/lib/tutor/form";
@@ -25,6 +27,8 @@ export async function liveDeps(): Promise<Deps> {
     cas: (() => { const url = casUrl(env); return url && env.CAS_SECRET ? httpCas(url, env.CAS_SECRET) : null; })(),
     models: { main: env.TUTOR_MODEL_MAIN, strong: env.TUTOR_MODEL_STRONG, light: env.TUTOR_MODEL_LIGHT },
     classify: true, // G5
+    notify: launcherNotify(env), // G7c (D23): money pushes through the Launcher
+    later: (work) => after(work), // G7c: the reference solution is written after the answer is sent
   };
 }
 

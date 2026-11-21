@@ -4,6 +4,7 @@ import { dayLabel, FACE_LABEL, REASON_LABEL, reportDate, STATUS_LABEL } from "@/
 import { loadDayReport, type ChildDay } from "@/lib/report/load";
 import { addDays, dateVn } from "@/lib/time";
 import { TopBar } from "../../top-bar";
+import { CostActions } from "./cost-actions";
 
 export const dynamic = "force-dynamic";
 
@@ -100,9 +101,10 @@ export default async function ReportPage({ searchParams }: { searchParams: Promi
             <span className="w-11" />
           )}
         </div>
-        <p className="rounded-xl bg-white px-3 py-2 text-sm">
-          {report.cost.flag ?? `Chi phí tháng: ${report.cost.costUsd.toFixed(2).replace(".", ",")} / 50 USD`}
-        </p>
+        <section className="flex flex-col gap-2 rounded-xl bg-white px-3 py-2 text-sm">
+          <p>{report.cost.flag ?? `Chi phí tháng: ${report.cost.costUsd.toFixed(2).replace(".", ",")} / 50 USD`}</p>
+          <CostActions paused={report.cost.mode === "economy"} />
+        </section>
         {report.children.length === 0 && <p>Gia đình chưa có tài khoản con.</p>}
         {report.children.map((c) => (
           <Child key={c.childId} c={c} />

@@ -31,6 +31,15 @@ export default async function ProblemReviewPage({ params }: { params: Promise<{ 
           )}
           {p.confirmed_statement && <p className="mt-2 text-sm">Đề: {p.confirmed_statement}</p>}
         </section>
+        {t.reference && (
+          <section className="rounded-2xl border border-ink/10 bg-white p-4">
+            <h2 className="font-semibold">Lời giải tham khảo (máy đã kiểm đáp số)</h2>
+            <ol className="list-decimal pl-5">
+              {t.reference.steps.map((s, i) => <li key={i}>{s}</li>)}
+            </ol>
+            {t.reference.finalAnswer && <p className="mt-1"><b>Đáp số:</b> {t.reference.finalAnswer}</p>}
+          </section>
+        )}
         <ol className="flex flex-col gap-3">
           {t.messages.map((m) => (
             <li key={m.id} className={`rounded-2xl px-4 py-3 ${m.role === "tutor" ? "bg-white" : "bg-accent/10"}`}>

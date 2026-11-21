@@ -4,6 +4,8 @@ import { NOT_UNDERSTOOD } from "@/lib/rules/nan";
 export const SAFE_REPLY = "Cô chưa nghĩ ra cách nói cho rõ. Em gửi lại câu vừa rồi giúp cô nhé.";
 /** The model could not be reached (after one retry). */
 export const SAFE_BUSY = "Cô đang bận một chút, em gửi lại sau ít phút nhé.";
+/** §4.5 d: the API refused because the monthly spend limit was reached (Console). */
+export const SPEND_PAUSED = "Gia sư AI tạm nghỉ, em ghi bài vào để dành nhé.";
 
 export const STUCK_LABELS = {
   chua_hieu_de: "Chưa hiểu đề",

@@ -15,6 +15,11 @@ describe("isCasFailure (§4.7 C1 lỗi: the service failed, not the model's inpu
 });
 
 describe("factsFromRows", () => {
+  it("a reference call cas did not confirm (guard_result blocked) → referenceMismatch", () => {
+    const d = factsFromRows({ problems: [prob({ status: "self_solved" })], calls: [{ problem_id: "a", purpose: "reference", guard_result: "blocked", raw_output: "{}" }],
+      tools: [], sessionsAbandoned: 0, ratings: [] });
+    expect(d.problems[0]?.referenceMismatch).toBe(true);
+  });
   it("geometry proof from the classify call; rewritten = tutor calls shown after a rewrite; cas errors = failed math_check", () => {
     const d = factsFromRows({
       problems: [prob()],
@@ -47,7 +52,7 @@ describe("factsFromRows", () => {
         { problem_id: "b", purpose: "classify", guard_result: null, raw_output: "not json" }],
       tools: [], sessionsAbandoned: 1, ratings: [],
     });
-    expect(d.problems[0]).toMatchObject({ geometryProof: true, prereqGaps: ["N8.10"] });
+    expect(d.problems[0]).toMatchObject({ geometryProof: true, prereqGaps: ["N8.10"], referenceMismatch: false });
     expect(d.sessionsAbandoned).toBe(1);
   });
 });

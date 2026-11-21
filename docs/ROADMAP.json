@@ -2,7 +2,7 @@
   "schema": 1,
   "project": "Gia sư AI Toán",
   "updated": "2026-11-21",
-  "updatedNote": "G7: #93, #16 đã merge; G7b (#17) chờ merge; G7c xong trên nhánh",
+  "updatedNote": "G7: #17 đã merge; G7c (#18) chờ merge. G6 đã có kế hoạch (thẻ giảng + ôn đầu buổi)",
   "vision": {
     "oneLiner": "Một \"cô\" gia sư AI giúp 2 con tự học Toán buổi chiều: gỡ chỗ kẹt bằng câu hỏi gợi mở, không đưa lời giải bài gốc, tối bố mẹ đọc báo cáo 5 phút.",
     "problem": "Buổi chiều 2 con có nhiều thời gian tự học nhưng không có người lớn. Bố mẹ có khoảng 2 giờ buổi tối, gia sư người 2 buổi/tuần. Tốc độ tiến bộ do giờ tự học buổi chiều quyết định.",
@@ -473,10 +473,22 @@
       "id": "G6",
       "title": "Ôn cách quãng đầu buổi",
       "status": "planned",
-      "goal": "Đầu buổi ôn lại tối đa 2 chỗ từng vướng; lịch 1 → 3 → 7 ngày.",
+      "goal": "Thẻ giảng đã duyệt (\"Hiểu bản chất\", \"Đọc đề\"; 2 cách/thẻ), ôn đầu buổi tối đa 2 câu (1 → 3 → 7 ngày), báo thẻ còn thiếu",
       "features": [
         {
-          "name": "Câu ôn, nút \"Để sau\", đúng 3 lần liền thì thôi",
+          "name": "L-7 Launcher: SQL 0024 (card_ref, câu ôn từ thẻ)",
+          "status": "todo"
+        },
+        {
+          "name": "G6a Thẻ giảng: định dạng + kiểm SymPy, hiện nguyên văn, đổi cách khi trùng số, \"Em không hiểu đề\" 4 nút",
+          "status": "todo"
+        },
+        {
+          "name": "G6b Ôn đầu buổi (D26) + \"Thẻ cần bổ sung\" trong báo cáo tối",
+          "status": "todo"
+        },
+        {
+          "name": "G6c Nội dung thẻ HK1 cả 2 lớp (đợt ≈ 10 bài, merge = duyệt)",
           "status": "todo"
         }
       ],
@@ -509,19 +521,19 @@
         },
         {
           "name": "Con chấm cô 1 chạm sau bài đầu + nút Kết thúc buổi (P2)",
-          "status": "review"
+          "status": "done"
         },
         {
           "name": "Góp ý / 😕 ×2 → luật dạy (Sonnet soạn, bố mẹ duyệt, hiệu lực buổi sau)",
-          "status": "review"
+          "status": "done"
         },
         {
           "name": "Báo tiền qua Launcher: ~45 USD, Console hết tiền, dự báo vượt trần (D23)",
-          "status": "todo"
+          "status": "review"
         },
         {
           "name": "Lời giải tham khảo sau khi con tự làm xong, cas kiểm (P4, X5)",
-          "status": "todo"
+          "status": "review"
         },
         {
           "name": "L-6 Launcher: link báo cáo, route báo tiền, SQL 0023",
@@ -549,6 +561,11 @@
         {
           "repo": "gia-su",
           "number": 17,
+          "status": "merged"
+        },
+        {
+          "repo": "gia-su",
+          "number": 18,
           "status": "open"
         }
       ]
@@ -736,8 +753,8 @@
     {
       "id": "D26",
       "text": "Ôn đầu buổi tối đa 2 câu, lịch 1 → 3 → 7 ngày",
-      "status": "proposed",
-      "date": "2026-11-14"
+      "status": "confirmed",
+      "date": "2026-11-21"
     },
     {
       "id": "D27",
@@ -790,6 +807,11 @@
   ],
   "parentTodo": [
     {
+      "text": "Duyệt mẫu thẻ đợt 0 (THE_HIEU_BAN_CHAT, THE_DOC_DE) + trả lời Y1–Y5 kế hoạch G6",
+      "slice": "G6",
+      "status": "open"
+    },
+    {
       "text": "Đặt TUTOR_NOTIFY_SECRET trên 2 project Vercel + LAUNCHER_URL bên gia sư (SETUP Launcher mục I) trước G7c",
       "slice": "G7",
       "status": "open"
@@ -802,7 +824,7 @@
     {
       "text": "Chốt D26 (ôn đầu buổi, cho G6)",
       "slice": "G6",
-      "status": "open"
+      "status": "done"
     },
     {
       "text": "Sau khi merge G5: chạy G0 cases 9.16,9.17,9.18,9.19,6.11,9.3 (Sonnet + Opus); thử bài rút gọn + bài hình lớp 9, bài BCNN lớp 6 trên link chính thức",
@@ -944,12 +966,20 @@
       "text": "G7b xong trên nhánh (chấm cô 1 chạm sau bài đầu, Kết thúc buổi, luật dạy: Sonnet soạn từ ghi chú, 😕 ×2 đề xuất, bố mẹ duyệt/sửa/tắt/tự viết, hiệu lực buổi sau); mở PR sau khi #16 merge"
     },
     {
+      "date": "2026-11-19",
+      "text": "G7c xong trên nhánh (báo tiền qua Launcher: ~45 USD / Console hết tiền / dự báo vượt trần; Bật lại Opus; Gửi thử; cộng chi phí bằng add_usage; lời giải tham khảo sau self_solved, cas so với đáp số của con)"
+    },
+    {
       "date": "2026-11-21",
       "text": "Phụ huynh merge #15 (sửa bài anh em, prompt v0.6) và Launcher #93 (L-6, SQL 0023). G7a (#16) rebase lên main"
     },
     {
       "date": "2026-11-21",
       "text": "Phụ huynh merge #16 (G7a báo cáo tối). Mở PR G7b (chấm cô + luật dạy)"
+    },
+    {
+      "date": "2026-11-21",
+      "text": "Phụ huynh merge #17 (G7b chấm cô + luật dạy). Mở PR G7c (báo tiền + lời giải tham khảo). Chốt D26, thiết kế thẻ C, kế hoạch G6"
     }
   ]
 }

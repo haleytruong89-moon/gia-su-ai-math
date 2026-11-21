@@ -6,7 +6,8 @@
 // §4.14, §5). G4 adds the tools and math_check (until then self_solved is never allowed).
 import { z } from "zod";
 import type { Actor } from "@/lib/actor";
-import { PHOTO_COPY, PHOTO_ONLY_TEXT, SAFE_BUSY, safeLine } from "@/lib/copy";
+import { PHOTO_COPY, PHOTO_ONLY_TEXT, SAFE_BUSY, SPEND_PAUSED, safeLine } from "@/lib/copy";
+import { burnAlertDue, consoleAlertDue, economyAlertDue, isSpendLimitError } from "@/lib/rules/cost";
 import { processImage } from "@/lib/images";
 import { MAX_IMAGES_PER_PROBLEM } from "@/lib/rules/photo";
 import { isTooBig } from "@/lib/tutor/form";
@@ -27,6 +28,7 @@ import { runToolLoop, type LoopResult } from "@/lib/tutor/toolLoop";
 import { dateVn } from "@/lib/time";
 import { RATING_REASONS, ratingProposal, rulesBlock, rulesVersionNow, type RatingReason } from "@/lib/rules/teachingRules";
 import { assemble, type ImageData, type Msg, type Turn } from "@/lib/tutor/assemble";
+import { writeReference, type ChildCheck } from "@/lib/tutor/reference";
 import { runGuard, type GuardResult } from "@/lib/tutor/guard";
 import type { Layers } from "@/lib/tutor/layers";
 import {
@@ -66,6 +68,10 @@ export interface Deps {
   cas: CasClient | null;
   /** G5: classify the first turn of each problem (knowledge card, Opus signals). Off in tests that do not test it. */
   classify?: boolean;
+  /** G7c (D23): asks the Launcher to push a money message to the parents; true when it was sent. Absent → no pushes. */
+  notify?: (kind: "economy" | "console_blocked" | "burn", familyId: string, forecastUsd?: number) => Promise<boolean>;
+  /** Runs work after the answer is sent (Next `after` in routes). Absent (tests) → awaited before returning. */
+  later?: (work: () => Promise<void>) => void;
 }
 type Result = { status: number; json: unknown };
 
@@ -106,6 +112,7 @@ const unauthorized: Result = { status: 401, json: { error: "unauthorized" } };
 const badRequest: Result = { status: 400, json: { error: "bad_request" } };
 const pending: Result = { status: 409, json: { error: "pending" } };
 const busy: Result = { status: 503, json: { error: "model_unavailable", message: SAFE_BUSY } };
+const spendPaused: Result = { status: 503, json: { error: "spend_limit", message: SPEND_PAUSED } };
 const tooBig: Result = { status: 413, json: { error: "image_too_big", message: PHOTO_COPY.tooBig } };
 const notImage: Result = { status: 415, json: { error: "not_an_image", message: PHOTO_COPY.unreadable } };
 const tooMany: Result = { status: 409, json: { error: "too_many_images", message: PHOTO_COPY.tooMany } };
@@ -258,6 +265,39 @@ export async function rateSession(d: Deps, raw: unknown): Promise<Result> {
   return { status: 200, json: { status: r } };
 }
 
+/** The math_check of the answer the child saw that confirmed the child's final answer (§4.12 gate). */
+function confirmingCheck(tools: readonly ToolRecord[]): ChildCheck | null {
+  const t = [...tools].reverse().find((x) => {
+    const out = x.output as { ok?: boolean; result?: Record<string, unknown> } | null;
+    return x.tool === "math_check" && x.ok && out?.ok === true
+      && (out.result?.equivalent === true || out.result?.is_root === true || out.result?.satisfies === true);
+  });
+  if (!t) return null;
+  const input = (t.input ?? {}) as Record<string, unknown>;
+  return { mode: String(input.mode ?? ""), input };
+}
+
+async function referenceFor(d: Deps, actor: ChildActor, problemId: string, statement: string, childCheck: ChildCheck): Promise<void> {
+  try {
+    const r = await writeReference({ client: d.client, model: d.models.main, prompt: d.layers.reference ?? "", cas: d.cas },
+      { statement, grade: actor.grade, childCheck });
+    await d.repo.saveReference({ familyId: actor.familyId, childId: actor.userId, problemId, call: r.call, reference: r.reference,
+      promptVersion: d.promptVersion, now: d.now });
+  } catch (e) {
+    console.error("reference failed", e instanceof Error ? e.message : "unknown");
+  }
+}
+
+/** D23: one money push through the Launcher; marked as sent only when it went out. Never breaks the turn. */
+async function moneyAlert(d: Deps, familyId: string, kind: "economy" | "console_blocked" | "burn", forecastUsd?: number): Promise<void> {
+  if (!d.notify) return;
+  try {
+    if (await d.notify(kind, familyId, forecastUsd)) await d.repo.markAlert(familyId, kind === "console_blocked" ? "console" : kind, d.now);
+  } catch (e) {
+    console.error("money alert failed", e instanceof Error ? e.message : "unknown");
+  }
+}
+
 /** G7: the Launcher's "cần chú ý" lines follow every ended problem. Never breaks the child's turn. */
 async function syncAttention(d: Deps, actor: ChildActor): Promise<void> {
   try {
@@ -344,7 +384,10 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
   // 3. Which model (§4.14, D28) — paused at 45 USD/month (D29).
   const usage = await d.repo.monthUsage(actor.familyId, d.now);
   const paused = strongPaused(usage);
-  if (paused && usage.mode === "normal") await d.repo.pauseStrong(actor.familyId, d.now); // TODO(G7): tell the parents (D23)
+  if (paused && usage.mode === "normal") await d.repo.pauseStrong(actor.familyId, d.now);
+  if (paused && economyAlertDue({ mode: "economy", economyAlertSentAt: usage.economyAlertSentAt ?? null })) {
+    await moneyAlert(d, actor.familyId, "economy"); // §4.5 b: tell the parents once a month (D23)
+  }
   // Photos of this problem go back on the child messages they were sent with (G3); later turns read them from the cache.
   const photos = problem.imageCount > 0 ? await d.repo.problemImages(problem.id) : [];
 
@@ -439,6 +482,11 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
   } catch (e) {
     console.error("tutor model call failed", e instanceof Error ? e.message : "unknown"); // never the child's text
     await d.repo.deleteMessage(messageId);
+    if (isSpendLimitError(e)) {
+      // §4.5 d: the Console stopped the API at the monthly limit. Parents: once a VN day (D23).
+      if (consoleAlertDue(usage.consoleAlertSentAt ?? null, d.now)) await moneyAlert(d, actor.familyId, "console_blocked");
+      return spendPaused;
+    }
     return busy;
   }
 
@@ -529,5 +577,17 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
     return pending;
   }
   if (saved.status !== "in_progress") await syncAttention(d, actor);
+  if (saved.status === "self_solved") {
+    // G4 Q3 / G7 P4: the reference solution, written after the answer and shown only when cas confirms it (X5).
+    const childCheck = confirmingCheck(shownTools);
+    if (childCheck && d.layers.reference) {
+      const work = () => referenceFor(d, actor, problem.id, guardStatement, childCheck);
+      if (d.later) d.later(work);
+      else await work();
+    }
+  }
+  // §4.5 b2: the month's pace would pass the cap → one push a week (from day 5, X2).
+  const forecast = burnAlertDue({ costUsd: usage.costUsd + calls.reduce((n, c) => n + c.costUsd, 0), burnAlertSentAt: usage.burnAlertSentAt ?? null }, d.now);
+  if (forecast !== null) await moneyAlert(d, actor.familyId, "burn", forecast);
   return { status: 200, json: saved };
 }

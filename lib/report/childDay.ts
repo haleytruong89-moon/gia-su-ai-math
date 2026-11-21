@@ -30,7 +30,7 @@ export async function loadChildDay(db: SupabaseClient, familyId: string, childId
   const pids = (problems ?? []).map((p) => p.id as string);
   const [calls, tools, ratings] = await Promise.all([
     pids.length
-      ? t.from("model_calls").select("problem_id, purpose, guard_result, raw_output").eq("family_id", familyId).in("problem_id", pids).in("purpose", ["classify", "tutor"])
+      ? t.from("model_calls").select("problem_id, purpose, guard_result, raw_output").eq("family_id", familyId).in("problem_id", pids).in("purpose", ["classify", "tutor", "reference"])
       : Promise.resolve({ data: [], error: null }),
     pids.length
       ? t.from("tool_calls").select("problem_id, tool, output").eq("family_id", familyId).in("problem_id", pids).eq("tool", "math_check").eq("ok", false)

@@ -98,7 +98,7 @@ Quy ước chung mọi bảng: `id uuid`, `created_at timestamptz`, `updated_at 
 | `problems` (**bài**) | `session_id`, `status` (§3.2), `hint_level`, `hint_level_max` (H0–H5), `wrong_count`, `turn_count`, `nan_jumps`, `u_level` (U0–U3), `topic_tag`, `continues_problem_id`, `pack_id` (null, v1.1), `item_ref` (null, v1.1), `confirmed_statement` | Mỗi bài mở ngữ cảnh AI mới (giữ chi phí ổn định). Trạng thái đếm được do máy chủ giữ |
 | `messages` | `problem_id`, `role` (child / tutor / system), `content` (**chỉ nội dung đã qua kiểm tra**), `buttons jsonb`, `hint_level`, `client_msg_id` (idempotency key, unique) | Bảng con được đọc |
 | `model_calls` | `message_id`, `model`, `prompt_version`, `raw_output` (bản gốc trước kiểm tra), `guard_result` (pass / rewritten / blocked), `guard_reasons`, `tokens_in`, `tokens_cached`, `tokens_out`, `cost_usd numeric(10,6)` | **Chỉ máy chủ và bố mẹ đọc**; con không bao giờ đọc được |
-| `reference_solutions` | `problem_id`, `content` | Lời giải tham khảo; **chỉ máy chủ đọc**, chỉ gửi cho con sau `self_solved` |
+| `reference_solutions` | `problem_id`, `content` | Lời giải tham khảo; **chỉ máy chủ đọc**, chỉ gửi cho con sau `self_solved`. **G7 (✅ chốt 18–19/11, P4, X5):** Sonnet viết **sau** lượt `self_solved` (con không phải chờ); máy tính đại số so đáp số của lời giải với đáp số của con đã được kiểm (cùng biểu thức / cùng nghiệm / thỏa hệ). Khớp → lưu, con thấy nút "Xem lời giải tham khảo", bố mẹ thấy trong trang xem lại bài. Không khớp → không lưu, `model_calls(purpose = reference, guard_result = blocked)` + cờ cho bố mẹ. Bài chứng minh (`pending_review`) không có lời giải tham khảo |
 | `attachments` | `problem_id`, `storage_path` (`<child_id>/<problem_id>/<uuid>.jpg`), `width`, `height`, `bytes`, `source_device`, `delete_after` (date) | Bucket private; ảnh đã xóa EXIF và thu nhỏ ở máy chủ trước khi lưu và gửi AI; chỉ nhận jpg/png/heic ≤ 10 MB; URL đọc hạn 10 phút. **G3 (15/11/2026, phụ huynh chốt Q1–Q4; TODO(rule-unconfirmed) tới khi hub DOMAIN v0.6 ghi lại):** cỡ ảnh theo chuẩn Claude ≤ 1568 px & ≤ 1568 token hình (thay "~1000 px"); máy con thu nhỏ trước, gửi ≤ 4 MB; HEIC chỉ khi trình duyệt đọc được; thêm `message_id`; tối đa 4 ảnh/bài; "Chụp lại" = bài mới |
 | `diagnoses` | `problem_id`, `root` (read / concept / strategy / calc / careful / unknown), `source` (self_reported / verified) | Có thể nhiều dòng mỗi bài |
 | `ratings` | `session_id` (unique), `face` (easy / ok / hard), `reasons` (enum[]: too_long, hard_words, answer_too_early, too_many_questions, good_example, clear), `comment` | Con chấm 1 lần cuối mỗi buổi |
@@ -241,14 +241,16 @@ retired ──► active   (con sai lại đúng KU đó trong bài thật → m
 ### 4.5. Giới hạn chi phí (D12, D13, D15)
 Không giới hạn khung giờ, số buổi, chi phí theo ngày. Trần tháng 50 USD (Console, cứng). Chốt kỹ thuật: tối đa **20 lượt/bài** (lượt 18 cô đề nghị để dành) và giới hạn độ dài mỗi câu trả lời của model (`max_tokens`).
 Mọi ngưỡng tính theo **sổ của app** (`usage_monthly.cost_usd`, cộng từ `model_calls`), tháng theo UTC; đối chiếu với Console mỗi tuần, lệch > 10% thì báo bố mẹ.
-**Cảnh báo tốc độ chi:** mỗi ngày tính `dự báo = chi đến nay ÷ số ngày đã qua × số ngày trong tháng`. Dự báo > 50 USD → báo bố mẹ 1 lần mỗi tuần (không chặn).
+**Cảnh báo tốc độ chi:** mỗi ngày tính `dự báo = chi đến nay ÷ số ngày đã qua × số ngày trong tháng`. Dự báo > 50 USD → báo bố mẹ 1 lần mỗi tuần (không chặn). **Chỉ kiểm từ ngày 5 của tháng** (X2, ✅ chốt 19/11 — đầu tháng dự báo dao động quá mạnh). Tính sau mỗi lượt có chi phí (không cần cron).
+
+**Thông báo đẩy về tiền (D23, G7):** chỉ 3 loại, qua Launcher `POST /api/internal/tutor-notify`: ~45 USD (1 lần/tháng, cùng lúc tạm ngừng Opus) · Console hết tiền (1 lần/ngày theo giờ VN) · dự báo vượt trần (1 lần/tuần). Gửi lỗi → không đánh dấu, lượt sau thử lại. "Console hết tiền" = API trả 400 "API usage limits" / "credit balance is too low" hoặc 429 `enforced_spend_limit_reached` (tài liệu lỗi API, đọc 19/11/2026); 429 giới hạn tốc độ thường **không** tính.
 | # | Tình huống | Kết quả | |
 |---|---|---|---|
 | a | Chi phí tháng đạt 40 USD (80%) | Ghi trong báo cáo tối; chưa đổi gì | ✅ |
 | b | Chi phí tháng đạt ~45 USD | Thông báo ngay cho bố mẹ (Web Push qua Launcher) **và** tạm ngừng chuyển Opus (`model_mode = economy`); Sonnet chạy bình thường | ✅ 15/11 (D29) |
 | b2 | Ngày 10, đã chi 20 USD (dự báo 60 USD) | Báo bố mẹ "tốc độ chi đang vượt trần"; không chặn | ✅ (D15) |
 | c | Bố mẹ nâng trần trong Console | Bố mẹ bấm "Bật lại Opus" (có hộp xác nhận "Đã nâng trần trong Console chưa?") → `model_mode = normal` | Đề xuất |
-| d | Console chặn vì đủ 50 USD | App báo "Gia sư AI tạm nghỉ, em ghi bài vào để dành nhé"; báo bố mẹ ngay (bắt buộc xử lý vì API ngừng trả lời) | Đề xuất |
+| d | Console chặn vì đủ 50 USD | App báo "Gia sư AI tạm nghỉ, em ghi bài vào để dành nhé" (tin của con không bị giữ; nút "Để dành hỏi thầy" vẫn dùng được); báo bố mẹ ngay, tối đa 1 lần/ngày | ✅ 18/11 (D23) |
 | e | Sang tháng mới | `usage_monthly` reset, tự bật lại Opus (`normal`) | Đề xuất |
 
 ### 4.6. Ngày theo giờ Việt Nam ✅

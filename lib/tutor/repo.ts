@@ -7,6 +7,7 @@ import type { RouteReason } from "@/lib/rules/model";
 import type { ToolRecord } from "@/lib/tools/defs";
 import type { ImageData } from "@/lib/tutor/assemble";
 import type { RatingReason, RuleRow } from "@/lib/rules/teachingRules";
+import type { Reference, ReferenceCall } from "@/lib/tutor/reference";
 
 export type ChildActor = Extract<Actor, { role: "child" }>;
 /** An answered message of the problem; `id` lets the server put the message's photos back (never sent to the API). */
@@ -77,7 +78,7 @@ export interface FoundMessage { problemId: string; messageId: string; text: stri
 
 /** One model call of a turn: the tutor answer(s) and the checker verdict(s). */
 export interface ModelCallRecord {
-  purpose: "tutor" | "guard" | "sibling" | "classify";
+  purpose: "tutor" | "guard" | "sibling" | "classify" | "reference";
   model: string;
   raw: string;
   costUsd: number;
@@ -124,7 +125,15 @@ export type DiagnosisRoot = "read" | "concept" | "strategy" | "calc" | "careful"
 export interface Diagnosis { root: DiagnosisRoot; source: "verified" | "self_reported"; kuCode: string | null }
 
 /** The family's spend this UTC month (like the Anthropic Console) and whether the strong model is paused. */
-export interface MonthUsage { costUsd: number; mode: "normal" | "economy" }
+export interface MonthUsage {
+  costUsd: number;
+  mode: "normal" | "economy";
+  /** G7c (D23): when each money push was last sent this month (null = not yet). */
+  burnAlertSentAt?: Date | null;
+  economyAlertSentAt?: Date | null;
+  consoleAlertSentAt?: Date | null;
+}
+export type MoneyAlert = "economy" | "burn" | "console";
 
 export interface TutorRepo {
   /**
@@ -160,6 +169,18 @@ export interface TutorRepo {
   monthUsage(familyId: string, now: Date): Promise<MonthUsage>;
   /** usage_monthly.model_mode = 'economy': no strong model until next month (D29). */
   pauseStrong(familyId: string, now: Date): Promise<void>;
+  /** G7c: "Bật lại Opus" (§4.5 c): usage_monthly.model_mode = 'normal' for this month. */
+  resumeStrong(familyId: string, now: Date): Promise<void>;
+  /** G7c: a money push was sent (usage_monthly.*_alert_sent_at of this month). */
+  markAlert(familyId: string, kind: MoneyAlert, now: Date): Promise<void>;
+  /**
+   * G7c (P4, X5): logs the reference call (purpose 'reference', guard_result pass = cas confirmed it, blocked = not)
+   * with its cost, and stores the solution only when verified.
+   */
+  saveReference(a: { familyId: string; childId: string; problemId: string; call: ReferenceCall | null; reference: Reference | null;
+    promptVersion: string; now: Date }): Promise<void>;
+  /** G7c: the verified reference of a self_solved problem of this child; null when none (yet). */
+  getReference(problemId: string, childId: string): Promise<{ steps: string[]; finalAnswer: string } | null>;
   /**
    * "Để dành hỏi thầy" (DOMAIN §3.2): records the child's press and closes the problem as
    * saved_for_later. `already` for a resend of the same press; `not_open` when the problem is closed.

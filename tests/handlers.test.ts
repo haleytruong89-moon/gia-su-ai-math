@@ -534,6 +534,30 @@ describe("G4 tools in a turn", () => {
     await handleTurn(open.d, { problemId: "p1", clientMsgId: uuid(2), text: "x = 3", kind: "text" });
     expect(open.repo.attentionSyncs).toEqual([]);
   });
+  it("G7c: self_solved → a reference solution is written, checked against the child's answer by cas, and stored (P4, X5)", async () => {
+    const ref = { steps: ["ĐKXĐ: x ≥ 0, x ≠ 9", "Vậy P = 3/(3 − √x)"], final_answer: "P = 3/(3 − √x)", final_expr: "3/(3 - sqrt(x))", final_values: [] };
+    const w = world({ tutor: [ask("t1", "math_check", simplify), reply({ ket_qua_bai: "self_solved", danh_gia_luot_em: "dung", checklist_da_hoi: [7] })] });
+    const create = async (req: object) => (typeof (req as { system?: unknown }).system !== "string" && JSON.stringify(req).includes("LỜI GIẢI THAM KHẢO")
+      ? { content: [{ type: "text", text: JSON.stringify(ref) }], stop_reason: "end_turn", usage } : w.create(req));
+    const { d, repo } = deps(inProgress, client([confirmed]));
+    const cas = fakeCas({ simplify_check: () => ({ equivalent: true, fully_simplified: true, common_factor: null }), equivalent: () => ({ equivalent: true }) });
+    const r = await handleTurn({ ...d, client: { create }, cas, layers: { ...d.layers, reference: "Em là người viết LỜI GIẢI THAM KHẢO" } }, submit(1, "P = 3/(3 - √x)"));
+    expect((r.json as { status: string }).status).toBe("self_solved");
+    expect(await repo.getReference("p1", "c1")).toEqual({ steps: ref.steps, finalAnswer: "P = 3/(3 − √x)" });
+    expect(repo.modelCalls.filter((c) => c.purpose === "reference")).toEqual([expect.objectContaining({ guardResult: "pass" })]);
+    expect(await repo.getReference("p1", "c2")).toBeNull(); // another child
+  });
+  it("G7c: a reference whose answer cas does not confirm is not stored (logged as blocked)", async () => {
+    const ref = { steps: ["…"], final_answer: "P = 1", final_expr: "1", final_values: [] };
+    const w = world({ tutor: [ask("t1", "math_check", simplify), reply({ ket_qua_bai: "self_solved", danh_gia_luot_em: "dung", checklist_da_hoi: [7] })] });
+    const create = async (req: object) => (JSON.stringify(req).includes("LỜI GIẢI THAM KHẢO")
+      ? { content: [{ type: "text", text: JSON.stringify(ref) }], stop_reason: "end_turn", usage } : w.create(req));
+    const { d, repo } = deps(inProgress, client([confirmed]));
+    const cas = fakeCas({ simplify_check: () => ({ equivalent: true, fully_simplified: true, common_factor: null }), equivalent: () => ({ equivalent: false }) });
+    await handleTurn({ ...d, client: { create }, cas, layers: { ...d.layers, reference: "Em là người viết LỜI GIẢI THAM KHẢO" } }, submit(1, "P = 3/(3 - √x)"));
+    expect(await repo.getReference("p1", "c1")).toBeNull();
+    expect(repo.modelCalls.filter((c) => c.purpose === "reference")).toEqual([expect.objectContaining({ guardResult: "blocked" })]);
+  });
   it("G7: an attention failure never breaks the child's turn", async () => {
     const w = world({ tutor: [ask("t1", "math_check", simplify), reply({ ket_qua_bai: "self_solved", danh_gia_luot_em: "dung", checklist_da_hoi: [7] })] });
     const { d, repo } = deps(inProgress, client([confirmed]));

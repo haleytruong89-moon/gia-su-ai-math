@@ -43,6 +43,16 @@ function replyFrom(p: Pick<ProblemDb, "id" | "status" | "turn_count" | "statemen
 
 export function supabaseRepo(db: SupabaseClient = createAdminClient(), strongModel = "claude-opus-5-5"): TutorRepo {
   const t = () => db.schema("tutor");
+  /** Updates this month's usage row of the family, creating it when the month has no spend yet. */
+  async function setMonth(familyId: string, now: Date, cols: Record<string, string>) {
+    const { data, error } = await t().from("usage_monthly").update({ ...cols, updated_at: now.toISOString() })
+      .eq("family_id", familyId).eq("month", monthOf(now)).select("family_id");
+    if (error) fail("usage.set", error);
+    if (data?.length) return;
+    const { error: e2 } = await t().from("usage_monthly")
+      .upsert({ family_id: familyId, month: monthOf(now), ...cols, updated_at: now.toISOString() }, { onConflict: "family_id,month" });
+    if (e2) fail("usage.set.insert", e2);
+  }
 
   return {
     async openSession(a) {
@@ -269,20 +279,52 @@ export function supabaseRepo(db: SupabaseClient = createAdminClient(), strongMod
     },
 
     async monthUsage(familyId, now) {
-      const { data, error } = await t().from("usage_monthly").select("cost_usd, model_mode")
+      const { data, error } = await t().from("usage_monthly")
+        .select("cost_usd, model_mode, burn_alert_sent_at, economy_alert_sent_at, console_alert_sent_at")
         .eq("family_id", familyId).eq("month", monthOf(now)).maybeSingle();
       if (error) fail("monthUsage", error);
-      return { costUsd: Number(data?.cost_usd ?? 0), mode: data?.model_mode === "economy" ? "economy" : "normal" };
+      const at = (v: unknown) => (typeof v === "string" ? new Date(v) : null);
+      return { costUsd: Number(data?.cost_usd ?? 0), mode: data?.model_mode === "economy" ? "economy" : "normal",
+        burnAlertSentAt: at(data?.burn_alert_sent_at), economyAlertSentAt: at(data?.economy_alert_sent_at), consoleAlertSentAt: at(data?.console_alert_sent_at) };
     },
 
     async pauseStrong(familyId, now) {
-      const { data, error } = await t().from("usage_monthly").update({ model_mode: "economy", updated_at: now.toISOString() })
-        .eq("family_id", familyId).eq("month", monthOf(now)).select("family_id");
-      if (error) fail("pauseStrong", error);
-      if (data?.length) return;
-      const { error: e2 } = await t().from("usage_monthly")
-        .upsert({ family_id: familyId, month: monthOf(now), model_mode: "economy", updated_at: now.toISOString() }, { onConflict: "family_id,month" });
-      if (e2) fail("pauseStrong.insert", e2);
+      await setMonth(familyId, now, { model_mode: "economy" });
+    },
+
+    async resumeStrong(familyId, now) {
+      await setMonth(familyId, now, { model_mode: "normal" });
+    },
+
+    async saveReference(a) {
+      if (a.call) {
+        const { error } = await t().from("model_calls").insert({
+          family_id: a.familyId, child_id: a.childId, problem_id: a.problemId, purpose: "reference", model: a.call.model,
+          prompt_version: a.promptVersion, raw_output: a.call.raw, guard_result: a.reference?.verified ? "pass" : "blocked",
+          tokens_in: a.call.tokens.in, tokens_cached: a.call.tokens.cached, tokens_out: a.call.tokens.out, cost_usd: a.call.costUsd,
+        });
+        if (error) fail("saveReference.call", error);
+        await addUsage(db, a.familyId, a.now, a.call.costUsd);
+      }
+      if (!a.reference?.verified) return;
+      const { error: e2 } = await t().from("reference_solutions").upsert({
+        family_id: a.familyId, child_id: a.childId, problem_id: a.problemId, content: a.reference.steps.join("\n"), final_answer: a.reference.finalAnswer,
+      }, { onConflict: "problem_id", ignoreDuplicates: true });
+      if (e2) fail("saveReference.solution", e2);
+    },
+
+    async getReference(problemId, childId) {
+      if (!/^[0-9a-f-]{36}$/i.test(problemId)) return null;
+      const { data: p, error } = await t().from("problems").select("status").eq("id", problemId).eq("child_id", childId).is("deleted_at", null).maybeSingle();
+      if (error) fail("getReference.problem", error);
+      if (p?.status !== "self_solved") return null;
+      const { data: r, error: e2 } = await t().from("reference_solutions").select("content, final_answer").eq("problem_id", problemId).eq("child_id", childId).maybeSingle();
+      if (e2) fail("getReference", e2);
+      return r ? { steps: String(r.content).split("\n"), finalAnswer: (r.final_answer as string | null) ?? "" } : null;
+    },
+
+    async markAlert(familyId, kind, now) {
+      await setMonth(familyId, now, { [`${kind}_alert_sent_at`]: now.toISOString() });
     },
 
     async saveForLater(a) {
@@ -412,20 +454,11 @@ const monthOf = (now: Date) => `${now.toISOString().slice(0, 7)}-01`;
 
 /**
  * Adds to the family's monthly spend (UTC month, like the Anthropic Console).
- * TODO(G7): read-then-write can lose a cent when both children send at the same instant; G7 moves
- * this into an SQL function in the study-launcher repo (the cap check also reads model_calls).
  */
 export async function addUsage(db: SupabaseClient, familyId: string, now: Date, cost: number) {
-  const month = monthOf(now);
-  const t = db.schema("tutor");
-  const { data, error } = await t.from("usage_monthly").select("cost_usd").eq("family_id", familyId).eq("month", month).maybeSingle();
-  if (error) fail("usage.read", error);
-  const next = Number(data?.cost_usd ?? 0) + cost;
-  const { error: e2 } = await t.from("usage_monthly").upsert(
-    { family_id: familyId, month, cost_usd: next.toFixed(6), updated_at: now.toISOString() },
-    { onConflict: "family_id,month" },
-  );
-  if (e2) fail("usage.write", e2);
+  // Atomic (study-launcher 0023 tutor.add_usage): two children answering at the same instant both count.
+  const { error } = await db.schema("tutor").rpc("add_usage", { p_family: familyId, p_month: monthOf(now), p_cost: cost });
+  if (error) fail("usage.add", error);
 }
 
 export interface ThreadMessage { id: string; role: "child" | "tutor"; text: string; buttons: string[]; images: string[] }
