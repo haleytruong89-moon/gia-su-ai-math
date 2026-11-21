@@ -32,7 +32,9 @@ function variant(title: string, text: string) {
   const lines = text.split("\n");
   const keyNumbers = lines.filter((l) => l.startsWith("số:")).flatMap((l) => l.slice(3).split(",").map((s) => s.trim()).filter(Boolean));
   const checks = lines.filter((l) => l.startsWith("kiểm:")).map((l) => l.slice(5).trim());
-  const body = lines.filter((l) => !l.startsWith("số:") && !l.startsWith("kiểm:")).join("\n").trim();
+  // The machine lines sit in an HTML comment so GitHub's preview of the card stays readable for the parents.
+  const machine = (l: string) => l.startsWith("số:") || l.startsWith("kiểm:") || l.trim().startsWith("<!--") || l.trim() === "-->";
+  const body = lines.filter((l) => !machine(l)).join("\n").trim();
   return { n: Number(m[1]) as 1 | 2, title: m[2]!.trim(), body, keyNumbers, checks };
 }
 
