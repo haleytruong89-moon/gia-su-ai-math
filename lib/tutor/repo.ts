@@ -8,6 +8,7 @@ import type { ToolRecord } from "@/lib/tools/defs";
 import type { ImageData } from "@/lib/tutor/assemble";
 import type { RatingReason, RuleRow } from "@/lib/rules/teachingRules";
 import type { Reference, ReferenceCall } from "@/lib/tutor/reference";
+import type { NewReviewItem, ReviewItem, ReviewResult } from "@/lib/rules/review";
 
 export type ChildActor = Extract<Actor, { role: "child" }>;
 /** An answered message of the problem; `id` lets the server put the message's photos back (never sent to the API). */
@@ -218,6 +219,31 @@ export interface TutorRepo {
   latestRatings(childId: string, n: number): Promise<{ id: string; face: string; reasons: string[] }[]>;
   /** G7b (P2): what the problem page needs to decide on the rating card. null when not this child's. */
   ratingState(problemId: string, childId: string): Promise<{ sessionId: string; sessionStatus: "active" | "ended" | "abandoned"; rated: boolean; earlierEnded: boolean } | null>;
+
+  // ---------- G6b: start-of-session review (DOMAIN §4.11, D26) ----------
+  /** Y2: adds the card's questions; a question already there (same child, card, key) is skipped. Returns how many were added. */
+  addReviewItems(a: { actor: ChildActor; items: NewReviewItem[]; now: Date }): Promise<number>;
+  /** §4.11: a real mistake on a lesson reopens its retired questions (box 1, due tomorrow). Returns how many. */
+  reopenReviews(a: { childId: string; kuCode: string; todayVn: string; now: Date }): Promise<number>;
+  /** Every active question of the child (the server picks ≤ 2 with pickDue). Never sent to a browser as is. */
+  reviewItemsOf(childId: string): Promise<StoredReviewItem[]>;
+  /** One question of this child, with its answer (server grading); null when not this child's or deleted. */
+  reviewItem(itemId: string, childId: string): Promise<StoredReviewItem | null>;
+  /** The answer already stored for this press (idempotency), or null. */
+  reviewAttempt(childId: string, clientMsgId: string): Promise<{ itemId: string; result: ReviewResult } | null>;
+  /** Stores the attempt and the new box / due date / streak / status of the question. "already" on a resend race. */
+  saveReviewAnswer(a: { actor: ChildActor; item: StoredReviewItem; next: ReviewItem; result: ReviewResult; answer: string | null;
+    clientMsgId: string; now: Date }): Promise<"saved" | "already">;
+}
+
+export interface StoredReviewItem extends ReviewItem {
+  kuCode: string;
+  cardCode: string | null;
+  kind: NewReviewItem["kind"];
+  prompt: string;
+  buttons: string[];
+  answer: string;
+  answerCheck: "exact" | "math_check";
 }
 
 /** G7b: a rating may be completed (reasons added) for this long after the first tap. */

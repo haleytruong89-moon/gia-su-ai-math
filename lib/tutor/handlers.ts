@@ -6,7 +6,7 @@
 // §4.14, §5). G4 adds the tools and math_check (until then self_solved is never allowed).
 import { z } from "zod";
 import type { Actor } from "@/lib/actor";
-import { CARD_BUTTONS, PHOTO_COPY, PHOTO_ONLY_TEXT, SAFE_BUSY, SPEND_PAUSED, safeLine } from "@/lib/copy";
+import { BTN_CARD_OK, CARD_BUTTONS, PHOTO_COPY, PHOTO_ONLY_TEXT, SAFE_BUSY, SPEND_PAUSED, safeLine } from "@/lib/copy";
 import { burnAlertDue, consoleAlertDue, economyAlertDue, isSpendLimitError } from "@/lib/rules/cost";
 import { processImage } from "@/lib/images";
 import { MAX_IMAGES_PER_PROBLEM } from "@/lib/rules/photo";
@@ -31,6 +31,7 @@ import { assemble, type ImageData, type Msg, type Turn } from "@/lib/tutor/assem
 import { writeReference, type ChildCheck } from "@/lib/tutor/reference";
 import { card as cardOf, cardFitsGrade, cardForModel, cardIndexText, pickVariant } from "@/lib/knowledge/cards";
 import { lastCardOf, scriptedTurn, type Scripted } from "@/lib/tutor/scripted";
+import { reviewItemsFromCard } from "@/lib/rules/review";
 import { runGuard, type GuardResult } from "@/lib/tutor/guard";
 import type { Layers } from "@/lib/tutor/layers";
 import {
@@ -302,6 +303,21 @@ async function moneyAlert(d: Deps, familyId: string, kind: "economy" | "console_
     if (await d.notify(kind, familyId, forecastUsd)) await d.repo.markAlert(familyId, kind === "console_blocked" ? "console" : kind, d.now);
   } catch (e) {
     console.error("money alert failed", e instanceof Error ? e.message : "unknown");
+  }
+}
+
+/**
+ * G6b. Y2: "Em hiểu rồi" under a card → the card's approved questions join the review queue (due tomorrow).
+ * §4.11: a real mistake on a lesson reopens its retired questions. Never breaks the child's turn.
+ */
+async function reviewQueue(d: Deps, actor: ChildActor, problem: ProblemRow, e: { cardOk: boolean; wrongOn: string | null }): Promise<void> {
+  try {
+    const last = e.cardOk ? lastCardOf(problem.thread) : null;
+    const c = last ? cardOf(last.code) : null;
+    if (c && cardFitsGrade(c, actor.grade)) await d.repo.addReviewItems({ actor, items: reviewItemsFromCard(c, dateVn(d.now)), now: d.now });
+    if (e.wrongOn) await d.repo.reopenReviews({ childId: actor.userId, kuCode: e.wrongOn, todayVn: dateVn(d.now), now: d.now });
+  } catch (err) {
+    console.error("review queue failed", err instanceof Error ? err.message : "unknown");
   }
 }
 
@@ -618,6 +634,7 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
     return pending;
   }
   if (saved.status !== "in_progress") await syncAttention(d, actor);
+  await reviewQueue(d, actor, problem, { cardOk: kind === "button" && text === BTN_CARD_OK, wrongOn: verdict === "sai" ? newKu : null });
   if (saved.status === "self_solved") {
     // G4 Q3 / G7 P4: the reference solution, written after the answer and shown only when cas confirms it (X5).
     const childCheck = confirmingCheck(shownTools);

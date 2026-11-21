@@ -2,7 +2,7 @@
   "schema": 1,
   "project": "Gia sư AI Toán",
   "updated": "2026-11-21",
-  "updatedNote": "G6a xong (#19). Chờ merge: #20 (G6b), #21 (thẻ HK1 đợt 1)",
+  "updatedNote": "G6a, G6b xong (#19, #20). G6c: thẻ HK1 đợt 1 (#21) chờ duyệt; đợt 2 đang soạn",
   "vision": {
     "oneLiner": "Một \"cô\" gia sư AI giúp 2 con tự học Toán buổi chiều: gỡ chỗ kẹt bằng câu hỏi gợi mở, không đưa lời giải bài gốc, tối bố mẹ đọc báo cáo 5 phút.",
     "problem": "Buổi chiều 2 con có nhiều thời gian tự học nhưng không có người lớn. Bố mẹ có khoảng 2 giờ buổi tối, gia sư người 2 buổi/tuần. Tốc độ tiến bộ do giờ tự học buổi chiều quyết định.",
@@ -485,7 +485,7 @@
         },
         {
           "name": "G6b Ôn đầu buổi (D26) + \"Thẻ cần bổ sung\" trong báo cáo tối",
-          "status": "todo"
+          "status": "done"
         },
         {
           "name": "G6c Nội dung thẻ HK1 cả 2 lớp (đợt ≈ 10 bài, merge = duyệt)",
@@ -510,6 +510,11 @@
         {
           "repo": "gia-su",
           "number": 19,
+          "status": "merged"
+        },
+        {
+          "repo": "gia-su",
+          "number": 20,
           "status": "merged"
         },
         {
@@ -1015,7 +1020,15 @@
     },
     {
       "date": "2026-11-21",
-      "text": "G6c đợt 1: 10 thẻ lớp 6 Chương I–II (T6.1–T6.10), PR #21 — merge = bố mẹ duyệt nội dung"
+      "text": "Bộ test sư phạm 3 ca thẻ (6.12, 6.13, 9.26) trên Sonnet: 3/3 đạt, chọn đúng thẻ, 0 lộ đáp số (~0,14 USD cả 3 lần chạy)"
+    },
+    {
+      "date": "2026-11-21",
+      "text": "Phụ huynh merge #19 (G6a thẻ giảng). Mở PR #20 G6b (ôn đầu buổi + Thẻ cần bổ sung; kèm sửa bộ chấm eval cho lượt có thẻ)"
+    },
+    {
+      "date": "2026-11-21",
+      "text": "Phụ huynh merge #20 (G6b ôn đầu buổi + Thẻ cần bổ sung). G6c đợt 1: 10 thẻ lớp 6 Chương I–II (T6.1–T6.10), PR #21 — merge = bố mẹ duyệt nội dung"
     }
   ]
 }

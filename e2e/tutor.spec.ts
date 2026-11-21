@@ -212,3 +212,27 @@ test("cards (G6): the tutor names a card → the approved card shows; way 2 and 
   const { data: msgs } = await tutor().from("messages").select("card_ref").eq("problem_id", id).eq("role", "tutor").not("card_ref", "is", null);
   expect(msgs?.map((m) => m.card_ref).sort()).toEqual(["T9.9#1", "T9.9#2"]);
 });
+
+test("review (G6b, D26): a due question shows above 'Em kẹt bài nào?'; the server grades it and moves it to box 2", async ({ page, context }) => {
+  const { data: prof } = await adminClient().from("profiles").select("id, family_id").eq("role", "child").eq("display_name", "Con thử").single();
+  const vnDay = (plus: number) => new Date(Date.now() + 7 * 3600e3 + plus * 86400e3).toISOString().slice(0, 10);
+  const { data: item, error } = await tutor().from("review_items").insert({
+    family_id: prof!.family_id, child_id: prof!.id, ku_code: "T9.3", card_code: "D9.1", item_key: "e2e1", kind: "recognize",
+    prompt: "Bài nào giải bằng hệ phương trình làm chung – làm riêng? (đề bịa)", buttons: ["Hai vòi cùng chảy", "Tìm ƯCLN"],
+    answer: "Hai vòi cùng chảy", answer_check: "exact", due_date_vn: vnDay(0), source: "card",
+  }).select("id").single();
+  expect(error).toBeNull();
+  await signIn(context, "child");
+  await page.goto("/gia-su");
+  await expect(page.getByRole("heading", { name: "Ôn nhanh 1 câu" })).toBeVisible();
+  await expect(page.getByText("Chỉ chọn dạng, không cần giải.")).toBeVisible();
+  const graded = page.waitForResponse((r) => r.url().endsWith("/gia-su/api/review/answer"));
+  await page.getByRole("button", { name: "Hai vòi cùng chảy" }).click();
+  expect((await graded).status()).toBe(200);
+  await expect(page.getByText("Đúng rồi!")).toBeVisible();
+  const { data: after } = await tutor().from("review_items").select("box, due_date_vn, correct_streak").eq("id", item!.id).single();
+  expect(after).toEqual({ box: 2, due_date_vn: vnDay(3), correct_streak: 1 });
+  await page.getByRole("button", { name: "Tiếp" }).click();
+  await expect(page.getByRole("heading", { name: "Ôn nhanh 1 câu" })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Em kẹt bài nào?" })).toBeVisible();
+});

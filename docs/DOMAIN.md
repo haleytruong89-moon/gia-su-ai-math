@@ -272,6 +272,8 @@ Mọi ngưỡng tính theo **sổ của app** (`usage_monthly.cost_usd`, cộng 
 
 **Dòng "cần chú ý" trên Launcher** (G7, ✅ phụ huynh chốt 19/11 — X1): mỗi con mỗi ngày tối đa 2 dòng = 2 cờ đầu theo thứ tự: ① C1 lỗi → ② ý chặn U0–U1 → ③ nản / bỏ dở → ④ con chấm khó hiểu → ⑤ gợi ý nhiều → ⑥ chờ thầy xem → ⑦ lỗ hổng nền → ⑧ bài hình → ⑨ gia sư AI phải viết lại nhiều. Báo cáo tối hiện **mọi** cờ. Ghi lại khi một bài kết thúc (và khi con chấm cô — G7b). C1 lỗi = dịch vụ máy tính đại số hỏng/hết giờ (không tính đầu vào sai của model); **không** gửi thông báo đẩy (D23), chỉ cờ + dòng này. Cờ "Chi phí" là của cả nhà: hiện một lần ở đầu báo cáo, không vào dòng của con.
 
+**Thẻ cần bổ sung** (G6b, C5 — ✅ phụ huynh chốt 21/11): mục riêng cuối báo cáo, chỉ hiện khi có. Một dòng = cùng một chỗ thiếu gặp **≥ 2 lần trong 7 ngày** (giờ VN, tính cả ngày xem báo cáo), cả 2 con cộng chung theo lớp. Nguồn: cô ghi `the_thieu` · cô nêu mã thẻ chưa có · bài đã xác nhận đề mà chưa rõ bài SGK · "đã giảng 2 cách" (§4.15 C2). Nút **Sao chép yêu cầu** (bố mẹ dán vào chat với Claude để soạn thẻ). **Không** vào dòng "cần chú ý", **không** thông báo đẩy. Mỗi con thêm dòng "Ôn đầu buổi: x câu, đúng y" ("Để sau" không tính).
+
 ### 4.8. Xóa ảnh và xóa dữ liệu ✅
 `delete_after` = ngày tải lên (giờ VN) + 90 ngày. Job hằng ngày xóa file; giữ metadata + mô tả đề bằng chữ. Bố mẹ xóa sớm được.
 Bố mẹ yêu cầu xóa (một bài, một buổi, hoặc toàn bộ dữ liệu một con) → **xóa cứng** cả dòng DB lẫn file Storage, không chỉ xóa mềm. Bản backup tuần của Launcher còn giữ dữ liệu tối đa đến hết thời hạn lưu backup; ghi thời hạn này vào trang bố mẹ.
@@ -317,21 +319,23 @@ Lớp 6 chưa có barem của cô; dùng 5 mục chung. Như lớp 9: trước `
 | a | Lớp 6 nộp bài BCNN "trong khoảng" đúng số, máy xác nhận, cô chưa hỏi mục nào | Chưa `self_solved`; cô hỏi mục 3 | ✅ 18/11 |
 | b | Đã hỏi mục 3, em soát lại, máy xác nhận | `self_solved` | ✅ 18/11 |
 
-### 4.11. Ôn cách quãng đầu buổi — *v0.4, đề xuất (D26)*
+### 4.11. Ôn cách quãng đầu buổi — ✅ phụ huynh chốt 21/11 (D26)
 - Đầu mỗi buổi: máy chủ chọn tối đa **2** câu ôn `active` có `due_date_vn ≤ hôm nay`, ưu tiên box thấp rồi hạn sớm. Không có câu đến hạn → bỏ qua phần ôn.
 - Con trả lời (gõ hoặc nút). Máy chủ chấm: `exact` so khớp đã chuẩn hóa; `math_check` gọi C1 so tương đương.
 - Đúng → box +1 (tối đa 4), hạn mới = hôm nay + số ngày theo **box mới** {2: 3, 3: 7, 4: 7}; `correct_streak` +1. Sai → box 1, hạn = ngày mai, `correct_streak` = 0. "Để sau" → giữ nguyên box/streak, hạn = ngày mai. (Lịch này tự bảo đảm hai lần đúng liên tiếp cách nhau ≥ 3 ngày, nên con không "học vẹt" trong một ngày.)
 - `correct_streak` = 3 → `retired`.
-- Con sai trong bài thật ở KU có câu ôn `retired` → mở lại (`active`, box 1). Gia sư AI ghi chẩn đoán có `ku_code` mà chưa có câu ôn → máy chủ **đề xuất** câu ôn (`source = diagnosis`, status `paused`), bố mẹ bật.
+- Con sai trong bài thật ở KU có câu ôn `retired` → mở lại (`active`, box 1, hạn ngày mai).
+- **Y2 (G6):** câu ôn đến từ thẻ đã duyệt: con bấm **"Em hiểu rồi"** dưới một thẻ → các câu ôn của thẻ vào hàng ôn (`source = card`, `active`, box 1, hạn ngày mai); bấm lại ở bài khác không thêm trùng. Câu ôn đề xuất từ chẩn đoán (`source = diagnosis`, `paused`, bố mẹ bật) để **v1.1**.
+- **Y4:** câu "nhận diện dạng" (`recognize`) ghi "Chỉ chọn dạng, không cần giải", **không** bấm giờ. **Y5:** khối "Ôn nhanh" ở đầu trang "Em kẹt bài nào?", trên ô hỏi bài; hết câu thì khối biến mất. Đáp án chỉ gửi xuống **sau** khi con trả lời; câu chưa đến hạn không trả lời được (không "ôn dồn" cho xong). `math_check` lỗi → không chấm, không đổi box ("Cô kiểm lại sau nhé").
 
 | # | Tình huống | Kết quả | |
 |---|---|---|---|
-| a | Câu "a² − b² = ?" box 1, hạn hôm nay; con trả lời đúng | box 2, hạn +3 ngày, streak 1 | Đề xuất |
-| b | Câu box 3, con trả lời sai | box 1, hạn ngày mai, streak 0 | Đề xuất |
-| c | Câu mới (box 1), con đúng ba lần liên tiếp vào ngày 1, ngày 4, ngày 11 | box 1→2→3→4, streak 1→2→3 → `retired` sau lần thứ ba | Đề xuất |
-| d | Streak đạt 3 | `retired`; không hỏi nữa | Đề xuất |
-| e | Con bấm "Để sau" | Không đổi box/streak; hạn ngày mai | Đề xuất |
-| f | 5 câu đến hạn cùng ngày | Hỏi 2 câu box thấp nhất; 3 câu còn lại dời sang buổi sau (vẫn đến hạn) | Đề xuất |
+| a | Câu "a² − b² = ?" box 1, hạn hôm nay; con trả lời đúng | box 2, hạn +3 ngày, streak 1 | ✅ |
+| b | Câu box 3, con trả lời sai | box 1, hạn ngày mai, streak 0 | ✅ |
+| c | Câu mới (box 1), con đúng ba lần liên tiếp vào ngày 1, ngày 4, ngày 11 | box 1→2→3→4, streak 1→2→3 → `retired` sau lần thứ ba | ✅ |
+| d | Streak đạt 3 | `retired`; không hỏi nữa | ✅ |
+| e | Con bấm "Để sau" | Không đổi box/streak; hạn ngày mai | ✅ |
+| f | 5 câu đến hạn cùng ngày | Hỏi 2 câu box thấp nhất; 3 câu còn lại dời sang buổi sau (vẫn đến hạn) | ✅ |
 
 ### 4.12. Máy tính đại số bắt buộc — *v0.4*
 - Bài tính toán (không phải chứng minh hình) chỉ chuyển `self_solved` khi máy chủ có **ít nhất một lần gọi `math_check` đạt** cho đáp số cuối của con trong bài đó (đối chiếu với lời giải tham khảo nếu có, hoặc thay ngược vào đề).
@@ -431,7 +435,7 @@ Máy chủ chọn model **trước** khi gọi; model không tự đổi. Thứ 
 
 ## 7. Còn mở
 1. ~~Ảnh bài làm viết tay~~ — ✅ đã nhận 14/11 (`SPIKE_ANH_VIET_TAY_01_HS6A.md`, `…02_HS9A.md`); spike chính thức qua API vẫn cần làm.
-2. Các ví dụ ghi "Đề xuất" (4.2 d–e, 4.4 f–g, 4.5 c–e, 4.10 mục 8–10, 4.11, 4.12) chưa hỏi lại phụ huynh.
+2. Các ví dụ ghi "Đề xuất" (4.2 d–e, 4.4 f–g, 4.5 c–e, 4.10 mục 8–10, 4.12) chưa hỏi lại phụ huynh.
 3. ~~Đối chiếu Launcher~~ — ✅ đã đọc repo 14/11: `public.profiles`, `auth_role()`, `auth_family_id()`; PIN lưu `profiles.pin_hash` + bảng `pin_devices` (cookie httpOnly theo tên miền Launcher → lý do D20). **Còn:** thời hạn giữ bản backup tuần (`backup.yml`) — đọc khi làm trang bố mẹ.
 4. D19: tạo API key + workspace riêng cho gia sư AI trong Console (phụ huynh).
 5. ~~D20–D27 chờ phụ huynh duyệt~~ — ✅ hết (D23 chốt 18/11, D26 chốt 21/11).
