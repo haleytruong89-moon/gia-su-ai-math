@@ -2,7 +2,7 @@
   "schema": 1,
   "project": "Gia sư AI Toán",
   "updated": "2026-11-21",
-  "updatedNote": "G7 xong (#18 merge). G6a (thẻ giảng) PR mở; G6b mở sau khi G6a merge",
+  "updatedNote": "G6a xong (#19). Chờ merge: #20 (G6b), #21 (thẻ HK1 đợt 1)",
   "vision": {
     "oneLiner": "Một \"cô\" gia sư AI giúp 2 con tự học Toán buổi chiều: gỡ chỗ kẹt bằng câu hỏi gợi mở, không đưa lời giải bài gốc, tối bố mẹ đọc báo cáo 5 phút.",
     "problem": "Buổi chiều 2 con có nhiều thời gian tự học nhưng không có người lớn. Bố mẹ có khoảng 2 giờ buổi tối, gia sư người 2 buổi/tuần. Tốc độ tiến bộ do giờ tự học buổi chiều quyết định.",
@@ -481,7 +481,7 @@
         },
         {
           "name": "G6a Thẻ giảng: định dạng + kiểm SymPy, hiện nguyên văn, đổi cách khi trùng số, \"Em không hiểu đề\" 4 nút",
-          "status": "review"
+          "status": "done"
         },
         {
           "name": "G6b Ôn đầu buổi (D26) + \"Thẻ cần bổ sung\" trong báo cáo tối",
@@ -489,7 +489,7 @@
         },
         {
           "name": "G6c Nội dung thẻ HK1 cả 2 lớp (đợt ≈ 10 bài, merge = duyệt)",
-          "status": "todo"
+          "status": "in_progress"
         }
       ],
       "acceptance": [
@@ -510,6 +510,11 @@
         {
           "repo": "gia-su",
           "number": 19,
+          "status": "merged"
+        },
+        {
+          "repo": "gia-su",
+          "number": 21,
           "status": "open"
         }
       ]
@@ -1007,6 +1012,10 @@
     {
       "date": "2026-11-21",
       "text": "Phụ huynh merge #18 (G7c) và Launcher #98 (L-7, SQL 0024). G7 xong. Mở PR #19 G6a (thẻ giảng)"
+    },
+    {
+      "date": "2026-11-21",
+      "text": "G6c đợt 1: 10 thẻ lớp 6 Chương I–II (T6.1–T6.10), PR #21 — merge = bố mẹ duyệt nội dung"
     }
   ]
 }
