@@ -1,5 +1,6 @@
+import { readdirSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { card, cardFromRef, cardIndexText, clashes, pickVariant } from "@/lib/knowledge/cards";
+import { card, cardFromRef, cardIndexText, clashes, labelClashes, labelsIn, pickVariant, wayClashes } from "@/lib/knowledge/cards";
 import { cardBlocks, runsOf } from "@/lib/cardBlocks";
 
 describe("clashes (C1: the card's example must use other numbers)", () => {
@@ -8,6 +9,28 @@ describe("clashes (C1: the card's example must use other numbers)", () => {
   it("a single key number clashes when present", () => expect(clashes(["60"], "trong khoảng 60 đến 100")).toBe(true));
   it("numbers inside larger numbers do not count", () => expect(clashes(["12", "18"], "Có 120 và 180 cái")).toBe(false));
   it("fractions are whole tokens", () => expect(clashes(["6", "2/5"], "chảy 6 giờ được 2/5 bể")).toBe(true));
+});
+
+describe("labelClashes (G6d: geometry cards have no numbers, so the point names are compared)", () => {
+  it("segment and triangle names, letter order ignored", () =>
+    expect(labelsIn("Cho tam giác ABC nhọn, đường cao BE, CF cắt nhau tại H; AE·AC = AF·AB")).toEqual(["ABC", "BE", "CF", "AE", "AC", "AF", "AB"]));
+  it("ordinary capitalised words and single letters are not names", () => expect(labelsIn("Cho (O), điểm M. Chứng minh")).toEqual([]));
+  it("two shared names → clash; one → no clash", () => {
+    expect(labelClashes(["PQR", "PK", "QR"], "Cho tam giác RQP cân tại P, K là trung điểm QR")).toBe(true);
+    expect(labelClashes(["PQR", "PK", "QR"], "Cho tam giác ABC, K thuộc QR")).toBe(false);
+  });
+  it("a typical exam problem does not clash with the geometry method cards", () => {
+    for (const code of ["D9.2", "D9.3", "D9.4"]) {
+      expect(pickVariant(card(code)!, 1, "Cho tam giác ABC nhọn nội tiếp (O), đường cao BE, CF cắt nhau tại H. Chứng minh BCEF nội tiếp."), code).toBe(1);
+    }
+  });
+  it("wayClashes: numbers or names", () => {
+    expect(wayClashes({ keyNumbers: ["12", "18"] }, "BCNN(12, 18)")).toBe(true);
+    expect(wayClashes({ keyNumbers: [], keyLabels: ["PQR", "PK"] }, "tam giác PQR, đường PK")).toBe(true);
+    expect(wayClashes({ keyNumbers: [], keyLabels: ["PQR", "PK"] }, "tam giác ABC")).toBe(false);
+  });
+  it("D9.3: a child's problem in P, Q, R, K gets the other way", () =>
+    expect(pickVariant(card("D9.3")!, 1, "Cho tam giác PQR cân tại P, K là trung điểm QR. Chứng minh PK là phân giác.")).toBe(2));
 });
 
 describe("pickVariant", () => {
@@ -50,10 +73,14 @@ describe("cardBlocks", () => {
     expect(runsOf("2 · 2 · 3")).toEqual([{ text: "2 · 2 · 3", bold: false, italic: false }]);
   });
   it("every approved card renders without stray asterisks", () => {
-    for (const code of ["T6.11", "T6.12", "T9.9", "D6.1", "D6.2", "D9.1"]) {
+    const codes = readdirSync("knowledge/src/cards").filter((f) => f.endsWith(".md")).map((f) => f.slice(0, -3));
+    expect(codes.length).toBeGreaterThan(40);
+    for (const code of codes) {
       for (const v of card(code)!.variants) {
         const text = JSON.stringify(cardBlocks(v.body));
-        expect(text, `${code}#${v.n}`).not.toContain("*");
+        // T6.9 talks about the "dấu *" of a fill-in-the-digit exercise: that star is content.
+        expect(text.replace(/dấu \*/g, ""), `${code}#${v.n}`).not.toContain("*");
+        expect(v.body, `${code}#${v.n}: code fences and quotes are not rendered`).not.toMatch(/^(```|> )/m);
       }
     }
   });

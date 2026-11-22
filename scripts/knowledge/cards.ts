@@ -31,11 +31,12 @@ function variant(title: string, text: string) {
   if (!m) throw new Error(`way heading must be "Cách 1 — …": ${title}`);
   const lines = text.split("\n");
   const keyNumbers = lines.filter((l) => l.startsWith("số:")).flatMap((l) => l.slice(3).split(",").map((s) => s.trim()).filter(Boolean));
+  const keyLabels = lines.filter((l) => l.startsWith("nhãn:")).flatMap((l) => l.slice(5).split(",").map((s) => s.trim()).filter(Boolean));
   const checks = lines.filter((l) => l.startsWith("kiểm:")).map((l) => l.slice(5).trim());
   // The machine lines sit in an HTML comment so GitHub's preview of the card stays readable for the parents.
-  const machine = (l: string) => l.startsWith("số:") || l.startsWith("kiểm:") || l.trim().startsWith("<!--") || l.trim() === "-->";
+  const machine = (l: string) => l.startsWith("số:") || l.startsWith("nhãn:") || l.startsWith("kiểm:") || l.trim().startsWith("<!--") || l.trim() === "-->";
   const body = lines.filter((l) => !machine(l)).join("\n").trim();
-  return { n: Number(m[1]) as 1 | 2, title: m[2]!.trim(), body, keyNumbers, checks };
+  return { n: Number(m[1]) as 1 | 2, title: m[2]!.trim(), body, keyNumbers, ...(keyLabels.length ? { keyLabels } : {}), checks };
 }
 
 function review(text: string) {

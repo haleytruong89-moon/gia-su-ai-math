@@ -82,6 +82,7 @@
 | D26 | Ôn cách quãng đầu buổi: tối đa 2 câu, có nút "Để sau"; lịch 1 → 3 → 7 ngày; đúng 3 lần liên tiếp thì thôi ôn (§4.11) | thường | ✅ 21/11 |
 | D28 | **Chọn model mỗi lượt do máy chủ quyết** (§4.14): mặc định Sonnet; chuyển **Opus** khi (1) bộ kiểm tra chặn câu của Sonnet, (2) con nản hoặc mức ≥ H3, (3) bài hình chứng minh lớp 9, (4) ý chặn đề vào 10, (5) cô báo không chắc. Đã chuyển thì giữ Opus đến hết bài. Lớp 6 chỉ dùng (1), (2), (5) | thường | ✅ 15/11 |
 | D29 | **Không có chế độ tiết kiệm.** Gần trần (~45 USD): báo ngay cho bố mẹ và **tạm ngừng chuyển Opus** (Sonnet vẫn chạy, kể cả lượt viết lại sau khi bị chặn). Trần cứng 50 USD trên Console giữ nguyên | thường | ✅ 15/11 |
+| D30 | **Bài hình: vẽ hình trước khi suy luận** (G6d): đề hình chưa có hình → cô hướng dẫn con vẽ từng câu, con chụp gửi lại, cô soát 4 điểm (đủ điểm · đúng điều đề cho · không vẽ thành hình đặc biệt · không dùng điều "nhìn thấy"); 3 thẻ phương pháp D9.2 vẽ hình, D9.3 đi ngược, D9.4 viết lời chứng minh; thẻ hình chống trùng bằng **tên điểm** (§4.15 C1). Công cụ vẽ hình C2 để sau G9 | thường | ✅ 22/11 |
 | D27 | Gắn nhãn ý đề vào 10 Hà Nội (`exam_slot`, vd `HN10-2c`) cho bài luyện; báo cáo tối/tuần đếm theo ý chặn | thường | ✅ 16/11 (G5 Q4: Haiku chỉ gắn khi đề rõ là đề vào 10 hoặc con nói vậy; không chắc → để trống) |
 
 ## 1. Data model (schema `tutor` trong Supabase `study-launcher`)
@@ -392,6 +393,7 @@ Máy chủ chọn model **trước** khi gọi; model không tự đổi. Thứ 
 - **Cách giảng** nằm trong prompt (lớp ③); **nội dung** nằm trong thẻ đã duyệt `knowledge/src/cards/<MÃ>.md` (merge PR = bố mẹ duyệt). Hai loại: *hiểu bản chất* (mã T6.*/T9.*, giảng thẳng, thân thiện, có "vì sao" cho mọi mẹo nhớ, **không hỏi đáp**) và *đọc đề* (mã D6.*/D9.*, đọc đề → nhận dạng → kiến thức cần dùng).
 - Mỗi thẻ có **2 cách**, ví dụ dùng số khác bài thật. Cô chỉ nêu mã (`the_hien`); **máy chủ** chọn cách và app hiện **nguyên văn**. Thẻ sai lớp hoặc mã không có → không hiện thẻ, giữ lời cô.
 - **C1 — không trùng số:** một cách bị bỏ nếu ≥ 2 số chính của ví dụ (hoặc số duy nhất) có trong đề của con; cách 1 trùng → hiện cách 2; cả hai trùng → không hiện thẻ.
+- **C1 cho thẻ hình (G6d, D30):** ví dụ hình gần như không có số, nên mỗi cách ghi thêm **tên điểm** của ví dụ (dòng `nhãn:`, vd PQR, PK). Tên trong đề con được so không kể thứ tự chữ (PQR = RQP). Trùng ≥ 2 tên (hoặc tên duy nhất) → coi như trùng số. Ví dụ thẻ hình dùng tên điểm lạ (P, Q, R, I, K) và bài lớp 7–8.
 - **Y1:** hiện thẻ = mức gợi ý H2 → `hint_level_max` ít nhất 2.
 - **Y3:** nút "Giảng lại cách khác" và nút "Em không hiểu đề" do máy chủ trả lời sẵn: **không gọi AI, không tính** vào 20 lượt/bài. Câu "Em vướng ở chỗ nào?" có 4 nút (lớp 6: 3 nút, bỏ "đặt ẩn"); con chọn nút nào thì lượt đó đi qua cô như thường (cô có thể nêu thẻ D…).
 - **C2:** đã giảng 2 cách mà con vẫn bấm "Giảng lại cách khác" → "Để dành hỏi thầy" / "Em thử lại"; báo cáo tối tính là *thẻ chưa đủ* (G6b).
@@ -405,6 +407,8 @@ Máy chủ chọn model **trước** khi gọi; model không tự đổi. Thứ 
 | d | Sau c, con bấm tiếp "Giảng lại cách khác" | "Cô đã giảng 2 cách rồi…" + "Để dành hỏi thầy" / "Em thử lại" | ✅ |
 | e | Con lớp 6 được cô nêu T9.9 | Không hiện thẻ; giữ lời cô | ✅ |
 | f | Con bấm "Em không hiểu đề" (lớp 9) | "Em vướng ở chỗ nào?" + 4 nút, không gọi AI | ✅ |
+| g | Đề con: "tam giác ABC nhọn, đường cao BE, CF…", cô nêu D9.3 | Hiện D9.3 cách 1 (tên điểm khác hẳn) | ✅ |
+| h | Đề con: "tam giác PQR cân tại P, K là trung điểm QR…", cô nêu D9.3 | Cách 1 trùng PQR + PK → hiện cách 2 | ✅ |
 
 ## 5. Tình huống khó
 | Tình huống | Cách xử lý |

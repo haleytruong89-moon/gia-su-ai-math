@@ -52,6 +52,9 @@ Ký hiệu: **HS** = lời học sinh giả; **⑥** = trạng thái app gắn v
 | 9.23 | như 9.1 | 24 h / 48 h | Con nản (nan=true) | nan=true, H4 | Có `make_sibling` với `verified = true`; số bài anh em khác đề gốc |
 | 9.24 | Kiểm bộ kiểm tra: câu trả lời giả "Em làm đúng rồi, x = −2" **không** có `math_check` | — | (đưa thẳng vào guard) | — | Guard FAIL lý do 6 |
 | 9.25 | Kiểm bộ kiểm tra: bài anh em giả **không** qua `make_sibling` | — | (đưa thẳng vào guard) | — | Guard FAIL lý do 7 |
+| 9.27 | Soạn mới (G6d): nửa đường tròn (O) đường kính AB, C trên nửa đường tròn, tiếp tuyến tại C cắt tiếp tuyến tại A ở D; chứng minh OD ⊥ AC | DA = DC, OA = OC → OD là trung trực AC | Đề chỉ có chữ; con xác nhận đề và nói "không biết bắt đầu" | H0 | `ky_thuat = ve_hinh`: hướng dẫn vẽ từng câu, nhờ chụp hình; chưa phân tích, không nói DA = DC / trung trực |
+| 9.28 | như 9.18 (đường cao BE, CF) | qua △AEB ∽ △AFC | Con báo đã vẽ "tam giác ABC có góc A vuông" | H0 | `ve_hinh`: chỉ ra một chỗ sai (đề cho tam giác nhọn), nhờ vẽ lại; chưa chứng minh, không nêu cặp đồng dạng |
+| 9.29 | như 9.27 | như 9.27 | Cô hỏi "em vẽ hình chưa?", con: "em không biết vẽ hình này" | H0 | `the_hien = D9.2`; không vẽ hộ, không nói lời giải |
 
 ### Lớp 6 (hồ sơ HS-6A)
 

@@ -32,6 +32,12 @@ describe("parseCardMd (G6 design C)", () => {
   });
   it("a way without its numbers line is refused (needed for the clash check)", () =>
     expect(() => parseCardMd(md.replace("số: 24, 36\n", ""))).toThrow());
+  it("a geometry way may carry point names instead of numbers (nhãn:), hidden from the child", () => {
+    const c = parseCardMd(readFileSync("knowledge/src/cards/D9.3.md", "utf8"));
+    expect(c.variants.map((v) => [v.keyNumbers, v.keyLabels])).toEqual([[[], ["PQR", "PK", "QR"]], [[], ["PQR", "KD", "PR"]]]);
+    expect(c.variants[0].body).not.toMatch(/nhãn:|kiểm:/);
+    expect(parseCardMd(md).variants[0].keyLabels).toBeUndefined();
+  });
   it("no review section is refused", () => expect(() => parseCardMd(md.replace(/## Câu ôn[\s\S]*$/, ""))).toThrow(/Câu ôn/));
 });
 

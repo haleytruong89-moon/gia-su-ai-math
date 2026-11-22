@@ -11,10 +11,14 @@ export const CardVariant = z.object({
   /** Markdown shown verbatim to the child (paragraphs, "- " lists, | tables |, **bold**). */
   body: z.string().min(50).max(4000),
   /** The example's numbers: the server never shows a way whose numbers are the child's problem's. */
-  keyNumbers: z.array(z.string().min(1)).min(1),
+  keyNumbers: z.array(z.string().min(1)),
+  /** G6d: point names of a geometry example (PQR, PK) — compared with the child's figure like the numbers. */
+  keyLabels: z.array(z.string().regex(/^[A-Z]{2,}$/)).min(1).optional(),
   /** SymPy lines, all True (cas/tests/test_cards.py). */
   checks: z.array(z.string().min(3)).min(1),
-}).strict();
+}).strict().refine((v) => v.keyNumbers.length > 0 || (v.keyLabels?.length ?? 0) > 0, {
+  message: "a way needs its numbers (số:) or, for a geometry example, its point names (nhãn:) for the clash check",
+});
 
 export const ReviewQuestion = z.object({
   key: z.string().regex(/^[a-z0-9_]{2,20}$/),

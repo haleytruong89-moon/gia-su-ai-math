@@ -1,5 +1,5 @@
 {
-  "version": "2026-11-21.14aabeb3",
+  "version": "2026-11-22.44feea02",
   "cards": [
     {
       "code": "D6.1",
@@ -188,6 +188,219 @@
             "x · (x + 12) = 8"
           ],
           "answer": "1/x + 1/(x + 12) = 1/8",
+          "check": "exact"
+        }
+      ]
+    },
+    {
+      "code": "D9.2",
+      "grade": 9,
+      "kind": "doc_de",
+      "ku": "T9.16",
+      "title": "Vẽ hình theo đề bài hình học",
+      "variants": [
+        {
+          "n": 1,
+          "title": "Đọc đến đâu, vẽ đến đó",
+          "body": "**Đề (ví dụ):** Cho nửa đường tròn tâm I, đường kính PQ. Lấy điểm K bất kì trên nửa đường tròn (K khác P và Q). Tiếp tuyến tại K cắt tiếp tuyến tại P ở điểm D.\n\nEm vẽ theo từng câu của đề. Đọc xong một câu thì vẽ ngay câu đó, rồi mới đọc câu sau.\n\n| Câu trong đề | Em vẽ |\n|---|---|\n| \"Nửa đường tròn tâm I, đường kính PQ\" | Kẻ đoạn PQ nằm ngang. Chấm I ở giữa PQ. Vẽ nửa đường tròn phía trên. |\n| \"Điểm K bất kì trên nửa đường tròn\" | Chọn K **lệch sang một bên**, không đặt ở đỉnh cao nhất. |\n| \"Tiếp tuyến tại K\" | Kẻ bán kính IK trước. Đặt ê ke, kẻ đường qua K vuông góc với IK. |\n| \"Tiếp tuyến tại P … cắt … ở D\" | Kẻ đường qua P vuông góc với PQ. Chỗ hai tiếp tuyến gặp nhau là D. |\n\nVẽ xong, em đánh dấu lên hình: góc vuông ở K và ở P, các bán kính IP = IK = IQ.\n\n**Vì sao không đặt K ở đỉnh cao nhất?** Em thử đặt K ở đỉnh xem. Khi đó KP = KQ, hình trông \"đẹp\". Nhưng đề không cho KP = KQ. Nếu em lỡ dùng điều đó, bài chứng minh sẽ sai.\n\n**Vì sao kẻ bán kính trước?** Tiếp tuyến luôn vuông góc với bán kính tại tiếp điểm. Có bán kính IK rồi, em chỉ cần kẻ đường vuông góc với nó.\n\n📝 **Mẹo nhớ:** *Đọc câu nào, vẽ câu đó; điểm \"bất kì\" thì đặt lệch.* Vì sao nhớ được: hình vẽ đúng thứ tự đề thì không sót điểm nào, còn điểm đặt lệch thì hình không có thêm điều đề không cho.\n\n🔎 **Ghi vào vở:** Vẽ **to** (hình chiếm khoảng nửa trang vở), dùng thước, compa, ê ke. Ý b, ý c có điểm mới thì **vẽ thêm vào hình cũ**, không vẽ hình mới.",
+          "keyNumbers": [],
+          "keyLabels": [
+            "PQ",
+            "IK",
+            "DK"
+          ],
+          "checks": [
+            "sqrt(3**2 + 4**2) == 5",
+            "3*(-4) + 4*3 == 0",
+            "3*(-5) + 4*10 == 25"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Kiểm hình trước khi chứng minh",
+          "body": "**Đề (ví dụ):** Cho tam giác nhọn PQR có PQ < PR. Gọi K là trung điểm của QR.\n\nBạn Minh vẽ tam giác PQR gần như cân: PQ và PR dài gần bằng nhau. Nhìn hình, Minh thấy PK vuông góc với QR. Minh viết \"PK ⊥ QR\" (đọc là \"PK vuông góc với QR\") vào bài.\n\n**Sai ở đâu?** Đề cho PQ < PR, nên tam giác **không cân**. Khi vẽ PQ ngắn hẳn hơn PR, em sẽ thấy PK nghiêng, không vuông góc với QR. Hình vẽ sai làm Minh tin một điều sai.\n\n**Trước khi chứng minh, em soát hình bằng 4 câu:**\n\n| Câu hỏi | Ví dụ trên |\n|---|---|\n| Đủ mọi điểm, mọi đường đề nói chưa? | Có P, Q, R, K ✓ |\n| Đúng từng điều đề cho chưa? | Ba góc đều nhọn, PQ ngắn hơn PR ✓ |\n| Có vẽ thành hình đặc biệt không? | Không cân, không vuông ✓ |\n| Có điều gì \"nhìn thấy\" mà đề không cho? | PK ⊥ QR: đề không cho, **không được dùng** |\n\n**Vì sao phải soát?** Em thử vẽ hai hình: một hình tam giác gần cân, một hình PQ ngắn hẳn. Hai hình cho em hai \"kết luận\" khác nhau. Chỉ điều đúng với **mọi** hình vẽ theo đề mới được dùng.\n\n📝 **Mẹo nhớ:** *Hình chỉ để nhìn, căn cứ phải từ đề.* Vì sao nhớ được: hình vẽ tay luôn lệch một chút, còn đề bài thì không bao giờ sai.\n\n🔎 **Ghi vào vở:** Hình rối hoặc vẽ sai thì **vẽ lại hình mới**. Mất 2 phút vẽ lại còn hơn mất cả bài vì suy luận theo hình sai.",
+          "keyNumbers": [],
+          "keyLabels": [
+            "PQR",
+            "PK",
+            "QR"
+          ],
+          "checks": [
+            "sqrt(2**2 + 4**2) < sqrt(4**2 + 4**2)",
+            "2*6 + 4*0 > 0",
+            "(-4)*(-6) + 4*0 > 0",
+            "(-2)*4 + (-4)*(-4) > 0",
+            "(3 - 2)*(6 - 0) + (0 - 4)*(0 - 0) != 0"
+          ]
+        }
+      ],
+      "review": [
+        {
+          "key": "why1",
+          "kind": "why",
+          "prompt": "Đề cho \"điểm M bất kì trên đường tròn\". Vì sao không nên đặt M ở chính giữa cung?",
+          "buttons": [
+            "Hình sẽ có thêm điều đề không cho",
+            "Vì ở giữa khó vẽ",
+            "Vì đề cấm đặt ở giữa"
+          ],
+          "answer": "Hình sẽ có thêm điều đề không cho",
+          "check": "exact"
+        },
+        {
+          "key": "rec1",
+          "kind": "recognize",
+          "prompt": "Vẽ tiếp tuyến tại điểm K của đường tròn tâm I, em kẻ gì trước?",
+          "buttons": [
+            "Bán kính IK",
+            "Một đường kính bất kì",
+            "Một dây đi qua K"
+          ],
+          "answer": "Bán kính IK",
+          "check": "exact"
+        }
+      ]
+    },
+    {
+      "code": "D9.3",
+      "grade": 9,
+      "kind": "doc_de",
+      "ku": "N8.10",
+      "title": "Đi ngược từ điều cần chứng minh (sơ đồ phân tích)",
+      "variants": [
+        {
+          "n": 1,
+          "title": "Viết đích ở dưới cùng, đi ngược lên",
+          "body": "**Đề (ví dụ):** Cho tam giác PQR cân tại P. Gọi K là trung điểm của QR. Chứng minh PK ⊥ QR (đọc là \"PK vuông góc với QR\").\n\n**Em thử đi xuôi trước.** Từ \"tam giác PQR cân tại P\", em suy ra được: PQ = PR, góc Q bằng góc R, … Rất nhiều điều. Em chưa biết điều nào dẫn tới PK ⊥ QR.\n\n**Bây giờ đi ngược.** Viết điều cần chứng minh ở **dòng đầu**. Mỗi dòng sau trả lời câu hỏi: *\"Muốn có dòng trên, em cần gì?\"*\n\n| Bước | Em cần có | Vì sao cần |\n|---|---|---|\n| ① Đích | PK ⊥ QR | Đề hỏi điều này |\n| ② | Góc PKQ = 90° | Vuông góc nghĩa là góc 90° |\n| ③ | Góc PKQ bằng góc PKR | Hai góc kề bù bằng nhau thì mỗi góc là 90° |\n| ④ | Tam giác PKQ bằng tam giác PKR | Hai tam giác bằng nhau thì góc tương ứng bằng nhau |\n| ⑤ | PQ = PR ✔, KQ = KR ✔, PK chung ✔ | Đủ ba cặp cạnh (c.c.c). Cả ba đều là điều đề cho, nên dừng |\n\nĐọc từ ① xuống ⑤ là cách **tìm** lời giải. Đọc ngược từ ⑤ lên ① là lời chứng minh em **viết** vào vở.\n\n**Vì sao đi ngược lại dễ hơn?** Đi xuôi, mỗi bước có rất nhiều hướng. Đi ngược, mỗi bước chỉ có vài cách. Ví dụ muốn có hai đường vuông góc, em chỉ có khoảng 5 cách quen thuộc để chọn.\n\n📝 **Mẹo nhớ:** *Bắt đầu từ đích, hỏi \"cần gì\", gặp điều đề cho thì dừng.* Vì sao nhớ được: giống tìm đường trong mê cung bằng cách đi từ cửa ra ngược vào, ít ngã rẽ hơn.\n\n🔎 **Ghi vào vở:** Mỗi khi chạm một điều đề cho, đánh dấu **✔**. Khi mọi nhánh đều có ✔ là em đã tìm xong lời giải.",
+          "keyNumbers": [],
+          "keyLabels": [
+            "PQR",
+            "PK",
+            "QR"
+          ],
+          "checks": [
+            "sqrt(3**2 + 4**2) == 5",
+            "sqrt((-3)**2 + 4**2) == 5",
+            "(0 - 0)*(3 - (-3)) + (0 - 4)*(0 - 0) == 0"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Chọn cách mà hình đã có sẵn",
+          "body": "**Đề (ví dụ):** Cho tam giác PQR. Gọi K là trung điểm của PQ. Qua K kẻ đường thẳng song song với QR, cắt PR tại D. Chứng minh D là trung điểm của PR.\n\n**Bước 1 — Gọi tên đích.** Đích là \"**một điểm là trung điểm**\".\n\n**Bước 2 — Liệt kê các cách đã học** để chứng minh một điểm là trung điểm. Với mỗi cách, xem hình **đã có** thứ nó cần chưa:\n\n| Cách | Cần có gì | Hình đã có? |\n|---|---|---|\n| Đường trung bình | Một trung điểm + một cặp song song | K là trung điểm PQ ✔, KD song song QR ✔ |\n| Giao hai đường chéo hình bình hành | Một hình bình hành | Chưa có ✗ |\n| Hai đoạn bằng nhau, ba điểm thẳng hàng | DP = DR | Chưa biết ✗ |\n| Đường kính vuông góc với dây | Một đường tròn | Không có ✗ |\n\n**Bước 3 — Chọn cách có nhiều ✔ nhất.** Ở đây là đường trung bình: đường thẳng đi qua trung điểm một cạnh và song song với cạnh thứ hai thì đi qua trung điểm cạnh thứ ba. Vậy D là trung điểm PR.\n\n**Vì sao làm theo bảng?** Em thử nghĩ trong đầu xem: rất dễ quên mất một cách. Viết bảng ra thì em thấy ngay cách nào hình đã có sẵn đồ nghề.\n\n📝 **Mẹo nhớ:** *Gọi tên đích, liệt kê cách, chọn cách hình đã có.* Vì sao nhớ được: mỗi cách giống một món đồ nghề; em chọn món mà trong túi đã có sẵn đủ phụ tùng.\n\n🔎 **Ghi vào vở:** Ý b, ý c thì thêm một dòng vào cột \"Hình đã có?\": **kết quả câu a**. Kết quả câu trước thường là đồ nghề cho câu sau.",
+          "keyNumbers": [],
+          "keyLabels": [
+            "PQR",
+            "KD",
+            "PR"
+          ],
+          "checks": [
+            "Rational(0 + 2, 2) == 1 and Rational(0 + 6, 2) == 3",
+            "6 - 6*Rational(1, 2) == 3",
+            "Rational(2 + 8, 2) == 5 and Rational(6 + 0, 2) == 3"
+          ]
+        }
+      ],
+      "review": [
+        {
+          "key": "why1",
+          "kind": "why",
+          "prompt": "Vì sao bài chứng minh nên đi ngược từ điều cần chứng minh?",
+          "buttons": [
+            "Mỗi bước chỉ có vài cách để chọn",
+            "Vì đi xuôi là sai",
+            "Vì viết ngắn hơn"
+          ],
+          "answer": "Mỗi bước chỉ có vài cách để chọn",
+          "check": "exact"
+        },
+        {
+          "key": "rec1",
+          "kind": "recognize",
+          "prompt": "Muốn chứng minh hai đường thẳng song song, cách nào dưới đây dùng được? (chỉ chọn, 30 giây)",
+          "buttons": [
+            "Cùng vuông góc với đường thứ ba",
+            "Cùng đi qua một điểm",
+            "Dài bằng nhau"
+          ],
+          "answer": "Cùng vuông góc với đường thứ ba",
+          "check": "exact"
+        },
+        {
+          "key": "rec2",
+          "kind": "recognize",
+          "prompt": "Muốn chứng minh một điểm là trung điểm. Hình đã có một trung điểm và một cặp song song. Em nghĩ đến gì? (chỉ chọn, 30 giây)",
+          "buttons": [
+            "Đường trung bình",
+            "Tam giác cân",
+            "Tiếp tuyến"
+          ],
+          "answer": "Đường trung bình",
+          "check": "exact"
+        }
+      ]
+    },
+    {
+      "code": "D9.4",
+      "grade": 9,
+      "kind": "doc_de",
+      "ku": "N8.10",
+      "title": "Viết lời chứng minh có căn cứ",
+      "variants": [
+        {
+          "n": 1,
+          "title": "Đảo sơ đồ thành các dòng \"vì … nên …\"",
+          "body": "**Đề (ví dụ):** Cho tam giác PQR cân tại P. Gọi K là trung điểm của QR. Chứng minh PK ⊥ QR.\n\nEm đã tìm ra lời giải bằng sơ đồ đi ngược. Bây giờ em viết **xuôi**: bắt đầu từ điều đề cho, mỗi dòng một ý, căn cứ để trong ngoặc.\n\n**Lời chứng minh:**\nXét tam giác PKQ và tam giác PKR, có:\n\n- PQ = PR (tam giác PQR cân tại P);\n- KQ = KR (K là trung điểm QR);\n- PK là cạnh chung.\n\nDo đó tam giác PKQ bằng tam giác PKR (c.c.c).\nSuy ra góc PKQ bằng góc PKR (hai góc tương ứng).\nMà góc PKQ + góc PKR = 180° (hai góc kề bù), nên góc PKQ = 90°.\nVậy PK ⊥ QR.\n\n**Vì sao cần căn cứ trong ngoặc?** Em thử bỏ hết ngoặc đi rồi đọc lại. Người đọc sẽ hỏi: \"Sao PQ = PR?\", \"Sao hai tam giác bằng nhau?\". Người chấm bài chỉ cho điểm những điều có lí do.\n\n📝 **Mẹo nhớ:** *Mỗi dòng một ý, lí do trong ngoặc, dòng cuối trả lời đúng câu hỏi.* Vì sao nhớ được: lời chứng minh giống bậc thang; thiếu lí do ở bậc nào là gãy bậc đó.\n\n🔎 **Ghi vào vở:** Căn cứ chỉ có 3 loại: **điều đề cho** (giả thiết), **kết quả đã chứng minh** ở dòng trên hoặc câu trước, **định nghĩa, tính chất, định lí** đã học. \"Nhìn hình thấy\" không phải căn cứ.",
+          "keyNumbers": [],
+          "keyLabels": [
+            "PQR",
+            "PK",
+            "QR"
+          ],
+          "checks": [
+            "sqrt(3**2 + 4**2) == sqrt((-3)**2 + 4**2)",
+            "(0 - 0)*(3 - (-3)) + (0 - 4)*(0 - 0) == 0"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Tự soát lời chứng minh trước khi nộp",
+          "body": "**Đề (ví dụ):** Cho tam giác PQR. Gọi K là trung điểm của PQ. Qua K kẻ đường thẳng song song với QR, cắt PR tại D. Chứng minh D là trung điểm của PR.\n\nBạn Lan viết:\n*\"Ta có KD song song QR. Nên D là trung điểm PR.\"*\n\nEm soát bài của Lan bằng 4 câu hỏi:\n\n| Câu hỏi | Bài của Lan |\n|---|---|\n| Mỗi dòng có căn cứ chưa? | \"Nên D là trung điểm\" — chưa có tên định lí ✗ |\n| Đủ mọi điều định lí cần chưa? | Thiếu \"K là trung điểm PQ\" ✗ |\n| Có dùng điều chỉ \"nhìn hình thấy\" không? | Không ✓ |\n| Dòng cuối có đúng điều đề hỏi không? | Có ✓ |\n\n**Bài sửa:**\nTrong tam giác PQR có: K là trung điểm của PQ (giả thiết), KD song song QR (giả thiết).\nNên D là trung điểm của PR (đường thẳng đi qua trung điểm một cạnh của tam giác và song song với cạnh thứ hai thì đi qua trung điểm cạnh thứ ba).\n\n**Vì sao phải đủ mọi điều?** Định lí đường trung bình cần **cả hai** điều: một trung điểm và một cặp song song. Em thử bỏ \"K là trung điểm\" đi: một đường song song với QR bất kì sẽ không chia đôi PR.\n\n📝 **Mẹo nhớ:** *Định lí cần mấy điều thì viết đủ mấy điều.* Vì sao nhớ được: định lí giống một chiếc khóa nhiều chốt; thiếu một chốt là không mở được.\n\n🔎 **Ghi vào vở:** Với tam giác bằng nhau hay đồng dạng, viết tên đỉnh **đúng thứ tự tương ứng** (tam giác PKQ và tam giác PKR: P với P, K với K, Q với R).",
+          "keyNumbers": [],
+          "keyLabels": [
+            "PQR",
+            "KD",
+            "PR"
+          ],
+          "checks": [
+            "Rational(2 + 8, 2) == 5 and Rational(6 + 0, 2) == 3",
+            "6 - 6*Rational(1, 2) == 3"
+          ]
+        }
+      ],
+      "review": [
+        {
+          "key": "why1",
+          "kind": "why",
+          "prompt": "Vì sao mỗi dòng chứng minh cần căn cứ trong ngoặc?",
+          "buttons": [
+            "Người chấm chỉ tính điều có lí do",
+            "Cho bài dài hơn",
+            "Cho bài đẹp hơn"
+          ],
+          "answer": "Người chấm chỉ tính điều có lí do",
+          "check": "exact"
+        },
+        {
+          "key": "rec1",
+          "kind": "recognize",
+          "prompt": "Câu nào KHÔNG được dùng làm căn cứ trong bài chứng minh?",
+          "buttons": [
+            "Nhìn hình thấy bằng nhau",
+            "K là trung điểm QR (giả thiết)",
+            "Hai góc kề bù"
+          ],
+          "answer": "Nhìn hình thấy bằng nhau",
           "check": "exact"
         }
       ]
