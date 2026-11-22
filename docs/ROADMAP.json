@@ -918,11 +918,6 @@
       "status": "open"
     },
     {
-      "text": "Đặt TUTOR_NOTIFY_SECRET + LAUNCHER_URL (hub THI_DIEM_CHECKLIST mục A) để iPhone nhận báo tiền",
-      "slice": "G9",
-      "status": "open"
-    },
-    {
       "text": "Duyệt 3 thẻ hình D9.2–D9.4 trong PR #26 (G6d) — merge = duyệt",
       "slice": "G6",
       "status": "done"
