@@ -46,6 +46,7 @@ export function memoryRepo(seed: Seed = {}, strongModel = "claude-opus-5-5") {
   const sessions: Sess[] = (seed.sessions ?? []).map((s) => ({ id: id("s"), childId: "c1", dateVn: "2026-11-14", status: "active", device: "laptop", rulesVersion: 0, ...s }));
   const rules: RuleMem[] = (seed.rules ?? []).map((r) => ({ childId: "c1", familyId: "f1", status: "approved", version: 1, text: "Luật", sourceKey: null,
     source: "manual", sourceIds: [], ...r }));
+  const feedback: { childId: string; problemId: string; messageId: string; kind: string; comment: string | null; clientMsgId: string; at: Date }[] = [];
   const ratings: RatingMem[] = (seed.ratings ?? []).map((r) => ({ id: id("r"), childId: "c1", face: "ok", reasons: [], comment: null,
     at: new Date("2026-11-13T10:00:00Z"), ...r }));
   const problems: Prob[] = (seed.problems ?? []).map((p) => ({ familyId: "f1", sessionId: "s0", status: "in_progress", turnCount: 0,
@@ -281,6 +282,23 @@ export function memoryRepo(seed: Seed = {}, strongModel = "claude-opus-5-5") {
       ratings.push({ id: id("r"), sessionId: sess.id, childId: a.actor.userId, face: a.face, reasons: [...a.reasons], comment: a.comment, at: a.now });
       return "saved";
     },
+    async tutorMessageFor(childId, ref) {
+      const own = (m: MsgRow) => m.childId === childId;
+      if (ref.kind === "id") {
+        const m = messages.find((x) => x.id === ref.id && own(x) && x.role === "tutor");
+        return m ? { id: m.id, problemId: m.problemId } : null;
+      }
+      const asked = messages.find((x) => own(x) && x.role === "child" && x.clientMsgId === ref.clientMsgId);
+      if (!asked) return null;
+      const after = messages.slice(messages.indexOf(asked) + 1).find((x) => own(x) && x.role === "tutor" && x.problemId === asked.problemId);
+      return after ? { id: after.id, problemId: after.problemId } : null;
+    },
+    async saveMessageFeedback(a) {
+      if (feedback.some((f) => f.childId === a.actor.userId && f.clientMsgId === a.clientMsgId)) return "already";
+      feedback.push({ childId: a.actor.userId, problemId: a.problemId, messageId: a.messageId, kind: a.kind, comment: a.comment,
+        clientMsgId: a.clientMsgId, at: a.now });
+      return "saved";
+    },
     async sessionRated(sessionId, childId) {
       return ratings.some((r) => r.sessionId === sessionId && r.childId === childId);
     },
@@ -336,5 +354,5 @@ export function memoryRepo(seed: Seed = {}, strongModel = "claude-opus-5-5") {
     },
   };
   return Object.assign(repo, { sessions, problems, messages, modelCalls, usage, modes, images, toolCalls, diagnoses, attentionSyncs, failAttention, rules, ratings, alerts, references,
-    reviewItems, reviewAttempts });
+    reviewItems, reviewAttempts, feedback });
 }

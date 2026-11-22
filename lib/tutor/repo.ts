@@ -9,6 +9,7 @@ import type { ImageData } from "@/lib/tutor/assemble";
 import type { RatingReason, RuleRow } from "@/lib/rules/teachingRules";
 import type { Reference, ReferenceCall } from "@/lib/tutor/reference";
 import type { NewReviewItem, ReviewItem, ReviewResult } from "@/lib/rules/review";
+import type { FeedbackKind, MessageRef } from "@/lib/rules/feedback";
 
 export type ChildActor = Extract<Actor, { role: "child" }>;
 /** An answered message of the problem; `id` lets the server put the message's photos back (never sent to the API). */
@@ -217,6 +218,11 @@ export interface TutorRepo {
   sessionRated(sessionId: string, childId: string): Promise<boolean>;
   /** G7b: the child's latest ratings, newest first. */
   latestRatings(childId: string, n: number): Promise<{ id: string; face: string; reasons: string[] }[]>;
+  /** D32: a TUTOR message of the child's own problem (by id, or the reply to the child's message), else null. */
+  tutorMessageFor(childId: string, ref: MessageRef): Promise<{ id: string; problemId: string } | null>;
+  /** D32: "Cô sai ở đây". The same clientMsgId twice → "already". */
+  saveMessageFeedback(a: { actor: ChildActor; problemId: string; messageId: string; kind: FeedbackKind; comment: string | null;
+    clientMsgId: string; now: Date }): Promise<"saved" | "already">;
   /** G7b (P2): what the problem page needs to decide on the rating card. null when not this child's. */
   ratingState(problemId: string, childId: string): Promise<{ sessionId: string; sessionStatus: "active" | "ended" | "abandoned"; rated: boolean; earlierEnded: boolean } | null>;
 
@@ -247,7 +253,8 @@ export interface StoredReviewItem extends ReviewItem {
 }
 
 /** G7b: a rating may be completed (reasons added) for this long after the first tap. */
-export const RATING_EDIT_MS = 2 * 60 * 1000;
+/** D32: 10 minutes to add reasons and a written comment after the one-tap rating (was 2). */
+export const RATING_EDIT_MS = 10 * 60 * 1000;
 /** G7b (P2): outcomes after which the rating card shows (abandoned / closed problems do not count). */
 export const RATING_OUTCOMES: readonly ProblemStatus[] = ["self_solved", "saved_for_later", "pending_review"];
 

@@ -11,6 +11,8 @@ import { costFlag, dayFlags, type Flag } from "./flags";
 import { factsFromRows, type ProblemRowLite } from "./facts";
 import type { CardGap } from "./cardGaps";
 import { loadCardGaps, loadReviewDay } from "./gapsLoad";
+import { loadFeedbackDay } from "./feedbackLoad";
+import type { FeedbackItem } from "@/lib/rules/feedback";
 
 export { kuTitle };
 
@@ -23,7 +25,9 @@ export interface ChildDay {
   sessions: number;
   flags: Flag[];
   problems: ReportProblem[];
-  ratings: { face: "easy" | "ok" | "hard"; reasons: string[] }[];
+  ratings: { face: "easy" | "ok" | "hard"; reasons: string[]; comment?: string | null }[];
+  /** D32: tutor messages the child flagged ("Cô sai ở đây") that day. */
+  feedback: FeedbackItem[];
   /** G6b: start-of-session review of the day (answered questions, right ones). */
   review: { asked: number; correct: number };
 }
@@ -46,8 +50,8 @@ export async function loadDayReport(parent: ParentActor, date: string, db: Supab
     : { data: [], error: null };
   if (e2) fail("report.minutes", e2);
   const children = await Promise.all((kids ?? []).map(async (k): Promise<ChildDay> => {
-    const [d, review] = await Promise.all([loadChildDay(db, parent.familyId, k.id as string, date),
-      loadReviewDay(db, parent.familyId, k.id as string, date)]);
+    const [d, review, feedback] = await Promise.all([loadChildDay(db, parent.familyId, k.id as string, date),
+      loadReviewDay(db, parent.familyId, k.id as string, date), loadFeedbackDay(db, parent.familyId, k.id as string, date)]);
     return {
       childId: k.id as string,
       name: (k.display_name as string | null) ?? "Con",
@@ -58,6 +62,7 @@ export async function loadDayReport(parent: ParentActor, date: string, db: Supab
       problems: d.problems.map((p) => ({ ...p, kuTitle: p.ku_code ? kuTitle(p.ku_code) : null })),
       ratings: d.ratings,
       review,
+      feedback,
     };
   }));
   const month = `${new Date().toISOString().slice(0, 7)}-01`;

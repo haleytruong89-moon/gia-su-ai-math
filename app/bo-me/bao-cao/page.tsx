@@ -6,13 +6,34 @@ import { addDays, dateVn } from "@/lib/time";
 import { TopBar } from "../../top-bar";
 import { CostActions } from "./cost-actions";
 import { GapCopy } from "./gap-copy";
+import { FEEDBACK_LABEL, feedbackRequest } from "@/lib/rules/feedback";
 import type { CardGap } from "@/lib/report/cardGaps";
 
 export const dynamic = "force-dynamic";
 
 const BACK = { href: "/gia-su/bo-me", label: "← Hồ sơ dạy học" } as const;
 
-function Child({ c }: { c: ChildDay }) {
+/** D32: the tutor messages the child flagged, with the child's words; "Cô đưa đáp số" in red. */
+function ChildFeedback({ c, date }: { c: ChildDay; date: string }) {
+  if (!c.feedback.length) return null;
+  return (
+    <div className="flex flex-col gap-2 rounded-xl border border-ink/10 p-3">
+      <p className="text-sm font-semibold">Con báo cô sai ({c.feedback.length})</p>
+      <ul className="flex flex-col gap-2 text-sm">
+        {c.feedback.map((f, i) => (
+          <li key={i} className={`rounded-lg px-2 py-1 ${f.kind === "gave_answer" ? "bg-[#FBE3DF]" : "bg-bg"}`}>
+            <b className={f.kind === "gave_answer" ? "text-[#A33A2B]" : ""}>{FEEDBACK_LABEL[f.kind]}</b> · Cô nói: «{f.tutorText}»
+            {f.comment && <span className="block">Con viết: «{f.comment}»</span>}
+            <a href={`/gia-su/bo-me/bao-cao/${f.problemId}`} className="text-accent underline">Xem lại bài</a>
+          </li>
+        ))}
+      </ul>
+      <GapCopy request={feedbackRequest(c.grade, date, c.feedback)} />
+    </div>
+  );
+}
+
+function Child({ c, date }: { c: ChildDay; date: string }) {
   const solved = c.problems.filter((p) => p.status === "self_solved").length;
   return (
     <section className="flex flex-col gap-3 rounded-2xl border border-ink/10 bg-white p-4">
@@ -71,10 +92,11 @@ function Child({ c }: { c: ChildDay }) {
         <p className="text-sm">
           Con chấm cô:{" "}
           {c.ratings
-            .map((r) => [FACE_LABEL[r.face], ...r.reasons.map((x) => REASON_LABEL[x] ?? x)].join(", "))
+            .map((r) => [FACE_LABEL[r.face], ...r.reasons.map((x) => REASON_LABEL[x] ?? x)].join(", ") + (r.comment ? ` — «${r.comment}»` : ""))
             .join(" · ")}
         </p>
       )}
+      <ChildFeedback c={c} date={date} />
     </section>
   );
 }
@@ -133,7 +155,7 @@ export default async function ReportPage({ searchParams }: { searchParams: Promi
         </section>
         {report.children.length === 0 && <p>Gia đình chưa có tài khoản con.</p>}
         {report.children.map((c) => (
-          <Child key={c.childId} c={c} />
+          <Child key={c.childId} c={c} date={date} />
         ))}
         <CardGaps gaps={report.cardGaps} names={new Map(report.children.map((c) => [c.childId, c.name]))} />
         <p className="text-xs text-ink/60">

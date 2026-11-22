@@ -437,6 +437,34 @@ export function supabaseRepo(db: SupabaseClient = createAdminClient(), strongMod
       return "saved";
     },
 
+    async tutorMessageFor(childId, ref) {
+      if (ref.kind === "id") {
+        const { data, error } = await t().from("messages").select("id, problem_id")
+          .eq("id", ref.id).eq("child_id", childId).eq("role", "tutor").is("deleted_at", null).maybeSingle();
+        if (error) fail("tutorMessageFor.id", error);
+        return data ? { id: data.id as string, problemId: data.problem_id as string } : null;
+      }
+      const { data: asked, error: e1 } = await t().from("messages").select("problem_id, created_at")
+        .eq("child_id", childId).eq("client_msg_id", ref.clientMsgId).eq("role", "child").is("deleted_at", null).maybeSingle();
+      if (e1) fail("tutorMessageFor.child", e1);
+      if (!asked) return null;
+      const { data, error: e2 } = await t().from("messages").select("id, problem_id")
+        .eq("problem_id", asked.problem_id as string).eq("child_id", childId).eq("role", "tutor").is("deleted_at", null)
+        .gte("created_at", asked.created_at as string).order("created_at", { ascending: true }).limit(1).maybeSingle();
+      if (e2) fail("tutorMessageFor.reply", e2);
+      return data ? { id: data.id as string, problemId: data.problem_id as string } : null;
+    },
+
+    async saveMessageFeedback(a) {
+      const { error } = await t().from("message_feedback").insert({
+        family_id: a.actor.familyId, child_id: a.actor.userId, problem_id: a.problemId, message_id: a.messageId,
+        kind: a.kind, comment: a.comment, client_msg_id: a.clientMsgId, created_at: a.now.toISOString(), created_by: a.actor.userId,
+      });
+      if (error?.code === UNIQUE_VIOLATION) return "already";
+      if (error) fail("saveMessageFeedback", error);
+      return "saved";
+    },
+
     async sessionRated(sessionId, childId) {
       const { count, error } = await t().from("ratings").select("id", { count: "exact", head: true }).eq("session_id", sessionId).eq("child_id", childId);
       if (error) fail("sessionRated", error);
