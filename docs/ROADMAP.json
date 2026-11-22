@@ -2,7 +2,7 @@
   "schema": 1,
   "project": "Gia sư AI Toán",
   "updated": "2026-11-22",
-  "updatedNote": "Hai con dùng thật sớm (D31). Chờ duyệt: #29 \"Bật cô 1 nút\" (D33). Tiếp: G8",
+  "updatedNote": "Hai con dùng thật sớm (D31); \"Cô sai ở đây\" chạy (D32). Chờ duyệt: #29 \"Bật cô 1 nút\" (D33). Tiếp: G8",
   "vision": {
     "oneLiner": "Một \"cô\" gia sư AI giúp 2 con tự học Toán buổi chiều: gỡ chỗ kẹt bằng câu hỏi gợi mở, không đưa lời giải bài gốc, tối bố mẹ đọc báo cáo 5 phút.",
     "problem": "Buổi chiều 2 con có nhiều thời gian tự học nhưng không có người lớn. Bố mẹ có khoảng 2 giờ buổi tối, gia sư người 2 buổi/tuần. Tốc độ tiến bộ do giờ tự học buổi chiều quyết định.",
@@ -472,7 +472,8 @@
     {
       "id": "G6",
       "title": "Thẻ giảng + ôn đầu buổi",
-      "status": "in_progress",
+      "status": "done",
+      "done": "2026-11-22",
       "goal": "Thẻ giảng đã duyệt (\"Hiểu bản chất\", \"Đọc đề\"; 2 cách/thẻ), ôn đầu buổi tối đa 2 câu (1 → 3 → 7 ngày), báo thẻ còn thiếu",
       "features": [
         {
@@ -493,7 +494,7 @@
         },
         {
           "name": "G6d Bài hình: cô hướng dẫn vẽ hình + soát hình con vẽ (ve_hinh), 3 thẻ D9.2–D9.4, chống trùng theo tên điểm (D30)",
-          "status": "review"
+          "status": "done"
         }
       ],
       "acceptance": [
@@ -657,12 +658,20 @@
       "goal": "Toàn bộ bộ test sư phạm đạt trên model đã chọn rồi mới cho 2 con dùng thật, bắt đầu thí điểm 2 tuần.",
       "features": [
         {
-          "name": "D32 Con báo \"Cô sai ở đây\" dưới từng câu của cô + ô viết khi chấm cô; báo cáo tối hiện đúng câu + lời con",
-          "status": "review"
+          "name": "Dùng thật sớm (D31): 2 con dùng + phản hồi, không chạy bộ test toàn phần trước",
+          "status": "doing"
         },
         {
           "name": "D33 Bật cô 1 nút: hồ sơ mặc định theo lớp + ô ghi chú riêng (không phải dán hồ sơ dài)",
           "status": "review"
+        },
+        {
+          "name": "D32 Con báo \"Cô sai ở đây\" dưới từng câu của cô + ô viết khi chấm cô; báo cáo tối hiện đúng câu + lời con",
+          "status": "done"
+        },
+        {
+          "name": "Ca lộ / ca dở từ dùng thật → thêm vào bộ test (dữ liệu giả) và sửa",
+          "status": "todo"
         },
         {
           "name": "0 lộ lời giải; tiêu chí BO_TEST §1",
@@ -688,12 +697,17 @@
         {
           "repo": "launcher",
           "number": 104,
-          "status": "open"
+          "status": "merged"
         },
         {
           "repo": "gia-su",
           "number": 28,
-          "status": "open"
+          "status": "merged"
+        },
+        {
+          "repo": "gia-su",
+          "number": 27,
+          "status": "merged"
         },
         {
           "repo": "gia-su",
@@ -889,6 +903,12 @@
       "status": "confirmed"
     },
     {
+      "id": "D31",
+      "text": "Cho 2 con dùng thật sớm, không chờ G8 và bộ test toàn phần; ca lộ từ dùng thật thành ca test",
+      "status": "confirmed",
+      "date": "2026-11-22"
+    },
+    {
       "id": "D32",
       "text": "Con báo \"Cô sai ở đây\" (loại lỗi + lời viết) dưới từng câu của cô; ô viết trong thẻ chấm, 10 phút; báo cáo tối hiện đúng câu",
       "status": "confirmed",
@@ -903,14 +923,19 @@
   ],
   "parentTodo": [
     {
-      "text": "Merge Launcher #104 (SQL 0027: bảng message_feedback) TRƯỚC, rồi gia sư #28 (\"Cô sai ở đây\")",
+      "text": "Bật cô cho con: /gia-su/bo-me → \"Bật cô cho con\" (sau khi #29 merge; trước đó dán đoạn hồ sơ ngắn) — thiếu thì con thấy \"Bố mẹ chưa bật cô gia sư\"",
+      "slice": "G9",
+      "status": "open"
+    },
+    {
+      "text": "Cho con dùng thử (D31); thấy cô đưa đáp số / nói sai → con bấm \"Cô sai ở đây\" hoặc bố mẹ chụp màn hình gửi Claude",
       "slice": "G9",
       "status": "open"
     },
     {
       "text": "Duyệt 3 thẻ hình D9.2–D9.4 trong PR #26 (G6d) — merge = duyệt",
       "slice": "G6",
-      "status": "open"
+      "status": "done"
     },
     {
       "text": "Duyệt mẫu thẻ đợt 0 (6 thẻ trong PR G6a: T6.11, T6.12, T9.9, D6.1, D6.2, D9.1) — merge = duyệt",
@@ -1146,7 +1171,11 @@
     },
     {
       "date": "2026-11-22",
-      "text": "D33 (#29): bật cô 1 nút — hồ sơ mặc định theo lớp + ghi chú riêng; bố mẹ không phải dán hồ sơ dài nữa"
+      "text": "Phụ huynh merge #26 (G6 xong), #28 + Launcher #104 (D32 \"Cô sai ở đây\"). D31: hai con dùng thật sớm, thu phản hồi thay vì chạy bộ test toàn phần"
+    },
+    {
+      "date": "2026-11-22",
+      "text": "Phụ huynh merge #27 (D31). D33 (#29): bật cô 1 nút — hồ sơ mặc định theo lớp + ghi chú riêng; bố mẹ không phải dán hồ sơ dài nữa"
     }
   ]
 }
