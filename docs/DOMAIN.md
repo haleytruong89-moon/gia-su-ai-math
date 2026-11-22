@@ -84,6 +84,7 @@
 | D29 | **Không có chế độ tiết kiệm.** Gần trần (~45 USD): báo ngay cho bố mẹ và **tạm ngừng chuyển Opus** (Sonnet vẫn chạy, kể cả lượt viết lại sau khi bị chặn). Trần cứng 50 USD trên Console giữ nguyên | thường | ✅ 15/11 |
 | D30 | **Bài hình: vẽ hình trước khi suy luận** (G6d): đề hình chưa có hình → cô hướng dẫn con vẽ từng câu, con chụp gửi lại, cô soát 4 điểm (đủ điểm · đúng điều đề cho · không vẽ thành hình đặc biệt · không dùng điều "nhìn thấy"); 3 thẻ phương pháp D9.2 vẽ hình, D9.3 đi ngược, D9.4 viết lời chứng minh; thẻ hình chống trùng bằng **tên điểm** (§4.15 C1). Công cụ vẽ hình C2 để sau G9 | thường | ✅ 22/11 |
 | D31 | **Cho 2 con dùng thật sớm, không chờ G8 và bộ test toàn phần** (22/11): phụ huynh chấp nhận rủi ro một vài lượt cô lộ lời giải trong thí điểm để tiết kiệm tiền chạy test (~4–5 USD) và có phản hồi thật sớm. Lớp chặn vẫn giữ: bộ kiểm tra Haiku chấm mọi câu trả lời, trần 50 USD/tháng, tối đa 20 lượt/bài. Ca lộ / ca dở gặp khi dùng thật → bố mẹ chụp màn hình hoặc đánh dấu trong báo cáo → Claude đưa thành ca test (dữ liệu giả) và sửa. G8 làm song song (tự dọn ảnh trước) | thường | ✅ 22/11 |
+| D32 | **Con báo "Cô sai ở đây"**: dưới mỗi câu của cô có nút; con chọn loại (cô nói sai · cô đưa đáp số · khó hiểu · khác) và viết sai ở đâu, như thế nào (≤ 500 ký tự). Thẻ chấm cô có ô viết, thời gian thêm 2 → 10 phút. Báo cáo tối hiện đúng câu của cô + lời con ("cô đưa đáp số" tô đỏ) + nút sao chép gửi Claude làm ca test. Cô không đọc phản hồi này. SQL 0027 (Launcher) | thường | ✅ 22/11 |
 | D27 | Gắn nhãn ý đề vào 10 Hà Nội (`exam_slot`, vd `HN10-2c`) cho bài luyện; báo cáo tối/tuần đếm theo ý chặn | thường | ✅ 16/11 (G5 Q4: Haiku chỉ gắn khi đề rõ là đề vào 10 hoặc con nói vậy; không chắc → để trống) |
 
 ## 1. Data model (schema `tutor` trong Supabase `study-launcher`)
@@ -105,6 +106,7 @@ Quy ước chung mọi bảng: `id uuid`, `created_at timestamptz`, `updated_at 
 | `diagnoses` | `problem_id`, `root` (read / concept / strategy / calc / careful / unknown), `source` (self_reported / verified) | Có thể nhiều dòng mỗi bài |
 | `ratings` | `session_id` (unique), `face` (easy / ok / hard), `reasons` (enum[]: too_long, hard_words, answer_too_early, too_many_questions, good_example, clear), `comment` | Con chấm 1 lần cuối mỗi buổi |
 | `parent_feedback` | `problem_id`, `message_id` (nullable), `thumb` (up / down), `note` | Góp ý của bố mẹ |
+| `message_feedback` | `problem_id`, `message_id` (câu của cô), `kind` (wrong / gave_answer / unclear / other), `comment` (≤ 500), `client_msg_id` | Con báo "Cô sai ở đây" (D32, SQL 0027). Cô (model) không đọc |
 | `usage_monthly` | `month` (tháng theo UTC, khớp kỳ của Console), `cost_usd` (cộng từ `model_calls`), `model_mode` (normal / economy — *từ v0.5, `economy` = tạm ngừng chuyển Opus, D29*), `burn_alert_sent_at`, `economy_alert_sent_at` | Sổ chi phí của app; đối chiếu với Console hằng tuần (D13, D15) |
 | `topic_packs` | `child_id`, `title`, `version`, `status` (§3.5), `source_docs`, `content_path`, `approved_by` | v1: gói vẫn là app HTML trong hub; bảng này để Launcher giao như bài bổ sung |
 | view `daily_summary` | theo `child_id` × `date_vn` | Tạo với `security_invoker = true`; Launcher đọc qua quyền bố mẹ để hiện thẻ trong Xem gộp |
@@ -129,6 +131,7 @@ Vai trò: **Con**, **Bố mẹ**, **Máy chủ** (hàm server trên Vercel, dùn
 | `attachments` | Tải lên qua URL ký sẵn do máy chủ cấp; xem của mình | Xem, xóa | Tạo URL, xóa theo hạn |
 | `ratings` | Tạo 1 lần cho buổi của mình — **qua máy chủ** (G7: buổi có thể còn `active`) | Xem | Ghi (route của con) |
 | `parent_feedback` | Không xem | Tạo, sửa, xem | Đọc để đề xuất luật |
+| `message_feedback` | Tạo **qua máy chủ** (chỉ câu của cô trong bài của mình), xem của mình | Xem | Không đọc |
 | `teaching_profiles`, `teaching_rules` | Không xem | Xem, duyệt / bỏ, sửa hồ sơ | Đề xuất luật (status = proposed) |
 | `usage_monthly` | Không xem | Xem | Ghi |
 | `topic_packs` | Xem gói được giao | Tạo, duyệt, giao, lưu trữ | — |
@@ -157,7 +160,7 @@ active ──► ended       (con bấm "Kết thúc buổi", hoặc đủ 45 ph
 ```
 - Phút 40: nhắc "còn 5 phút". Phút 45: bài đang làm được trả lời 1 lượt cuối rồi đóng (bài → `timed_out`, có thể làm tiếp ở buổi sau).
 - Không có thời lượng tối thiểu: con dừng sớm được. 30–45 phút là khoảng khuyến nghị hiển thị cho con.
-- Con chấm gia sư AI (§1 `ratings`) — **G7, ✅ phụ huynh chốt 18/11 (P2):** thẻ chấm hiện **sau khi bài đầu tiên của buổi kết thúc** (self_solved / saved_for_later / pending_review), hoặc khi con bấm **"Kết thúc buổi"**; 1 chạm là lưu, lý do tùy chọn (thêm trong 2 phút); bỏ qua được; 1 lần/buổi. "Kết thúc buổi": buổi → `ended`, bài đang làm → `timed_out` (làm tiếp ở buổi sau); bài tiếp theo trong ngày mở buổi mới.
+- Con chấm gia sư AI (§1 `ratings`) — **G7, ✅ phụ huynh chốt 18/11 (P2):** thẻ chấm hiện **sau khi bài đầu tiên của buổi kết thúc** (self_solved / saved_for_later / pending_review), hoặc khi con bấm **"Kết thúc buổi"**; 1 chạm là lưu, lý do và **lời con viết** (≤ 500 ký tự) tùy chọn, thêm trong **10 phút** (D32; trước là 2 phút); bỏ qua được; 1 lần/buổi. "Kết thúc buổi": buổi → `ended`, bài đang làm → `timed_out` (làm tiếp ở buổi sau); bài tiếp theo trong ngày mở buổi mới.
 
 ### 3.2. Bài (`problems.status`)
 ```text

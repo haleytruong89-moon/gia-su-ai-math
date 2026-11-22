@@ -15,6 +15,7 @@ import { shouldShowRating } from "@/lib/rules/rating";
 import { RatingCard } from "./rating-card";
 import { ReferenceSolution } from "./reference-solution";
 import { CardView } from "./card-view";
+import { FlagMessage } from "./flag-form";
 
 const CLOSED_TEXT: Partial<Record<ProblemStatus, string>> = {
   timed_out: "Bài này đã đủ 20 lượt. Em ghi lại chỗ đã làm được và để dành hỏi thầy nhé.",
@@ -27,7 +28,7 @@ const CLOSED_TEXT: Partial<Record<ProblemStatus, string>> = {
 function Bubble({ m }: { m: ThreadMessage }) {
   const tutor = m.role === "tutor";
   return (
-    <li className={`flex ${tutor ? "justify-start" : "justify-end"}`}>
+    <li className={`flex ${tutor ? "flex-col items-start" : "justify-end"}`}>
       <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-base leading-relaxed ${tutor ? "bg-white" : "bg-accent text-white"}`}>
         <span className="sr-only">{tutor ? "Cô: " : "Em: "}</span>
         {m.images.map((src) => (
@@ -43,6 +44,7 @@ function Bubble({ m }: { m: ThreadMessage }) {
         ))}
         {m.cardRef && <CardView cardRef={m.cardRef} />}
       </div>
+      {tutor && <FlagMessage messageRef={m.id} />}
     </li>
   );
 }
