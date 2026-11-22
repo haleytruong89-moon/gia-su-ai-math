@@ -1,5 +1,5 @@
 {
-  "version": "2026-11-22.44feea02",
+  "version": "2026-11-22.d016ecd2",
   "cards": [
     {
       "code": "D6.1",
@@ -270,7 +270,7 @@
       "variants": [
         {
           "n": 1,
-          "title": "Viết đích ở dưới cùng, đi ngược lên",
+          "title": "Bắt đầu từ đích, đi ngược từng bước",
           "body": "**Đề (ví dụ):** Cho tam giác PQR cân tại P. Gọi K là trung điểm của QR. Chứng minh PK ⊥ QR (đọc là \"PK vuông góc với QR\").\n\n**Em thử đi xuôi trước.** Từ \"tam giác PQR cân tại P\", em suy ra được: PQ = PR, góc Q bằng góc R, … Rất nhiều điều. Em chưa biết điều nào dẫn tới PK ⊥ QR.\n\n**Bây giờ đi ngược.** Viết điều cần chứng minh ở **dòng đầu**. Mỗi dòng sau trả lời câu hỏi: *\"Muốn có dòng trên, em cần gì?\"*\n\n| Bước | Em cần có | Vì sao cần |\n|---|---|---|\n| ① Đích | PK ⊥ QR | Đề hỏi điều này |\n| ② | Góc PKQ = 90° | Vuông góc nghĩa là góc 90° |\n| ③ | Góc PKQ bằng góc PKR | Hai góc kề bù bằng nhau thì mỗi góc là 90° |\n| ④ | Tam giác PKQ bằng tam giác PKR | Hai tam giác bằng nhau thì góc tương ứng bằng nhau |\n| ⑤ | PQ = PR ✔, KQ = KR ✔, PK chung ✔ | Đủ ba cặp cạnh (c.c.c). Cả ba đều là điều đề cho, nên dừng |\n\nĐọc từ ① xuống ⑤ là cách **tìm** lời giải. Đọc ngược từ ⑤ lên ① là lời chứng minh em **viết** vào vở.\n\n**Vì sao đi ngược lại dễ hơn?** Đi xuôi, mỗi bước có rất nhiều hướng. Đi ngược, mỗi bước chỉ có vài cách. Ví dụ muốn có hai đường vuông góc, em chỉ có khoảng 5 cách quen thuộc để chọn.\n\n📝 **Mẹo nhớ:** *Bắt đầu từ đích, hỏi \"cần gì\", gặp điều đề cho thì dừng.* Vì sao nhớ được: giống tìm đường trong mê cung bằng cách đi từ cửa ra ngược vào, ít ngã rẽ hơn.\n\n🔎 **Ghi vào vở:** Mỗi khi chạm một điều đề cho, đánh dấu **✔**. Khi mọi nhánh đều có ✔ là em đã tìm xong lời giải.",
           "keyNumbers": [],
           "keyLabels": [
