@@ -2,7 +2,7 @@
   "schema": 1,
   "project": "Gia sư AI Toán",
   "updated": "2026-11-22",
-  "updatedNote": "Chờ duyệt: Launcher #104 (SQL 0027) rồi gia sư #28 — con báo \"Cô sai ở đây\" (D32). Tiếp: G8",
+  "updatedNote": "Hai con dùng thật sớm (D31). Chờ duyệt: #29 \"Bật cô 1 nút\" (D33). Tiếp: G8",
   "vision": {
     "oneLiner": "Một \"cô\" gia sư AI giúp 2 con tự học Toán buổi chiều: gỡ chỗ kẹt bằng câu hỏi gợi mở, không đưa lời giải bài gốc, tối bố mẹ đọc báo cáo 5 phút.",
     "problem": "Buổi chiều 2 con có nhiều thời gian tự học nhưng không có người lớn. Bố mẹ có khoảng 2 giờ buổi tối, gia sư người 2 buổi/tuần. Tốc độ tiến bộ do giờ tự học buổi chiều quyết định.",
@@ -661,6 +661,10 @@
           "status": "review"
         },
         {
+          "name": "D33 Bật cô 1 nút: hồ sơ mặc định theo lớp + ô ghi chú riêng (không phải dán hồ sơ dài)",
+          "status": "review"
+        },
+        {
           "name": "0 lộ lời giải; tiêu chí BO_TEST §1",
           "status": "todo"
         },
@@ -689,6 +693,11 @@
         {
           "repo": "gia-su",
           "number": 28,
+          "status": "open"
+        },
+        {
+          "repo": "gia-su",
+          "number": 29,
           "status": "open"
         }
       ]
@@ -882,6 +891,12 @@
     {
       "id": "D32",
       "text": "Con báo \"Cô sai ở đây\" (loại lỗi + lời viết) dưới từng câu của cô; ô viết trong thẻ chấm, 10 phút; báo cáo tối hiện đúng câu",
+      "status": "confirmed",
+      "date": "2026-11-22"
+    },
+    {
+      "id": "D33",
+      "text": "Bật cô 1 nút: hồ sơ mặc định theo lớp + ghi chú riêng; cách dạy chung nằm trong prompt và kho kiến thức",
       "status": "confirmed",
       "date": "2026-11-22"
     }
@@ -1128,6 +1143,10 @@
     {
       "date": "2026-11-22",
       "text": "D32: con báo \"Cô sai ở đây\" dưới từng câu của cô (loại lỗi + lời viết), ô viết khi chấm cô (10 phút); báo cáo tối hiện đúng câu, \"cô đưa đáp số\" tô đỏ, nút sao chép gửi Claude. Launcher #104 (SQL 0027) + gia sư #28"
+    },
+    {
+      "date": "2026-11-22",
+      "text": "D33 (#29): bật cô 1 nút — hồ sơ mặc định theo lớp + ghi chú riêng; bố mẹ không phải dán hồ sơ dài nữa"
     }
   ]
 }

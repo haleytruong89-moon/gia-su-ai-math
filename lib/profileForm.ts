@@ -34,3 +34,35 @@ export function parseProfileForm(raw: unknown, grade: number): { ok: true; value
   if (text.length > MAX_PROFILE_CHARS) return { ok: false, error: `Hồ sơ dài quá ${MAX_PROFILE_CHARS} ký tự.` };
   return { ok: true, value: { childId: v.childId, childCode: v.childCode, maxLines, answerMode: v.answerMode ?? d.answerMode, profileText: text } };
 }
+
+// ---------- D33: one-tap enable ----------
+// The general teaching (method, checklists, common mistakes, toolbox) lives in the prompt and the knowledge base;
+// the profile only says who the child is (code, grade, reply length) plus the parents' private note.
+
+const NOTE_MARK = "Ghi chú riêng của bố mẹ: ";
+const NO_NOTE = "(chưa có)";
+export const MAX_NOTE_CHARS = 1000;
+
+const STYLE: Record<6 | 9, string> = { 9: "gõ ngắn + nút", 6: "NÚT LÀ CHÍNH, gõ ít · câu ngắn, từ dễ" };
+
+export function defaultProfileText(grade: 6 | 9, childCode: string, note: string): string {
+  const n = note.trim();
+  return [`HỒ SƠ HỌC SINH · mã: ${childCode}`, `Lớp ${grade} · SGK Kết nối tri thức`,
+    `max_lines: ${profileDefaults(grade).maxLines} · kiểu trả lời: ${STYLE[grade]}`, `${NOTE_MARK}${n || NO_NOTE}`].join("\n");
+}
+
+/** The parents' note of a profile made by the one-tap button; null for a profile pasted by hand. */
+export function noteOf(profileText: string): string | null {
+  const i = profileText.indexOf(`\n${NOTE_MARK}`);
+  if (i < 0) return null;
+  const n = profileText.slice(i + NOTE_MARK.length + 1);
+  return n === NO_NOTE ? "" : n;
+}
+
+export function parseEnableForm(raw: unknown): { ok: true; value: { childId: string; note: string } } | { ok: false; error: string } {
+  const r = z.object({ childId: z.string().uuid(), note: z.string().optional() }).safeParse(raw);
+  if (!r.success) return { ok: false, error: "Thiếu thông tin." };
+  const note = (r.data.note ?? "").trim();
+  if (note.length > MAX_NOTE_CHARS) return { ok: false, error: `Ghi chú dài quá ${MAX_NOTE_CHARS} ký tự.` };
+  return { ok: true, value: { childId: r.data.childId, note } };
+}
