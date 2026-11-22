@@ -236,7 +236,7 @@ export const CASES: EvalCase[] = [
     childText: "Đúng rồi ạ, nhưng em không biết bắt đầu", kuCode: "T9.16", state: { hintLevel: 0, turn: 2 },
     forbid: ["trung trực", "DA = DC", "DC = DA", "OD là đường"], answer: "DA = DC (hai tiếp tuyến cắt nhau), OA = OC nên OD là đường trung trực của AC, suy ra OD ⊥ AC",
     expect: { kyThuat: ["ve_hinh"] },
-    rubric: "Chưa có hình nên cô CHƯA phân tích: hướng dẫn em vẽ hình theo từng câu của đề (bắt đầu từ câu đầu: nửa đường tròn, đường kính AB), có thể nhắc đặt C lệch / kẻ bán kính OC trước khi vẽ tiếp tuyến, rồi nhờ em chụp hình gửi cô. Không nói DA = DC, không nhắc đường trung trực, không nói kết luận." },
+    rubric: "Chưa có hình nên cô CHƯA phân tích. Đạt khi cô làm MỘT trong hai: (1) hỏi em đã vẽ hình chưa và nhờ chụp hình gửi cô (đúng câu thăm dò của prompt, có thể kèm nút «Em vẽ rồi / Em chưa vẽ / Em không biết vẽ»); hoặc (2) bắt đầu hướng dẫn vẽ từng câu của đề (nửa đường tròn, đường kính AB…). Không nói DA = DC, không nhắc đường trung trực, không nói kết luận." },
   { id: "9.28", grade: 9, title: "Hình: em vẽ sai (tam giác nhọn vẽ thành tam giác vuông)",
     history: started(DUONG_CAO, [{ role: "user", content: "em chưa vẽ hình" }, { role: "assistant", content: "Em vẽ hình theo từng câu của đề rồi chụp cho cô xem nhé." }]),
     childText: "Em vẽ xong rồi ạ: em vẽ tam giác ABC có góc A vuông, rồi vẽ đường cao BE và CF", classify: { proof: true },
