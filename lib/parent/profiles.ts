@@ -2,7 +2,7 @@ import "server-only";
 // lib/parent/profiles.ts — teaching profiles for the parent page (service role, family-checked).
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { ParentActor } from "@/lib/entry";
-import { parseProfileForm, type AnswerMode } from "@/lib/profileForm";
+import { defaultProfileText, parseEnableForm, parseProfileForm, profileDefaults, type AnswerMode, type ProfileInput } from "@/lib/profileForm";
 
 export interface ChildCard {
   childId: string;
@@ -60,9 +60,22 @@ export async function saveProfile(parent: ParentActor, raw: unknown): Promise<st
     return null;
   }
 
-  const parsed = parseProfileForm(raw, kid.grade as number);
-  if (!parsed.ok) return parsed.error;
-  const v = parsed.value;
+  let v: ProfileInput;
+  if (body.action === "enable") {
+    // D33: one tap — default profile by grade (+ the parents' private note); keeps the child's code if one was set before.
+    const grade = kid.grade as number;
+    if (grade !== 6 && grade !== 9) return "Gia sư v1 chỉ dành cho lớp 6 và lớp 9.";
+    const e = parseEnableForm(raw);
+    if (!e.ok) return e.error;
+    const { data: last, error: el } = await t.select("child_code").eq("child_id", kid.id).order("version", { ascending: false }).limit(1);
+    if (el) throw new Error(`saveProfile.lastCode: ${el.message}`);
+    const childCode = (last?.[0]?.child_code as string | undefined) ?? `HS-${grade}A`;
+    v = { childId: e.value.childId, childCode, ...profileDefaults(grade), profileText: defaultProfileText(grade, childCode, e.value.note) };
+  } else {
+    const parsed = parseProfileForm(raw, kid.grade as number);
+    if (!parsed.ok) return parsed.error;
+    v = parsed.value;
+  }
   const { data: versions, error: e1 } = await t.select("version").eq("child_id", kid.id).order("version", { ascending: false }).limit(1);
   if (e1) throw new Error(`saveProfile.version: ${e1.message}`);
   const version = ((versions?.[0]?.version as number | undefined) ?? 0) + 1;

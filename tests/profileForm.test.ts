@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseProfileForm, profileDefaults } from "@/lib/profileForm";
+import { defaultProfileText, noteOf, parseEnableForm, parseProfileForm, profileDefaults } from "@/lib/profileForm";
 
 const ok = { childId: "11111111-1111-4111-8111-111111111111", childCode: "HS-9A", profileText: "HỒ SƠ HỌC SINH · mã: HS-9A" };
 
@@ -24,5 +24,24 @@ describe("teaching profile form (DOMAIN §1 teaching_profiles)", () => {
   });
   it("grade 7 has no tutor in v1", () => {
     expect(parseProfileForm(ok, 7)).toEqual({ ok: false, error: "Gia sư v1 chỉ dành cho lớp 6 và lớp 9." });
+  });
+});
+
+describe("one-tap enable (D33): default profile by grade + optional private note", () => {
+  it("grade 9, no note", () => expect(defaultProfileText(9, "HS-9A", "")).toBe(
+    "HỒ SƠ HỌC SINH · mã: HS-9A\nLớp 9 · SGK Kết nối tri thức\nmax_lines: 6 · kiểu trả lời: gõ ngắn + nút\nGhi chú riêng của bố mẹ: (chưa có)"));
+  it("grade 6, with a note (trimmed)", () => expect(defaultProfileText(6, "HS-6A", "  hay quên đơn vị \n")).toBe(
+    "HỒ SƠ HỌC SINH · mã: HS-6A\nLớp 6 · SGK Kết nối tri thức\nmax_lines: 4 · kiểu trả lời: NÚT LÀ CHÍNH, gõ ít · câu ngắn, từ dễ\nGhi chú riêng của bố mẹ: hay quên đơn vị"));
+  it("the note is read back from a default profile, not from a pasted one", () => {
+    expect(noteOf(defaultProfileText(9, "HS-9A", "chưa thuộc HĐT\nbài hình hay bí"))).toBe("chưa thuộc HĐT\nbài hình hay bí");
+    expect(noteOf(defaultProfileText(9, "HS-9A", ""))).toBe("");
+    expect(noteOf("HỒ SƠ HỌC SINH · mã: HS-9A\nLớp 9 …")).toBeNull();
+  });
+  it("parseEnableForm: uuid child, note ≤ 1000 letters", () => {
+    const id = "00000000-0000-4000-8000-000000000001";
+    expect(parseEnableForm({ childId: id, note: " x " })).toEqual({ ok: true, value: { childId: id, note: "x" } });
+    expect(parseEnableForm({ childId: id })).toEqual({ ok: true, value: { childId: id, note: "" } });
+    expect(parseEnableForm({ childId: id, note: "a".repeat(1001) })).toEqual({ ok: false, error: "Ghi chú dài quá 1000 ký tự." });
+    expect(parseEnableForm({ childId: "x" }).ok).toBe(false);
   });
 });

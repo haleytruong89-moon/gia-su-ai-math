@@ -22,11 +22,8 @@ export default async function ParentPage() {
         </nav>
         <h1 className="text-2xl font-bold">Hồ sơ dạy học</h1>
         <p className="text-sm text-ink/75">
-          Dán hồ sơ đã duyệt từ hub (mục ④ của system prompt). Chỉ dùng <b>mã con</b> (HS-9A, HS-6A) — cô gia sư không được biết họ tên, trường.
-          Mỗi lần lưu là một phiên bản mới. Con chỉ dùng được cô gia sư khi có hồ sơ đang bật.
-        </p>
-        <p className="rounded-xl bg-[#FFF4E0] px-3 py-2 text-sm">
-          Bản G1 (thử nghiệm): cô chưa có bộ kiểm tra câu trả lời và chưa có máy tính đại số. Bố mẹ thử trước; chỉ bật cho con khi đã sẵn sàng.
+          Bấm <b>Bật cô cho con</b> là con dùng được. Cách dạy, checklist, lỗi hay gặp chung đã có sẵn trong cô; ô ghi chú chỉ dành cho
+          điều riêng của con. Cô chỉ biết <b>mã con</b> (HS-9A, HS-6A), không biết họ tên, trường. Mỗi lần lưu là một phiên bản mới.
         </p>
         {kids.length === 0 && <p>Gia đình chưa có tài khoản con.</p>}
         {kids.map((k) => {

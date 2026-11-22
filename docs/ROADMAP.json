@@ -2,7 +2,7 @@
   "schema": 1,
   "project": "Gia sư AI Toán",
   "updated": "2026-11-22",
-  "updatedNote": "G6 xong (#19–#26). Từ 22/11 hai con dùng thật sớm (D31); con báo \"Cô sai ở đây\" đã chạy (D32, #28 + Launcher #104). Tiếp: G8 (tự dọn ảnh trước)",
+  "updatedNote": "Hai con dùng thật sớm (D31); \"Cô sai ở đây\" chạy (D32). Chờ duyệt: #29 \"Bật cô 1 nút\" (D33). Tiếp: G8",
   "vision": {
     "oneLiner": "Một \"cô\" gia sư AI giúp 2 con tự học Toán buổi chiều: gỡ chỗ kẹt bằng câu hỏi gợi mở, không đưa lời giải bài gốc, tối bố mẹ đọc báo cáo 5 phút.",
     "problem": "Buổi chiều 2 con có nhiều thời gian tự học nhưng không có người lớn. Bố mẹ có khoảng 2 giờ buổi tối, gia sư người 2 buổi/tuần. Tốc độ tiến bộ do giờ tự học buổi chiều quyết định.",
@@ -662,6 +662,10 @@
           "status": "doing"
         },
         {
+          "name": "D33 Bật cô 1 nút: hồ sơ mặc định theo lớp + ô ghi chú riêng (không phải dán hồ sơ dài)",
+          "status": "review"
+        },
+        {
           "name": "D32 Con báo \"Cô sai ở đây\" dưới từng câu của cô + ô viết khi chấm cô; báo cáo tối hiện đúng câu + lời con",
           "status": "done"
         },
@@ -703,6 +707,11 @@
         {
           "repo": "gia-su",
           "number": 27,
+          "status": "merged"
+        },
+        {
+          "repo": "gia-su",
+          "number": 29,
           "status": "open"
         }
       ]
@@ -904,11 +913,17 @@
       "text": "Con báo \"Cô sai ở đây\" (loại lỗi + lời viết) dưới từng câu của cô; ô viết trong thẻ chấm, 10 phút; báo cáo tối hiện đúng câu",
       "status": "confirmed",
       "date": "2026-11-22"
+    },
+    {
+      "id": "D33",
+      "text": "Bật cô 1 nút: hồ sơ mặc định theo lớp + ghi chú riêng; cách dạy chung nằm trong prompt và kho kiến thức",
+      "status": "confirmed",
+      "date": "2026-11-22"
     }
   ],
   "parentTodo": [
     {
-      "text": "Bật cô cho con: nhập Hồ sơ dạy học ở /gia-su/bo-me (HS-9A trước) — thiếu thì con thấy \"Bố mẹ chưa bật cô gia sư\"",
+      "text": "Bật cô cho con: /gia-su/bo-me → \"Bật cô cho con\" (sau khi #29 merge; trước đó dán đoạn hồ sơ ngắn) — thiếu thì con thấy \"Bố mẹ chưa bật cô gia sư\"",
       "slice": "G9",
       "status": "open"
     },
@@ -1157,6 +1172,10 @@
     {
       "date": "2026-11-22",
       "text": "Phụ huynh merge #26 (G6 xong), #28 + Launcher #104 (D32 \"Cô sai ở đây\"). D31: hai con dùng thật sớm, thu phản hồi thay vì chạy bộ test toàn phần"
+    },
+    {
+      "date": "2026-11-22",
+      "text": "Phụ huynh merge #27 (D31). D33 (#29): bật cô 1 nút — hồ sơ mặc định theo lớp + ghi chú riêng; bố mẹ không phải dán hồ sơ dài nữa"
     }
   ]
 }

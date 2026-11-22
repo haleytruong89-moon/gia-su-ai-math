@@ -125,7 +125,11 @@ test("parent: the teaching profile page shows the child and the current profile"
   await signIn(context, "parent");
   await page.goto("/gia-su/bo-me");
   await expect(page.getByRole("heading", { name: "Con thử · lớp 9" })).toBeVisible();
-  await expect(page.getByText(/Đang bật · phiên bản 1/)).toBeVisible();
+  await expect(page.getByText(/Đang bật · mã HS-9A · phiên bản 1/)).toBeVisible();
+  // D33: one tap + a private note; the full form stays under "nâng cao". The seeded profile was pasted by hand.
+  await expect(page.getByLabel("Ghi chú riêng về con (không bắt buộc)")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Lưu ghi chú" })).toBeVisible();
+  await expect(page.getByText("Sửa hồ sơ đầy đủ (nâng cao)")).toBeVisible();
 });
 
 // G3 — photos. The pictures are drawn here from SVG (made-up problems, no real photo).
