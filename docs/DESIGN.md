@@ -68,7 +68,7 @@ interface TutorOutput {              // zod schema = structured output schema gá
   message: string; buttons: string[]; de_da_xac_nhan: boolean; ku_code_de_xuat: string | null;
   goc_loi_du_doan: 'read'|'concept'|'strategy'|'calc'|'careful'|'unknown'|null; goc_loi_da_kiem_tra: boolean;
   prereq_gap: string | null; danh_gia_luot_em: Verdict; u_level_hien_tai: 'U0'|'U1'|'U2'|'U3';
-  ky_thuat: 'phan_tich_nguoc'|'hop_cong_cu'|'doc_hinh'|'dung_cau_truoc'|'kiem_tra_hop_ly'|'day_bu_nen'|'tu_giai_thich'|'thuong';
+  ky_thuat: 'phan_tich_nguoc'|'hop_cong_cu'|'doc_hinh'|'ve_hinh'|'dung_cau_truoc'|'kiem_tra_hop_ly'|'day_bu_nen'|'tu_giai_thich'|'thuong';
   checklist_da_hoi: number[]; ket_qua_bai: 'in_progress'|'self_solved'|'pending_review'|'saved_for_later';
   flags: ('geometry_proof'|'tutor_unsure'|'off_topic'|'injection_attempt')[];
 }

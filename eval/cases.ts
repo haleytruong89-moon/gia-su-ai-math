@@ -38,6 +38,7 @@ const DEN = "Một cột đèn cao 3,5 m. Tia nắng mặt trời tạo với c�
 const TIEP_TUYEN = "Cho đường tròn (O). Từ điểm M nằm ngoài đường tròn kẻ hai tiếp tuyến MA, MB (A, B là các tiếp điểm). Kẻ đường kính AC. Chứng minh MO // BC.";
 const VIETE = "Cho phương trình x² − 5x + 3 = 0 có hai nghiệm x₁, x₂. Không giải phương trình, hãy tính x₁² + x₂².";
 const DUONG_CAO = "Cho tam giác ABC nhọn, hai đường cao BE và CF. Chứng minh AE·AC = AF·AB.";
+const NUA_TRON = "Cho nửa đường tròn tâm O, đường kính AB. Lấy điểm C trên nửa đường tròn (C khác A và B). Tiếp tuyến tại C cắt tiếp tuyến tại A ở D. Chứng minh OD vuông góc với AC.";
 const OTO = "Hai ô tô khởi hành cùng lúc từ A đến B, quãng đường AB dài 150 km. Vận tốc ô tô thứ nhất gấp 1,25 lần vận tốc ô tô thứ hai nên ô tô thứ nhất đến B sớm hơn ô tô thứ hai 30 phút. Tính vận tốc mỗi xe.";
 const GTNN = "Cho biểu thức Q = (x + 16)/(√x + 3) với x ≥ 0. Tìm giá trị nhỏ nhất của Q.";
 const HOA = "Một người bán hoa có số bông hoa trong khoảng từ 200 đến 300 bông. Nếu bó thành từng bó 3 bông, 5 bông hay 7 bông thì đều vừa hết. Hỏi người đó có bao nhiêu bông hoa?";
@@ -62,6 +63,11 @@ function started(statement: string, after: Msg[] = []): Msg[] {
     { role: "assistant", content: "Tốt. Đề bài hỏi gì, và đề đã cho em biết những gì?" },
     ...after,
   ];
+}
+/** G6d: a geometry problem whose figure the child has already drawn (so the tutor does not ask for it first). */
+function startedDrawn(statement: string, after: Msg[] = []): Msg[] {
+  const [a, b, , d] = started(statement);
+  return [a!, b!, { role: "user", content: "Đúng rồi ạ, em vẽ hình vào vở rồi" }, d!, ...after];
 }
 const confirmed = { submitted: false } as const;
 
@@ -95,7 +101,7 @@ export const CASES: EvalCase[] = [
   { id: "9.7", grade: 9, title: "Làm tròn theo đề", history: started(DEN), childText: "em ra 3,04 m",
     state: { submitted: true, hintLevel: 1, turn: 4 }, answer: "≈ 3 m (3,04 m)", expect: { notSelfSolved: true },
     rubric: "Hỏi em làm tròn theo yêu cầu của đề (đến mét) và cách ghi dấu ≈." },
-  { id: "9.8", grade: 9, title: "Nộp chứng minh hình", history: started(TIEP_TUYEN),
+  { id: "9.8", grade: 9, title: "Nộp chứng minh hình", history: startedDrawn(TIEP_TUYEN),
     childText: "Vì MA, MB là tiếp tuyến nên MA = MB, mà OA = OB nên OM là trung trực của AB, suy ra OM ⊥ AB. Góc ABC = 90° vì chắn nửa đường tròn nên BC ⊥ AB. Vậy MO // BC.",
     state: { submitted: true, hintLevel: 0, turn: 3 }, answer: "(chứng minh)",
     expect: { flags: ["geometry_proof"], ketQua: ["pending_review", "in_progress"] },
@@ -150,7 +156,7 @@ export const CASES: EvalCase[] = [
     state: { hintLevel: 0, turn: 1, stuckKind: "khong_biet_bat_dau" }, forbid: ["19", "ngoài phạm vi", "chưa học"], answer: "x₁² + x₂² = 19",
     expect: { statementConfirmed: false }, classify: { ku: "T9.20", proof: false },
     rubric: "Chép lại đề và hỏi xác nhận; KHÔNG nói bài này ngoài chương trình hay chưa học." },
-  { id: "9.18", grade: 9, title: "Hình: không biết bắt đầu (phân tích ngược)", history: started(DUONG_CAO),
+  { id: "9.18", grade: 9, title: "Hình: không biết bắt đầu (phân tích ngược)", history: startedDrawn(DUONG_CAO),
     childText: "em không biết bắt đầu", state: { ...confirmed, hintLevel: 1, turn: 3 }, answer: "(chứng minh qua △AEB ∽ △AFC)",
     expect: { flags: ["geometry_proof"], buttonMatches: /đồng dạng/i, kyThuat: ["phan_tich_nguoc", "hop_cong_cu"] },
     classify: { proof: true },
@@ -224,6 +230,26 @@ export const CASES: EvalCase[] = [
     childText: "Em không biết bắt đầu đặt ẩn", kuCode: "T9.3", state: { hintLevel: 1, turn: 4 }, forbid: ["8", "12"],
     answer: "Vòi thứ nhất 8 giờ, vòi thứ hai 12 giờ", expect: { theHien: "D9.1" },
     rubric: "the_hien = D9.1 (làm chung – làm riêng); message ngắn, không đặt sẵn phương trình của bài, không nói 8 hay 12." },
+  // ---------- G6d geometry: drawing the figure ----------
+  { id: "9.27", grade: 9, title: "Hình: đề chỉ có chữ, em chưa vẽ → cô hướng dẫn vẽ từng câu",
+    history: [{ role: "user", content: NUA_TRON }, { role: "assistant", content: `Cô đọc đề là:\n${NUA_TRON}\nEm kiểm tra giúp cô đúng chưa?` }],
+    childText: "Đúng rồi ạ, nhưng em không biết bắt đầu", kuCode: "T9.16", state: { hintLevel: 0, turn: 2 },
+    forbid: ["trung trực", "DA = DC", "DC = DA", "OD là đường"], answer: "DA = DC (hai tiếp tuyến cắt nhau), OA = OC nên OD là đường trung trực của AC, suy ra OD ⊥ AC",
+    expect: { kyThuat: ["ve_hinh"] },
+    rubric: "Chưa có hình nên cô CHƯA phân tích. Đạt khi cô làm MỘT trong hai: (1) hỏi em đã vẽ hình chưa và nhờ chụp hình gửi cô (đúng câu thăm dò của prompt, có thể kèm nút «Em vẽ rồi / Em chưa vẽ / Em không biết vẽ»); hoặc (2) bắt đầu hướng dẫn vẽ từng câu của đề (nửa đường tròn, đường kính AB…). Không nói DA = DC, không nhắc đường trung trực, không nói kết luận." },
+  { id: "9.28", grade: 9, title: "Hình: em vẽ sai (tam giác nhọn vẽ thành tam giác vuông)",
+    history: started(DUONG_CAO, [{ role: "user", content: "em chưa vẽ hình" }, { role: "assistant", content: "Em vẽ hình theo từng câu của đề rồi chụp cho cô xem nhé." }]),
+    childText: "Em vẽ xong rồi ạ: em vẽ tam giác ABC có góc A vuông, rồi vẽ đường cao BE và CF", classify: { proof: true },
+    state: { ...confirmed, hintLevel: 0, turn: 4 }, forbid: ["AEB", "AFC"], answer: "(chứng minh qua △AEB ∽ △AFC)",
+    expect: { kyThuat: ["ve_hinh"] },
+    rubric: "Cô chỉ ra đúng MỘT chỗ sai: đề cho tam giác NHỌN nên không được vẽ góc A vuông (khi đó E, F trùng A), nhờ em vẽ lại tam giác có ba góc nhọn. Chưa bắt đầu chứng minh, không nêu cặp tam giác đồng dạng." },
+  { id: "9.29", grade: 9, title: "Hình: 'em không biết vẽ hình' → thẻ D9.2",
+    history: [{ role: "user", content: NUA_TRON }, { role: "assistant", content: `Cô đọc đề là:\n${NUA_TRON}\nEm kiểm tra giúp cô đúng chưa?` },
+      { role: "user", content: "Đúng rồi ạ" }, { role: "assistant", content: "Em vẽ hình chưa? Chụp hình em vẽ cho cô xem nhé." }],
+    childText: "em không biết vẽ hình này", kuCode: "T9.16", state: { ...confirmed, hintLevel: 0, turn: 3 },
+    forbid: ["trung trực", "DA = DC", "DC = DA"], answer: "DA = DC (hai tiếp tuyến cắt nhau), OA = OC nên OD là đường trung trực của AC, suy ra OD ⊥ AC",
+    expect: { theHien: "D9.2" },
+    rubric: "the_hien = D9.2 (vẽ hình theo đề); message ngắn nối với bài của em; không vẽ hộ, không nói gì về lời giải (DA = DC, trung trực)." },
 ];
 
 /** Checker-only cases (BO_TEST 9.24, 9.25): a fake tutor answer goes straight to the Haiku guard, which must FAIL it. */

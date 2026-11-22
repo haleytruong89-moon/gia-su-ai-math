@@ -1,5 +1,5 @@
 // lib/tutor/scripted.ts — button turns the server answers without the model (G6, Y3: no model call, no turn counted).
-import { card, clashes } from "@/lib/knowledge/cards";
+import { card, wayClashes } from "@/lib/knowledge/cards";
 import {
   BTN_CARD_AGAIN, BTN_NOT_UNDERSTAND_PROBLEM, BTN_SAVE, BTN_TRY_AGAIN, CARD_AGAIN_INTRO, CARD_BUTTONS, CARDS_DONE,
   DOC_DE_ASK, DOC_DE_BUTTONS,
@@ -31,7 +31,7 @@ export function scriptedTurn(a: ScriptedInput): Scripted | null {
     const c = card(a.lastCard.code);
     if (!c) return null;
     // Way 2 is shown either after way 1 or because way 1 used the child's numbers: no third way (C2).
-    if (a.lastCard.n === 1 && !clashes(c.variants[1]!.keyNumbers, a.problemText)) {
+    if (a.lastCard.n === 1 && !wayClashes(c.variants[1]!, a.problemText)) {
       return { kind: "card", message: CARD_AGAIN_INTRO, cardRef: `${c.code}#2`, buttons: [...CARD_BUTTONS] };
     }
     return { kind: "cards_done", message: CARDS_DONE, buttons: [BTN_SAVE, BTN_TRY_AGAIN], gap: `het_cach:${c.code}` };

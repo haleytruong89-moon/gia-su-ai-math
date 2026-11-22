@@ -33,15 +33,39 @@ export function cardIndexText(grade: 6 | 9): string {
  * key numbers (or its only key number) appear in the child's problem as whole numbers.
  */
 export function clashes(keyNumbers: readonly string[], problemText: string): boolean {
+  if (!keyNumbers.length) return false;
   const inProblem = new Set(numbersIn(problemText));
   const shared = keyNumbers.filter((n) => inProblem.has(n)).length;
   return keyNumbers.length === 1 ? shared === 1 : shared >= 2;
 }
 
+/** Point names in a problem (ABC, BE, AE in "AE·AC"): runs of ≥ 2 capital Latin letters standing alone. */
+export function labelsIn(text: string): string[] {
+  return [...new Set(text.match(/(?<!\p{L})[A-Z]{2,}(?!\p{L})/gu) ?? [])];
+}
+
+const sameFigure = (label: string) => [...label].sort().join("");
+
+/**
+ * G6d: geometry cards have almost no numbers, so their example is kept away from the child's figure by
+ * the point names instead (PQR = RQP, PK = KP). Same rule as numbers: two shared names, or the only one.
+ */
+export function labelClashes(keyLabels: readonly string[], problemText: string): boolean {
+  if (!keyLabels.length) return false;
+  const inProblem = new Set(labelsIn(problemText).map(sameFigure));
+  const shared = keyLabels.filter((l) => inProblem.has(sameFigure(l))).length;
+  return keyLabels.length === 1 ? shared === 1 : shared >= 2;
+}
+
+/** A way clashes when its numbers or its point names are the child's problem's. */
+export function wayClashes(v: { keyNumbers: readonly string[]; keyLabels?: readonly string[] }, problemText: string): boolean {
+  return clashes(v.keyNumbers, problemText) || labelClashes(v.keyLabels ?? [], problemText);
+}
+
 /** The way to show: `wanted` unless it clashes, else the other way; null when both clash. */
 export function pickVariant(c: Card, wanted: 1 | 2, problemText: string): 1 | 2 | null {
   const order: (1 | 2)[] = wanted === 1 ? [1, 2] : [2, 1];
-  return order.find((n) => !clashes(c.variants[n - 1]!.keyNumbers, problemText)) ?? null;
+  return order.find((n) => !wayClashes(c.variants[n - 1]!, problemText)) ?? null;
 }
 
 /** What the tutor reads back in the history under a message that showed a card (it never sees the screen). */
