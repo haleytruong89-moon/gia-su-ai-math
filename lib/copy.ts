@@ -77,3 +77,15 @@ export const REVIEW_COPY = {
   unchecked: "Cô kiểm lại sau nhé.",
   placeholder: "Em gõ câu trả lời…",
 } as const;
+
+/** D32: "Cô sai ở đây" under each tutor message, and the written comment of the rating card. */
+export const FLAG_COPY = {
+  open: "Cô sai ở đây",
+  ask: "Cô sai thế nào?",
+  commentLabel: "Sai ở đâu, sai thế nào? (không bắt buộc)",
+  placeholder: "Ví dụ: cô nói luôn kết quả x = 3; hoặc: em không hiểu chữ…",
+  send: "Gửi",
+  cancel: "Thôi",
+  thanks: "Cảm ơn em! Bố mẹ sẽ xem chỗ này.",
+  ratingComment: "Cô sai ở đâu, như thế nào? (không bắt buộc)",
+} as const;

@@ -7,7 +7,7 @@ import { factsFromRows, type CallRowLite, type ProblemRowLite, type ToolRowLite 
 
 export const kuTitle = (code: string): string | null => unit(code)?.title ?? null;
 
-export interface DayRatings { face: "easy" | "ok" | "hard"; reasons: string[] }
+export interface DayRatings { face: "easy" | "ok" | "hard"; reasons: string[]; comment?: string | null }
 
 export function fail(where: string, e: { message: string }): never {
   throw new Error(`${where}: ${e.message}`);
@@ -35,7 +35,7 @@ export async function loadChildDay(db: SupabaseClient, familyId: string, childId
     pids.length
       ? t.from("tool_calls").select("problem_id, tool, output").eq("family_id", familyId).in("problem_id", pids).eq("tool", "math_check").eq("ok", false)
       : Promise.resolve({ data: [], error: null }),
-    t.from("ratings").select("face, reasons").eq("family_id", familyId).in("session_id", sids),
+    t.from("ratings").select("face, reasons, comment").eq("family_id", familyId).in("session_id", sids),
   ]);
   if (calls.error) fail("report.calls", calls.error);
   if (tools.error) fail("report.tools", tools.error);

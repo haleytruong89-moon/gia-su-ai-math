@@ -84,12 +84,12 @@ describe("endSession (§3.1 Kết thúc buổi)", () => {
 
 describe("rateSession (US6 one tap, P2 once per session, P3 😕 twice → rule)", () => {
   const seed: Seed = { sessions: [{ id: "s1" }] };
-  it("one tap saves; reasons sent within 2 minutes complete it; later → already", async () => {
+  it("one tap saves; reasons sent within 10 minutes complete it (D32); later → already", async () => {
     const { d, repo } = deps(seed);
     expect((await rateSession(d, { sessionId: "s1", face: "ok" })).json).toEqual({ status: "saved" });
     expect((await rateSession(d, { sessionId: "s1", face: "ok", reasons: ["clear"] })).json).toEqual({ status: "updated" });
     expect(repo.ratings[0]).toMatchObject({ face: "ok", reasons: ["clear"] });
-    const later = { ...d, now: new Date(NOW.getTime() + 3 * 60_000) };
+    const later = { ...d, now: new Date(NOW.getTime() + 11 * 60_000) };
     expect((await rateSession(later, { sessionId: "s1", face: "hard" })).json).toEqual({ status: "already" });
     expect(repo.ratings).toHaveLength(1);
   });

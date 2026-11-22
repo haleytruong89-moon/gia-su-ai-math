@@ -34,7 +34,7 @@ Mục tiêu riêng HS-9A (thầy, 14/11): đề vào 10 Hà Nội, Toán 8,5–9
 | US3 | "Chưa hiểu" → giảng cách khác | Câu thăm dò mới + bước nhỏ hơn; không lặp lời cũ |
 | US4 | Không chép được lời giải nhưng vẫn làm xong | 0 lần lộ lời giải bài gốc trong bộ test; thang H đúng DOMAIN §3.3, §4.1 |
 | US5 | Nản thì được đổi cách | Ca nản DOMAIN §4.2: nhảy H4 bằng bài anh em đã kiểm (C3) |
-| US6 | Con chấm gia sư ≤ 5 giây | 1 chạm; lý do tùy chọn; 1 lần/buổi |
+| US6 | Con chấm gia sư ≤ 5 giây; chỉ được câu cô sai (D32) | 1 chạm; lý do + lời viết tùy chọn (10 phút); 1 lần/buổi. Dưới mỗi câu của cô: "Cô sai ở đây" → loại lỗi + lời viết → báo cáo tối hiện đúng câu đó |
 | US7 | Bố mẹ đọc báo cáo tối ≤ 5 phút | Gộp 2 con; cờ DOMAIN §4.7 đúng trên dữ liệu test; KU nền bị hổng; ý chặn |
 | US8 | Góp ý của bố mẹ thành luật dạy | proposed → approved → có hiệu lực từ buổi sau; có version |
 | US10 | Gia sư người xem điểm nghẽn tuần + bài hình chờ xem | Trang tuần lọc theo con, gốc lỗi, KU |
