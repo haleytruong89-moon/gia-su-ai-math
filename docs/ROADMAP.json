@@ -1,8 +1,8 @@
 {
   "schema": 1,
   "project": "Gia sư AI Toán",
-  "updated": "2026-11-21",
-  "updatedNote": "Đủ thẻ HK1 cả hai lớp (#21–#24 đã merge). Chờ duyệt: #25 (sửa lời 26 thẻ đã merge). Tiếp: G6d bài hình",
+  "updated": "2026-11-22",
+  "updatedNote": "Đủ 42 thẻ HK1 cả hai lớp, lời đã sửa (#21–#25 merge). Chờ duyệt: #26 G6d bài hình (vẽ hình + 3 thẻ phương pháp). Sau đó G8, G9",
   "vision": {
     "oneLiner": "Một \"cô\" gia sư AI giúp 2 con tự học Toán buổi chiều: gỡ chỗ kẹt bằng câu hỏi gợi mở, không đưa lời giải bài gốc, tối bố mẹ đọc báo cáo 5 phút.",
     "problem": "Buổi chiều 2 con có nhiều thời gian tự học nhưng không có người lớn. Bố mẹ có khoảng 2 giờ buổi tối, gia sư người 2 buổi/tuần. Tốc độ tiến bộ do giờ tự học buổi chiều quyết định.",
@@ -489,7 +489,11 @@
         },
         {
           "name": "G6c Nội dung thẻ HK1 cả 2 lớp (đợt ≈ 10 bài, merge = duyệt)",
-          "status": "doing"
+          "status": "done"
+        },
+        {
+          "name": "G6d Bài hình: cô hướng dẫn vẽ hình + soát hình con vẽ (ve_hinh), 3 thẻ D9.2–D9.4, chống trùng theo tên điểm (D30)",
+          "status": "review"
         }
       ],
       "acceptance": [
@@ -540,6 +544,11 @@
         {
           "repo": "gia-su",
           "number": 25,
+          "status": "merged"
+        },
+        {
+          "repo": "gia-su",
+          "number": 26,
           "status": "open"
         }
       ]
@@ -847,13 +856,24 @@
       "text": "Sau G5 làm G7 (báo cáo bố mẹ) trước G6 (ôn đầu buổi)",
       "status": "confirmed",
       "date": "2026-11-18"
+    },
+    {
+      "id": "D30",
+      "text": "Bài hình: vẽ hình trước khi suy luận; 3 thẻ phương pháp; thẻ hình chống trùng theo tên điểm; công cụ vẽ hình C2 để sau G9",
+      "date": "2026-11-22",
+      "status": "confirmed"
     }
   ],
   "parentTodo": [
     {
-      "text": "Duyệt mẫu thẻ đợt 0 (6 thẻ trong PR G6a: T6.11, T6.12, T9.9, D6.1, D6.2, D9.1) — merge = duyệt",
+      "text": "Duyệt 3 thẻ hình D9.2–D9.4 trong PR #26 (G6d) — merge = duyệt",
       "slice": "G6",
       "status": "open"
+    },
+    {
+      "text": "Duyệt mẫu thẻ đợt 0 (6 thẻ trong PR G6a: T6.11, T6.12, T9.9, D6.1, D6.2, D9.1) — merge = duyệt",
+      "slice": "G6",
+      "status": "done"
     },
     {
       "text": "Merge Launcher #98 (L-7, SQL 0024: messages.card_ref, câu ôn từ thẻ) trước PR G6a",
@@ -1073,6 +1093,10 @@
     {
       "date": "2026-11-21",
       "text": "Phụ huynh merge #23 (thẻ lớp 9 đợt 3, lời đã sửa cho dễ hiểu)"
+    },
+    {
+      "date": "2026-11-22",
+      "text": "Phụ huynh merge #25 — 42 thẻ HK1 lời đã sửa. G6d (PR #26): cô hướng dẫn vẽ hình từng câu + soát hình con vẽ, 3 thẻ phương pháp D9.2–D9.4, chống trùng theo tên điểm; eval Opus 0 lộ đáp số"
     }
   ]
 }
