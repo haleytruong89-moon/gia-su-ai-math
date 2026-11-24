@@ -717,6 +717,11 @@
           "repo": "gia-su",
           "number": 29,
           "status": "merged"
+        },
+        {
+          "repo": "gia-su",
+          "number": 30,
+          "status": "open"
         }
       ]
     },
@@ -933,7 +938,7 @@
   ],
   "parentTodo": [
     {
-      "text": "Duyệt PR G8-fix (D34) — merge = duyệt prompt v0.9; sau đó xem cờ \"Cô phải dùng câu soạn sẵn\" trong báo cáo tối vài hôm",
+      "text": "Duyệt PR #30 G8-fix (D34) — merge = duyệt prompt v0.9; sau đó xem cờ \"Cô phải dùng câu soạn sẵn\" trong báo cáo tối vài hôm",
       "slice": "G9",
       "status": "open"
     },
@@ -1194,7 +1199,7 @@
     },
     {
       "date": "2026-11-24",
-      "text": "Phụ huynh merge #29 (D33). Phản hồi dùng thật đầu tiên (HS-9A): không thấy chỗ gửi ảnh hình vẽ; cô lặp \"Mình đọc lại đề cùng nhau nhé…\" (câu soạn sẵn khi bộ kiểm tra chặn 2 lần). G8-fix (D34) sửa cả hai"
+      "text": "Phụ huynh merge #29 (D33). Phản hồi dùng thật đầu tiên (HS-9A): không thấy chỗ gửi ảnh hình vẽ; cô lặp \"Mình đọc lại đề cùng nhau nhé…\" (câu soạn sẵn khi bộ kiểm tra chặn 2 lần). G8-fix (D34) sửa cả hai (PR #30)"
     }
   ]
 }
