@@ -4,8 +4,8 @@
 import type { ProblemStatus } from "@/lib/tutor/repo";
 
 export type FlagKind =
-  | "cas_loi" | "y_chan" | "nan_bo_do" | "con_cham_kho" | "goi_y_nhieu" | "cho_thay" | "lo_hong_nen" | "bai_hinh" | "viet_lai_nhieu"
-  | "loi_giai_lech";
+  | "cas_loi" | "y_chan" | "nan_bo_do" | "con_cham_kho" | "goi_y_nhieu" | "cho_thay" | "lo_hong_nen" | "bai_hinh" | "cau_soan_san"
+  | "viet_lai_nhieu" | "loi_giai_lech";
 
 export interface ProblemFacts {
   id: string;
@@ -19,6 +19,10 @@ export interface ProblemFacts {
   geometryProof: boolean;
   /** Answers of this problem the checker had to have rewritten. */
   rewrittenCount: number;
+  /** G8-fix: turns where the checker blocked twice and the child got a pre-written safe line (DOMAIN §5). */
+  safeLineCount?: number;
+  /** G8-fix: the checker's reasons on the blocked answers of this problem. */
+  blockReasons?: string[];
   /** G7c: the reference solution's answer did not match the child's checked answer (X5). */
   referenceMismatch: boolean;
 }
@@ -34,6 +38,18 @@ export function isBlockedSlot(slot: string | null): boolean {
 }
 
 const ids = (ps: ProblemFacts[]) => ps.map((x) => x.id);
+
+/** The most frequent checker reason, cut to 80 characters (ties: the first seen). */
+function commonest(reasons: string[]): string | null {
+  const n = new Map<string, number>();
+  for (const r of reasons) {
+    const k = r.trim();
+    if (k && !k.startsWith("guard_")) n.set(k, (n.get(k) ?? 0) + 1);
+  }
+  let best: string | null = null;
+  for (const [k, c] of n) if (best === null || c > n.get(best)!) best = k;
+  return best && best.length > 80 ? `${best.slice(0, 79)}…` : best;
+}
 const vnNumber = (n: number) => n.toFixed(1).replace(/\.0$/, "").replace(".", ",");
 
 export function dayFlags(day: DayFacts, kuTitle: (code: string) => string | null): Flag[] {
@@ -80,6 +96,14 @@ export function dayFlags(day: DayFacts, kuTitle: (code: string) => string | null
 
   const proofs = ps.filter((x) => x.geometryProof);
   if (proofs.length) out.push({ kind: "bai_hinh", text: `Bài hình chứng minh: ${proofs.length} bài (để thầy xem)`, problemIds: ids(proofs) });
+
+  const safe = ps.filter((x) => (x.safeLineCount ?? 0) > 0);
+  if (safe.length) {
+    const n = safe.reduce((k, x) => k + (x.safeLineCount ?? 0), 0);
+    const reason = commonest(safe.flatMap((x) => x.blockReasons ?? []));
+    out.push({ kind: "cau_soan_san", text: `Cô phải dùng câu soạn sẵn ${n} lượt ở ${safe.length} bài${reason ? ` — hay bị chặn vì: ${reason}` : ""}`,
+      problemIds: ids(safe) });
+  }
 
   const rewritten = ps.filter((x) => x.rewrittenCount >= 2);
   if (rewritten.length) out.push({ kind: "viet_lai_nhieu", text: `Cô phải viết lại nhiều ở ${rewritten.length} bài`, problemIds: ids(rewritten) });

@@ -1,8 +1,8 @@
 {
   "schema": 1,
   "project": "Gia sư AI Toán",
-  "updated": "2026-11-22",
-  "updatedNote": "Hai con dùng thật sớm (D31); \"Cô sai ở đây\" chạy (D32). Chờ duyệt: #29 \"Bật cô 1 nút\" (D33). Tiếp: G8",
+  "updated": "2026-11-24",
+  "updatedNote": "Hai con dùng thật (D31). Phản hồi đầu tiên của HS-9A → G8-fix (D34): nút \"Gửi ảnh\" có chữ, bài hình 6 ảnh, cô không lặp câu soạn sẵn, báo cáo đếm câu soạn sẵn. Chờ duyệt PR G8-fix. Tiếp: G8a (dọn ảnh, xóa dữ liệu)",
   "vision": {
     "oneLiner": "Một \"cô\" gia sư AI giúp 2 con tự học Toán buổi chiều: gỡ chỗ kẹt bằng câu hỏi gợi mở, không đưa lời giải bài gốc, tối bố mẹ đọc báo cáo 5 phút.",
     "problem": "Buổi chiều 2 con có nhiều thời gian tự học nhưng không có người lớn. Bố mẹ có khoảng 2 giờ buổi tối, gia sư người 2 buổi/tuần. Tốc độ tiến bộ do giờ tự học buổi chiều quyết định.",
@@ -663,15 +663,19 @@
         },
         {
           "name": "D33 Bật cô 1 nút: hồ sơ mặc định theo lớp + ô ghi chú riêng (không phải dán hồ sơ dài)",
-          "status": "review"
+          "status": "done"
         },
         {
           "name": "D32 Con báo \"Cô sai ở đây\" dưới từng câu của cô + ô viết khi chấm cô; báo cáo tối hiện đúng câu + lời con",
           "status": "done"
         },
         {
+          "name": "D34 G8-fix từ dùng thật: nút \"Gửi ảnh\" có chữ, bài hình 6 ảnh, câu soạn sẵn không lặp, bộ kiểm tra cho nhận xét hình vẽ, cờ \"câu soạn sẵn\" trong báo cáo",
+          "status": "review"
+        },
+        {
           "name": "Ca lộ / ca dở từ dùng thật → thêm vào bộ test (dữ liệu giả) và sửa",
-          "status": "todo"
+          "status": "doing"
         },
         {
           "name": "0 lộ lời giải; tiêu chí BO_TEST §1",
@@ -712,7 +716,7 @@
         {
           "repo": "gia-su",
           "number": 29,
-          "status": "open"
+          "status": "merged"
         }
       ]
     },
@@ -919,11 +923,22 @@
       "text": "Bật cô 1 nút: hồ sơ mặc định theo lớp + ghi chú riêng; cách dạy chung nằm trong prompt và kho kiến thức",
       "status": "confirmed",
       "date": "2026-11-22"
+    },
+    {
+      "id": "D34",
+      "text": "G8-fix từ dùng thật: nút \"Gửi ảnh\" có chữ; bài hình tối đa 6 ảnh; câu soạn sẵn không lặp liên tiếp (lần 2 đổi câu, lần 3 mời để dành hỏi thầy); bộ kiểm tra không đòi math_check khi cô nhận xét hình vẽ; báo cáo có cờ câu soạn sẵn",
+      "status": "confirmed",
+      "date": "2026-11-24"
     }
   ],
   "parentTodo": [
     {
-      "text": "Bật cô cho con: /gia-su/bo-me → \"Bật cô cho con\" (sau khi #29 merge; trước đó dán đoạn hồ sơ ngắn) — thiếu thì con thấy \"Bố mẹ chưa bật cô gia sư\"",
+      "text": "Duyệt PR G8-fix (D34) — merge = duyệt prompt v0.9; sau đó xem cờ \"Cô phải dùng câu soạn sẵn\" trong báo cáo tối vài hôm",
+      "slice": "G9",
+      "status": "open"
+    },
+    {
+      "text": "Bật cô cho con: /gia-su/bo-me → \"Bật cô cho con\" (Nguyên đã bật; còn An) — thiếu thì con thấy \"Bố mẹ chưa bật cô gia sư\"",
       "slice": "G9",
       "status": "open"
     },
@@ -1176,6 +1191,10 @@
     {
       "date": "2026-11-22",
       "text": "Phụ huynh merge #27 (D31). D33 (#29): bật cô 1 nút — hồ sơ mặc định theo lớp + ghi chú riêng; bố mẹ không phải dán hồ sơ dài nữa"
+    },
+    {
+      "date": "2026-11-24",
+      "text": "Phụ huynh merge #29 (D33). Phản hồi dùng thật đầu tiên (HS-9A): không thấy chỗ gửi ảnh hình vẽ; cô lặp \"Mình đọc lại đề cùng nhau nhé…\" (câu soạn sẵn khi bộ kiểm tra chặn 2 lần). G8-fix (D34) sửa cả hai"
     }
   ]
 }

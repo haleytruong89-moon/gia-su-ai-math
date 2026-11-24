@@ -4,7 +4,7 @@ import { costUsd } from "@/lib/anthropic";
 import type { ModelClient } from "@/lib/tutor/turn";
 import sharp from "sharp";
 import { beforeAll } from "vitest";
-import { BTN_NOT_UNDERSTOOD, PHOTO_ONLY_TEXT, SAFE_BUSY, safeLine } from "@/lib/copy";
+import { BTN_NOT_UNDERSTOOD, BTN_SAVE, PHOTO_COPY, PHOTO_ONLY_TEXT, SAFE_AGAIN, SAFE_BUSY, SAFE_STOP, safeLine } from "@/lib/copy";
 import { TOO_BIG } from "@/lib/tutor/form";
 import { memoryRepo, type Seed } from "./helpers/memoryRepo";
 import fewshot from "./fixtures/fewshot.json";
@@ -451,7 +451,7 @@ describe("G3 photos", () => {
     expect((await handleTurn(d, { problemId: "p1", clientMsgId: uuid(4), text: "", image: photo })).status).toBe(200);
     expect(repo.images).toHaveLength(4);
     const r = await handleTurn(d, { problemId: "p1", clientMsgId: uuid(5), text: "", image: photo });
-    expect(r).toEqual({ status: 409, json: { error: "too_many_images", message: "Bài này đã có 4 ảnh. Em gõ phần còn lại cho cô nhé." } });
+    expect(r).toEqual({ status: 409, json: { error: "too_many_images", message: PHOTO_COPY.tooMany } });
     expect([repo.images.length, c.calls]).toEqual([4, 1]);
   });
   it("not an image → 415; too big → 413; nothing stored, no model call", async () => {
@@ -754,5 +754,71 @@ describe("G5 knowledge in a turn", () => {
     const toolResult = JSON.stringify(tutorCalls(w)[1]!.req.messages);
     expect(toolResult).toContain("Hằng đẳng thức đáng nhớ");
     expect(JSON.stringify(w.log.find((x) => x.kind === "guard")!.req)).toContain("lookup(N8.02 → ok)");
+  });
+});
+
+// G8-fix (24/11/2026) — from real use: the child saw "Mình đọc lại đề cùng nhau nhé…" again and again (the checker
+// blocked the tutor's comments on a figure twice per turn), and did not find where to send the photo of the figure.
+describe("G8-fix: safe lines, the figure photo, the confirmed statement", () => {
+  let photo: Uint8Array;
+  beforeAll(async () => {
+    photo = new Uint8Array(await sharp({ create: { width: 800, height: 600, channels: 3, background: "#ffffff" } }).jpeg().toBuffer());
+  });
+  const body = (n: number, text = "em vẽ xong rồi") => ({ problemId: "p1", clientMsgId: uuid(n), text });
+  const hasImage = (x: unknown) => JSON.stringify(x).includes('"type":"image"');
+
+  it("blocked twice on three turns in a row → three different lines, then the teacher", async () => {
+    const c = scripted([confirmed], Array(8).fill(false));
+    const { d } = deps(inProgress, c);
+    const shown = [];
+    for (const n of [1, 2, 3, 4]) shown.push(((await handleTurn(d, body(n))).json as { message: string; buttons: string[] }));
+    expect(shown.map((x) => x.message)).toEqual([safeLine(0).message, SAFE_AGAIN, SAFE_STOP, SAFE_STOP]);
+    expect(shown.slice(1).every((x) => x.buttons.includes(BTN_SAVE))).toBe(true);
+  });
+  it("a normal answer between two safe lines starts the count again", async () => {
+    const c = scripted([confirmed], [false, false, true, false, false]);
+    const { d } = deps(inProgress, c);
+    const a = (await handleTurn(d, body(1))).json as { message: string };
+    const b = (await handleTurn(d, body(2))).json as { message: string };
+    const e = (await handleTurn(d, body(3))).json as { message: string };
+    expect([a.message, b.message, e.message]).toEqual([safeLine(0).message, JSON.parse(confirmed).message, safeLine(0).message]);
+  });
+  it("the checker sees the figure the child sent with this turn, even after the statement was confirmed", async () => {
+    const reqs: object[] = [];
+    const inner = client([confirmed]);
+    const c = { create: async (req: object) => { reqs.push(req); return inner.create(req); } };
+    const seed: Seed = { problems: [{ id: "p1", childId: "c1", sessionId: "s1", statementConfirmed: true, confirmedStatement: "Cho tam giác ABC…" }] };
+    const { d } = deps(seed, c);
+    expect((await handleTurn(d, { problemId: "p1", clientMsgId: uuid(1), text: "", image: photo })).status).toBe(200);
+    const guard = reqs.filter(isGuardReq);
+    expect(guard).toHaveLength(1);
+    expect(hasImage(guard[0])).toBe(true);
+  });
+  it("the problem photo of the first turn goes to the checker once, not twice", async () => {
+    const reqs: object[] = [];
+    const inner = client([confirm]);
+    const { d } = deps({}, { create: async (req: object) => { reqs.push(req); return inner.create(req); } });
+    expect((await newProblem(d, { clientMsgId: uuid(1), stuckKind: null, image: photo })).status).toBe(200);
+    expect(JSON.stringify(reqs.filter(isGuardReq)[0]).split('"type":"image"').length - 1).toBe(1);
+  });
+  it("⑥ tells the tutor the statement is already confirmed (no second 'đúng chưa?')", async () => {
+    const reqs: { messages: { content: unknown }[] }[] = [];
+    const inner = client([confirmed]);
+    const c = { create: async (req: object) => { reqs.push(req as never); return inner.create(req); } };
+    const seed: Seed = { problems: [{ id: "p1", childId: "c1", sessionId: "s1", statementConfirmed: true, confirmedStatement: "…" }] };
+    const { d } = deps(seed, c);
+    await handleTurn(d, body(1));
+    expect(JSON.stringify(reqs[0]!.messages.at(-1))).toContain("de_da_xac_nhan: true");
+  });
+  it("geometry lesson → 6 photos per problem; other lessons stay at 4", async () => {
+    const six = (kuCode: string): Seed => ({ problems: [{ id: "p1", childId: "c1", sessionId: "s1", kuCode }],
+      images: [1, 2, 3, 4].map((n) => ({ problemId: "p1", messageId: `x${n}` })) });
+    const geo = deps(six("T9.27"), client([confirmed]));
+    expect((await handleTurn(geo.d, { problemId: "p1", clientMsgId: uuid(1), text: "", image: photo })).status).toBe(200);
+    expect((await handleTurn(geo.d, { problemId: "p1", clientMsgId: uuid(2), text: "", image: photo })).status).toBe(200);
+    expect((await handleTurn(geo.d, { problemId: "p1", clientMsgId: uuid(3), text: "", image: photo })).status).toBe(409);
+    expect(geo.repo.images).toHaveLength(6);
+    const alg = deps(six("T9.9"), client([confirmed]));
+    expect((await handleTurn(alg.d, { problemId: "p1", clientMsgId: uuid(4), text: "", image: photo })).status).toBe(409);
   });
 });

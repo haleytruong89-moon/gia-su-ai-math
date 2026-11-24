@@ -26,6 +26,11 @@ describe("assemble", () => {
       knowledgeCard: null, history: [], childText: "x", state });
     expect(JSON.stringify(out)).not.toMatch(/display_name/);
   });
+  it("⑥ says whether the statement is already confirmed (G8-fix), only when the caller knows", () => {
+    expect(renderStateBlock({ ...state, statementConfirmed: true })).toContain("luot_trong_bai: 7/20 | de_da_xac_nhan: true");
+    expect(renderStateBlock({ ...state, statementConfirmed: false })).toContain("de_da_xac_nhan: false");
+    expect(renderStateBlock(state)).not.toContain("de_da_xac_nhan");
+  });
   it("⑥ carries max_lines from the teaching profile", () => {
     expect(renderStateBlock({ ...state, maxLines: 4 })).toContain("max_lines: 4");
   });

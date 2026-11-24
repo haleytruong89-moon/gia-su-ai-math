@@ -152,6 +152,11 @@ test("photo: the child sends a photo of the problem → the tutor restates it; t
   await page.waitForURL(/\/gia-su\/hoi\//);
   await expect(page.getByText("Em kiểm tra giúp cô đúng chưa?")).toBeVisible();
   await expect(page.getByAltText("Ảnh em gửi")).toBeVisible();
+  // G8-fix: the photo button in the chat has a visible label and opens the photo library too (no `capture`)
+  const workPhoto = page.getByRole("button", { name: "Gửi ảnh bài làm" });
+  await expect(workPhoto).toBeVisible();
+  await expect(workPhoto).toContainText("Gửi ảnh");
+  await expect(page.locator('input[type="file"][aria-label="Gửi ảnh bài làm"]:not([capture])')).toHaveCount(1);
   photoProblem = page.url().split("/hoi/")[1]!;
 
   const { data: p } = await tutor().from("problems").select("child_id").eq("id", photoProblem).single();

@@ -50,11 +50,21 @@ describe("dayFlags (DOMAIN §4.7)", () => {
   it("G7c: a reference solution cas did not confirm → flag for the parents (X5)", () => {
     expect(dayFlags(day([p({ id: "a", referenceMismatch: true })]), title)).toEqual([{ kind: "loi_giai_lech", text: "Lời giải tham khảo lệch đáp số đã kiểm ở 1 bài (không hiện cho con)", problemIds: ["a"] }]);
   });
+  it("G8-fix: safe lines shown → flag with the count and the commonest checker reason", () => {
+    const f = dayFlags(day([
+      p({ id: "a", safeLineCount: 3, blockReasons: ["6: khẳng định hình đúng mà không có math_check", "6: khẳng định hình đúng mà không có math_check", "3: không kết thúc bằng câu hỏi"] }),
+      p({ id: "b", safeLineCount: 1, blockReasons: ["guard_unavailable"] }),
+      p({ id: "c", safeLineCount: 0 }),
+    ]), title);
+    expect(f).toEqual([{ kind: "cau_soan_san", problemIds: ["a", "b"],
+      text: "Cô phải dùng câu soạn sẵn 4 lượt ở 2 bài — hay bị chặn vì: 6: khẳng định hình đúng mà không có math_check" }]);
+    expect(dayFlags(day([p({ id: "d", safeLineCount: 1, blockReasons: ["guard_unavailable"] })]), title)[0]?.text).toBe("Cô phải dùng câu soạn sẵn 1 lượt ở 1 bài");
+  });
   it("flags come in the parents' priority order (X1)", () => {
     expect(kinds(day([
-      p({ id: "a", hintLevelMax: 4, rewrittenCount: 2, geometryProof: true, status: "pending_review", prereqGaps: ["N8.10"] }),
+      p({ id: "a", hintLevelMax: 4, rewrittenCount: 2, geometryProof: true, status: "pending_review", prereqGaps: ["N8.10"], safeLineCount: 1 }),
       p({ id: "b", hintLevelMax: 4, examSlot: "HN10-2c", uLevel: 0, status: "abandoned" }),
-    ], { ratingsHard: 1, casErrors: 3 }))).toEqual(["cas_loi", "y_chan", "nan_bo_do", "con_cham_kho", "goi_y_nhieu", "cho_thay", "lo_hong_nen", "bai_hinh", "viet_lai_nhieu"]);
+    ], { ratingsHard: 1, casErrors: 3 }))).toEqual(["cas_loi", "y_chan", "nan_bo_do", "con_cham_kho", "goi_y_nhieu", "cho_thay", "lo_hong_nen", "bai_hinh", "cau_soan_san", "viet_lai_nhieu"]);
   });
 });
 

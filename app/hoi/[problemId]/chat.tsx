@@ -6,7 +6,7 @@ import { useRef, useState, useSyncExternalStore } from "react";
 import type { Thread, ThreadMessage } from "@/lib/db/supabaseRepo";
 import { prepareImage } from "@/lib/client/image";
 import { BTN_NOT_UNDERSTAND_PROBLEM, BTN_NOT_UNDERSTOOD, BTN_SAVE, PHOTO_COPY, PHOTO_ONLY_TEXT } from "@/lib/copy";
-import { MAX_IMAGES_PER_PROBLEM, MISREAD_HINT_AT, misreadCount } from "@/lib/rules/photo";
+import { MISREAD_HINT_AT, misreadCount } from "@/lib/rules/photo";
 import { lines } from "@/lib/markdown";
 import { newClientMsgId, postForm, postWithRetry } from "@/lib/client/post";
 import type { InputKind } from "@/lib/rules/events";
@@ -119,7 +119,7 @@ export function Chat({ initial, rating }: { initial: Thread; rating: RatingInfo 
     ? last.buttons.filter((b) => b !== BTN_NOT_UNDERSTOOD && b !== BTN_SAVE && b !== BTN_NOT_UNDERSTAND_PROBLEM) : [];
 
   const photoCount = messages.reduce((n, m) => n + m.images.length, 0);
-  const canAddPhoto = photoCount < MAX_IMAGES_PER_PROBLEM;
+  const canAddPhoto = photoCount < initial.maxImages;
   const showMisread = open && !confirmed && misreadCount(messages) >= MISREAD_HINT_AT;
 
   async function choose(file: File | undefined) {
@@ -285,13 +285,16 @@ export function Chat({ initial, rating }: { initial: Thread; rating: RatingInfo 
               </div>
             )}
             {error && <p role="alert" className="text-sm font-semibold text-[#A33A2B]">{error}</p>}
+            {!canAddPhoto && !photo && <p className="text-sm text-ink/70">{PHOTO_COPY.tooMany}</p>}
             <div className="flex items-end gap-2">
-              <button type="button" aria-label={PHOTO_COPY.work} title={canAddPhoto ? PHOTO_COPY.work : PHOTO_COPY.tooMany}
+              {/* G8-fix: a labelled button (the bare camera icon was missed on the iPad); it opens camera or photo library. */}
+              <button type="button" aria-label={PHOTO_COPY.work}
                 disabled={busy || !canAddPhoto} onClick={() => picker.current?.click()}
-                className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-[14px] border-[1.5px] border-ink/20 bg-white disabled:opacity-50">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                className="flex h-[52px] shrink-0 flex-col items-center justify-center gap-0.5 rounded-[14px] border-[1.5px] border-accent bg-white px-3 text-xs font-semibold text-accent disabled:border-ink/20 disabled:text-ink/50 disabled:opacity-60">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d="M4 8h3l2-3h6l2 3h3v11H4z" /><circle cx="12" cy="13" r="3.5" />
                 </svg>
+                {PHOTO_COPY.workShort}
               </button>
               <input ref={picker} type="file" accept="image/*" className="hidden" aria-label={PHOTO_COPY.work}
                 onChange={(e) => { void choose(e.target.files?.[0]); e.target.value = ""; }} />
