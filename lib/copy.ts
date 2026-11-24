@@ -31,7 +31,32 @@ const SAFE_BY_LEVEL: Record<0 | 1 | 2 | 3 | 4 | 5, string> = {
   5: "Em đã cố gắng nhiều rồi. Mình để dành bài này hỏi thầy nhé?",
 };
 
-export function safeLine(level: 0 | 1 | 2 | 3 | 4 | 5): { message: string; buttons: string[] } {
+/** G8-fix (24/11): the safe line right after another safe line — never the same sentence twice in a row. */
+export const SAFE_AGAIN = "Cô chưa nói được ý mới ở chỗ này. Em gõ bước em đang làm (hoặc bấm 📷 Gửi ảnh) cho cô xem, hay để dành bài này hỏi thầy?";
+/** G8-fix: a third safe line in a row — stop pushing and offer the teacher. */
+export const SAFE_STOP = "Hôm nay cô chưa giúp tốt được bài này. Mình để dành bài hỏi thầy, em làm bài khác trước nhé?";
+const SAFE_LINES = new Set<string>([...Object.values(SAFE_BY_LEVEL), SAFE_AGAIN, SAFE_STOP]);
+
+export const isSafeLine = (text: string): boolean => SAFE_LINES.has(text.trim());
+/** Every safe line, for the evening report (G8-fix: how often the child got one). */
+export const SAFE_LINE_TEXTS: readonly string[] = [...SAFE_LINES];
+
+/** How many of the tutor's latest messages in this problem, newest first, were safe lines (child messages skipped). */
+export function safeLinesInARow(history: readonly { role: string; content: string }[]): number {
+  let n = 0;
+  for (let i = history.length - 1; i >= 0; i--) {
+    const h = history[i]!;
+    if (h.role !== "assistant" && h.role !== "tutor") continue;
+    if (!isSafeLine(h.content)) break;
+    n++;
+  }
+  return n;
+}
+
+/** `inARow`: safe lines the child has just seen in a row (G8-fix: the child saw the same line again and again). */
+export function safeLine(level: 0 | 1 | 2 | 3 | 4 | 5, inARow = 0): { message: string; buttons: string[] } {
+  if (inARow >= 2) return { message: SAFE_STOP, buttons: [BTN_SAVE] };
+  if (inARow === 1) return { message: SAFE_AGAIN, buttons: [BTN_SAVE] };
   return { message: SAFE_BY_LEVEL[level], buttons: level >= 4 ? [BTN_SAVE] : [] };
 }
 
@@ -42,11 +67,13 @@ export const PHOTO_COPY = {
   remove: "Bỏ ảnh",
   retake: "Chụp lại ảnh khác",
   work: "Gửi ảnh bài làm",
+  /** G8-fix: the visible label of the photo button in the chat (it used to be an unlabeled camera icon). */
+  workShort: "Gửi ảnh",
   hint: "Chụp gọn chỉ bài em cần hỏi. Đừng chụp họ tên, tên trường.",
   unreadable: "Ảnh này máy chưa đọc được. Em chụp bằng camera hoặc gửi ảnh JPG/PNG.",
   tooBig: "Ảnh lớn quá. Em chụp lại gần hơn, chỉ lấy bài cần hỏi nhé.",
   misread: "Cô đọc ảnh chưa đúng. Em gõ đề vào ô dưới, hoặc chụp lại ảnh rõ hơn.",
-  tooMany: "Bài này đã có 4 ảnh. Em gõ phần còn lại cho cô nhé.",
+  tooMany: "Bài này đã đủ ảnh rồi. Em gõ phần còn lại cho cô, hoặc mở bài mới nhé.",
 } as const;
 /** Stored as the child's message when a photo is sent without typed text. */
 export const PHOTO_ONLY_TEXT = "📷 Em gửi ảnh";

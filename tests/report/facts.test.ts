@@ -15,6 +15,14 @@ describe("isCasFailure (§4.7 C1 lỗi: the service failed, not the model's inpu
 });
 
 describe("factsFromRows", () => {
+  it("G8-fix: safe lines counted per problem from the tutor messages; the reasons of blocked tutor calls are kept", () => {
+    const call = (guard_result: string | null, guard_reasons: string[] = []) => ({ problem_id: "a", purpose: "tutor", guard_result, guard_reasons, raw_output: "{}" });
+    const d = factsFromRows({ problems: [prob(), prob({ id: "b" })], tools: [], sessionsAbandoned: 0, ratings: [],
+      calls: [call("blocked", ["6: x"]), call("rewritten"), call("blocked", ["3: y"]), call("pass"),
+        { problem_id: "a", purpose: "reference", guard_result: "blocked", raw_output: "{}" }],
+      safeLines: [{ problem_id: "a" }, { problem_id: "a" }, { problem_id: "z" }] });
+    expect(d.problems.map((x) => [x.safeLineCount, x.blockReasons])).toEqual([[2, ["6: x", "3: y"]], [0, []]]);
+  });
   it("a reference call cas did not confirm (guard_result blocked) → referenceMismatch", () => {
     const d = factsFromRows({ problems: [prob({ status: "self_solved" })], calls: [{ problem_id: "a", purpose: "reference", guard_result: "blocked", raw_output: "{}" }],
       tools: [], sessionsAbandoned: 0, ratings: [] });
@@ -40,7 +48,7 @@ describe("factsFromRows", () => {
     });
     expect(d.problems[0]).toEqual({
       id: "a", status: "pending_review", hintLevelMax: 2, nanJumps: 0, uLevel: 2, kuCode: "T9.9", examSlot: null,
-      prereqGaps: [], geometryProof: true, rewrittenCount: 2, referenceMismatch: false,
+      prereqGaps: [], geometryProof: true, rewrittenCount: 2, referenceMismatch: false, safeLineCount: 0, blockReasons: [],
     });
     expect(d.casErrors).toBe(2);
     expect(d.ratingsHard).toBe(1);

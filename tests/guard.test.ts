@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { runGuard, type GuardInput } from "@/lib/tutor/guard";
-import { safeLine } from "@/lib/copy";
+import { isSafeLine, SAFE_AGAIN, SAFE_STOP, safeLine, safeLinesInARow } from "@/lib/copy";
 import fewshot from "./fixtures/fewshot.json";
 import type { TutorOutput } from "@/lib/tutor/schema";
 
@@ -57,5 +57,26 @@ describe("safeLine (DOMAIN §5: blocked twice)", () => {
     expect(JSON.stringify(c.last)).toContain('"type":"image"');
     await runGuard(c, "claude-haiku-5-5", "P", input);
     expect(JSON.stringify(c.last)).not.toContain('"type":"image"');
+  });
+});
+
+describe("safe lines in a row (G8-fix 24/11: never the same line twice in a row)", () => {
+  const t = (content: string) => ({ role: "assistant", content });
+  const k = (content: string) => ({ role: "user", content });
+  it("counts the tutor's latest safe lines, newest first, skipping the child's messages", () => {
+    expect(safeLinesInARow([])).toBe(0);
+    expect(safeLinesInARow([t("Cô đọc đề là…"), k("đúng"), t(safeLine(0).message), k("em vẽ rồi")])).toBe(1);
+    expect(safeLinesInARow([t(safeLine(0).message), k("?"), t(SAFE_AGAIN), k("??")])).toBe(2);
+    expect(safeLinesInARow([t(safeLine(0).message), k("?"), t("Em vẽ đúng 3 điểm rồi!"), k("??")])).toBe(0);
+  });
+  it("second and later lines differ from the level line and offer the teacher", () => {
+    expect(safeLine(0, 1)).toEqual({ message: SAFE_AGAIN, buttons: ["Để dành hỏi thầy"] });
+    expect(safeLine(0, 2)).toEqual({ message: SAFE_STOP, buttons: ["Để dành hỏi thầy"] });
+    expect(safeLine(3, 5).message).toBe(SAFE_STOP);
+    for (const l of [0, 1, 2, 3, 4, 5] as const) expect(safeLine(l, 1).message).not.toBe(safeLine(l).message);
+    expect([SAFE_AGAIN, SAFE_STOP].every((m) => m.trim().endsWith("?"))).toBe(true);
+  });
+  it("recognises its own lines only", () => {
+    expect([isSafeLine(` ${safeLine(1).message} `), isSafeLine(SAFE_STOP), isSafeLine("Mình đọc lại đề nhé")]).toEqual([true, true, false]);
   });
 });

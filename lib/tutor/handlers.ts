@@ -6,10 +6,10 @@
 // §4.14, §5). G4 adds the tools and math_check (until then self_solved is never allowed).
 import { z } from "zod";
 import type { Actor } from "@/lib/actor";
-import { BTN_CARD_OK, CARD_BUTTONS, PHOTO_COPY, PHOTO_ONLY_TEXT, SAFE_BUSY, SPEND_PAUSED, safeLine } from "@/lib/copy";
+import { BTN_CARD_OK, CARD_BUTTONS, PHOTO_COPY, PHOTO_ONLY_TEXT, SAFE_BUSY, SPEND_PAUSED, safeLine, safeLinesInARow } from "@/lib/copy";
 import { burnAlertDue, consoleAlertDue, economyAlertDue, isSpendLimitError } from "@/lib/rules/cost";
 import { processImage } from "@/lib/images";
-import { MAX_IMAGES_PER_PROBLEM } from "@/lib/rules/photo";
+import { maxImagesFor } from "@/lib/rules/photoLimit";
 import { isTooBig } from "@/lib/tutor/form";
 import { childEvents, type InputKind } from "@/lib/rules/events";
 import { applyPreTurn, nextHintLevel, type HintLevel } from "@/lib/rules/hints";
@@ -209,7 +209,7 @@ export async function handleTurn(d: Deps, raw: unknown): Promise<Result> {
   // G6 (Y3): card way 2 and "Em không hiểu đề" are answered by the server, without the model and without a turn.
   const s = image ? null : scriptedFor(actor, problem, text, kind);
   if (s) return runScripted(d, actor, problem, clientMsgId, text, kind, s);
-  if (image && problem.imageCount >= MAX_IMAGES_PER_PROBLEM) return tooMany;
+  if (image && problem.imageCount >= maxImagesFor(problem.kuCode)) return tooMany; // G8-fix: 6 for geometry
   const cleaned = await cleanPhoto(image, parsed.data.device ?? "laptop");
   if ("error" in cleaned) return cleaned.error;
   return runTurn(d, actor, problem, clientMsgId, text, kind, cleaned.photo);
@@ -468,7 +468,9 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
   // The checker needs the problem: the confirmed restatement, else the typed text, else the first photo.
   const typed = problem.statement && problem.statement !== PHOTO_ONLY_TEXT ? problem.statement : null;
   const guardStatement = problem.confirmedStatement ?? typed ?? (text !== PHOTO_ONLY_TEXT ? text : "(đề trong ảnh, chưa xác nhận)");
-  const guardImages = problem.confirmedStatement === null && photos.length ? [photos[0]!.image] : undefined;
+  // G8-fix: the checker also sees the photo the child sent with this turn (a figure the tutor comments on).
+  const guardImages = [...new Set([...(problem.confirmedStatement === null && photos.length ? [photos[0]!.image] : []),
+    ...photosOf(messageId)])];
 
   const { system, messages } = assemble({
     layers: d.layers,
@@ -481,13 +483,14 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
     state: {
       grade: actor.grade, hintLevel: level, wrongCount: problem.wrongCount, nan, idle: false, submitted,
       mode: "thuong", minutesLeft: 45, turn, stuckKind: problem.stuckKind, kuCode, examSlot,
+      statementConfirmed: problem.statementConfirmed,
       maxLines: actor.maxLines, bridgeTurns: problem.bridgeTurns,
     },
   });
   // Out of time counts as not passed (fail-closed). The checker sees which tools ran and what they said (rules 6–7).
   const check = async (o: TutorOutput, tools: readonly ToolRecord[]): Promise<GuardResult | null> => left() < GUARD_NEEDS_MS ? null
     : runGuard(d.client, d.models.light, d.layers.guard, {
-      statement: guardStatement, images: guardImages, hintLevel: level, submitted, maxLines: actor.maxLines, output: o,
+      statement: guardStatement, images: guardImages.length ? guardImages : undefined, hintLevel: level, submitted, maxLines: actor.maxLines, output: o,
       toolsCalled: tools.map(toolSummary),
     });
   const noTime = ["out_of_time"];
@@ -588,7 +591,7 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
     // Grade 9: G4 Q2 (phụ huynh chốt 15/11). Grade 6: DOMAIN §4.10b (phụ huynh chốt 18/11).
     checklistRequired: true,
     checklistAsked: [...new Set([...problem.checklistAsked, ...(shown?.checklist_da_hoi ?? [])])] });
-  const safe = safeLine(level);
+  const safe = safeLine(level, safeLinesInARow(problem.history)); // G8-fix: never the same safe line twice in a row
   // G6 (§4.15): the tutor names an approved card; the server picks the way (C1) and shows it word for word.
   const named = shown?.the_hien ? cardOf(shown.the_hien) : null;
   const way = named && cardFitsGrade(named, actor.grade) && outcome.status === "in_progress"

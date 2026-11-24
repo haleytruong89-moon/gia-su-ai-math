@@ -8,6 +8,7 @@ import { BTN_SAVE } from "@/lib/copy";
 import type { InputKind } from "@/lib/rules/events";
 import type { HintLevel } from "@/lib/rules/hints";
 import { deleteAfterVn } from "@/lib/rules/photo";
+import { maxImagesFor } from "@/lib/rules/photoLimit";
 import { syncAttention } from "@/lib/report/attentionSync";
 import { activeRules, type RuleRow } from "@/lib/rules/teachingRules";
 import { reopenAfterMistake } from "@/lib/rules/review";
@@ -579,13 +580,15 @@ export async function addUsage(db: SupabaseClient, familyId: string, now: Date, 
 export interface ThreadMessage { id: string; role: "child" | "tutor"; text: string; buttons: string[]; images: string[]; cardRef: string | null }
 export interface Thread {
   problemId: string; status: ProblemStatus; turnCount: number; statementConfirmed: boolean; hasImages: boolean; messages: ThreadMessage[];
+  /** G8-fix: photos allowed for this problem (6 for geometry lessons, else 4) — the server enforces the same number. */
+  maxImages: number;
 }
 
 /** The chat of one problem for the child's screen; null when it is not this child's. Photos as 10-minute signed URLs. */
 export async function problemThread(problemId: string, childId: string, db: SupabaseClient = createAdminClient()): Promise<Thread | null> {
   if (!/^[0-9a-f-]{36}$/i.test(problemId)) return null;
   const t = db.schema("tutor");
-  const { data: p, error } = await t.from("problems").select(REPLY_COLS)
+  const { data: p, error } = await t.from("problems").select(`${REPLY_COLS}, ku_code`)
     .eq("id", problemId).eq("child_id", childId).is("deleted_at", null).maybeSingle();
   if (error) fail("problemThread", error);
   if (!p) return null;
@@ -607,6 +610,7 @@ export async function problemThread(problemId: string, childId: string, db: Supa
   return {
     problemId, status: p.status as ProblemStatus, turnCount: p.turn_count as number,
     statementConfirmed: p.statement_confirmed as boolean, hasImages: (att?.length ?? 0) > 0,
+    maxImages: maxImagesFor((p.ku_code as string | null) ?? null),
     messages: (rows ?? []).map((m) => ({ id: m.id, role: m.role === "child" ? "child" : "tutor", text: m.content, buttons: m.buttons ?? [],
       images: byMessage.get(m.id) ?? [], cardRef: m.card_ref ?? null })),
   };
