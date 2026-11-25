@@ -355,7 +355,7 @@ async function reviewQueue(d: Deps, actor: ChildActor, problem: ProblemRow, e: {
   }
 }
 
-/** G7: the Launcher's "cần chú ý" lines follow every ended problem. Never breaks the child's turn. */
+/** G7: the Launcher's "cần chú ý" lines follow every turn (G8-fix4). Never breaks the child's turn. */
 async function syncAttention(d: Deps, actor: ChildActor): Promise<void> {
   try {
     await d.repo.syncAttention({ familyId: actor.familyId, childId: actor.userId, dateVn: dateVn(d.now), now: d.now });
@@ -707,7 +707,11 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
     await d.repo.deleteMessage(messageId);
     return pending;
   }
+  // G7: the Launcher's "cần chú ý" lines. G8-fix4: also while the problem stays open (children often leave
+  // without ending the problem or the session) — after the answer is sent, so the child never waits for it.
   if (saved.status !== "in_progress") await syncAttention(d, actor);
+  else if (d.later) d.later(() => syncAttention(d, actor));
+  else await syncAttention(d, actor);
   // D38: the jobs the tutor sent back after a wrong answer are unticked.
   for (const n of redo) await d.repo.savePlanEvent({ actor, problemId: problem.id, clientMsgId: null, content: planEventText({ step: n, done: false }), now: d.now });
   const planTicks = planSteps ? [] : applyTicks(problem.planTicks, redo.map((n) => ({ step: n, done: false })));

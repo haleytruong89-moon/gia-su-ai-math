@@ -2,7 +2,7 @@
   "schema": 1,
   "project": "Gia sư AI Toán",
   "updated": "2026-11-26",
-  "updatedNote": "#33 (D36) đã merge 26/11. PR #35 chờ duyệt: D37 luồng mở bài ≤ 4 lượt + D38 \"Bài của em\" (danh sách việc con tick). Cần Launcher #113 (SQL 0030) merge trước. Bố mẹ vẫn cần kiểm cas-health. Tiếp: G8a",
+  "updatedNote": "#35 (D37 + D38) và Launcher #113 (SQL 0030) đã merge 26/11: giảng các cách → bài mẫu → \"Bài của em\" đang chạy. G8-fix4 (#34) chờ duyệt: cờ ⚠️ lên Launcher sau mỗi lượt. Bố mẹ vẫn cần kiểm cas-health. Tiếp: báo cáo tuần, G8a",
   "vision": {
     "oneLiner": "Một \"cô\" gia sư AI giúp 2 con tự học Toán buổi chiều: gỡ chỗ kẹt bằng câu hỏi gợi mở, không đưa lời giải bài gốc, tối bố mẹ đọc báo cáo 5 phút.",
     "problem": "Buổi chiều 2 con có nhiều thời gian tự học nhưng không có người lớn. Bố mẹ có khoảng 2 giờ buổi tối, gia sư người 2 buổi/tuần. Tốc độ tiến bộ do giờ tự học buổi chiều quyết định.",
@@ -683,10 +683,14 @@
         },
         {
           "name": "D37 G8-fix5 luồng mở bài ≤ 4 lượt: giảng các cách → bài mẫu đúng cách con chọn → con tự làm; không hỏi thăm dò; thẻ cách làm C6.1, C6.2; bài mẫu không tính là gợi ý",
-          "status": "review"
+          "status": "done"
         },
         {
           "name": "D38 \"Bài của em\": danh sách việc con tick dưới bài mẫu, \"Kẹt ở đây\" theo từng việc, nộp khi tick hết (cùng PR #35)",
+          "status": "done"
+        },
+        {
+          "name": "G8-fix4: cờ ⚠️ lên thẻ \"Học với app\" của Launcher sau mỗi lượt và khi bố mẹ mở báo cáo, không chờ bài kết thúc",
           "status": "review"
         },
         {
@@ -752,6 +756,16 @@
         {
           "repo": "gia-su",
           "number": 35,
+          "status": "merged"
+        },
+        {
+          "repo": "launcher",
+          "number": 113,
+          "status": "merged"
+        },
+        {
+          "repo": "gia-su",
+          "number": 34,
           "status": "open"
         }
       ]
@@ -980,9 +994,14 @@
       "status": "open"
     },
     {
-      "text": "Merge Launcher #113 (SQL 0030, nhận mã thẻ C) TRƯỚC, rồi duyệt PR #35 G8-fix5 (D37 + D38) — merge = duyệt prompt v0.13, thẻ C6.1, C6.2 và danh sách \"Bài của em\"",
+      "text": "Duyệt PR #34 G8-fix4 — cờ ⚠️ lên Launcher ngay trong buổi học (không đổi prompt, không SQL). Sau merge: mở báo cáo tối 24/11 và 25/11 một lần",
       "slice": "G9",
       "status": "open"
+    },
+    {
+      "text": "Merge Launcher #113 (SQL 0030, nhận mã thẻ C) TRƯỚC, rồi duyệt PR #35 G8-fix5 (D37 + D38) — merge = duyệt prompt v0.13, thẻ C6.1, C6.2 và danh sách \"Bài của em\"",
+      "slice": "G9",
+      "status": "done"
     },
     {
       "text": "Duyệt PR #33 G8-fix3 (D36) — merge = duyệt prompt v0.11, thẻ giảng khi bị chặn, máy kiểm số trong app",
@@ -1282,6 +1301,10 @@
     {
       "date": "2026-11-26",
       "text": "D38 \"Bài của em\" (danh sách việc con tick) thêm vào PR #35. Phát hiện cột card_ref chỉ nhận mã T/N/D → Launcher #113 (SQL 0030) phải merge trước #35"
+    },
+    {
+      "date": "2026-11-26",
+      "text": "Phụ huynh merge Launcher #113 (SQL 0030) rồi #35 (D37 + D38) sáng 26/11. #34 (G8-fix4) rebase lên main sau #35"
     }
   ]
 }
