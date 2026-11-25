@@ -1,3 +1,4 @@
+import { localCas } from "@/lib/tools/localCas";
 import { guardVerdictJson } from "@/lib/tutor/guard";
 import { describe, expect, it } from "vitest";
 import { handleTurn, newProblem, saveForLater, startSession, STALE_PENDING_MS, type Deps } from "@/lib/tutor/handlers";
@@ -882,5 +883,11 @@ describe("G8-fix2: the checker's inputs, the confirmed safe line, the math check
     expect(JSON.stringify(up.reqs.find((r) => !isGuardReq(r))!.messages.at(-1))).not.toContain("may_tinh");
     expect(((up.reqs.find((r) => !isGuardReq(r)) as { tools?: { name: string }[] }).tools ?? []).map((t) => t.name))
       .toEqual(["math_check", "make_sibling", "lookup"]);
+    // D36: only the in-app number checker → ⑥ says chi_so and the tools are offered
+    const num = recording([confirmed]);
+    await handleTurn({ ...deps(confirmedSeed, num).d, cas: localCas(null) }, body(3, "em ra 84"));
+    const req = num.reqs.find((r) => !isGuardReq(r))!;
+    expect(JSON.stringify(req.messages.at(-1))).toContain("may_tinh: chi_so");
+    expect(((req as { tools?: { name: string }[] }).tools ?? []).map((t) => t.name)).toEqual(["math_check", "make_sibling", "lookup"]);
   });
 });

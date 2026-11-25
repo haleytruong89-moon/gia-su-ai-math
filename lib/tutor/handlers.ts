@@ -467,6 +467,8 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
     problemUsedStrong: problem.usedStrong, strongPaused: paused,
     geometryProof: cls.geometry_proof || problem.lastTutorFlags.includes("geometry_proof"), examSlot });
 
+  // D36: no math checker at all → "loi"; only the in-app number checker (no algebra service) → "chi_so".
+  const casMode = !d.cas ? "loi" : (d.cas as { limited?: boolean }).limited ? "chi_so" : null;
   const photosOf = (id: string): ImageData[] => photos.filter((p) => p.messageId === id).map((p) => p.image);
   // A message that showed a card carries the card text for the tutor (it never sees the child's screen).
   const history: Turn[] = problem.history.map((h) => {
@@ -492,7 +494,7 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
     state: {
       grade: actor.grade, hintLevel: level, wrongCount: problem.wrongCount, nan, idle: false, submitted,
       mode: "thuong", minutesLeft: 45, turn, stuckKind: problem.stuckKind, kuCode, examSlot,
-      statementConfirmed: problem.statementConfirmed, casDown: d.cas === null,
+      statementConfirmed: problem.statementConfirmed, casMode,
       maxLines: actor.maxLines, bridgeTurns: problem.bridgeTurns,
     },
   });
@@ -536,7 +538,7 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
     // G8-fix2: without the math checker the two tools that need it are not offered (in real use the tutor called
     // math_check twice a turn and got "cas_not_configured" each time; the state block says `may_tinh: loi`).
     const loop = await runToolLoop(d.client, { model: d.models[tier], system, messages: msgs, run, timeLeft: left, review,
-      withoutTools: d.cas === null ? CAS_TOOLS : undefined });
+      withoutTools: casMode === "loi" ? CAS_TOOLS : undefined });
     const recs = loop.calls.map((c) => tutorRec(d.models[tier], c, reason));
     calls.push(...recs);
     const finalIndex = calls.length - 1;

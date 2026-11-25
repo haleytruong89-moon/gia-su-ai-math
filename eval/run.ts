@@ -10,6 +10,7 @@ import { assemble, type TurnStateBlock } from "@/lib/tutor/assemble";
 import { loadLayers, promptVersion } from "@/lib/tutor/layers";
 import { type Effort, type ModelClient } from "@/lib/tutor/turn";
 import { runToolLoop } from "@/lib/tutor/toolLoop";
+import { localCas } from "@/lib/tools/localCas";
 import { runGuard } from "@/lib/tutor/guard";
 import { toolSummary } from "@/lib/tutor/handlers";
 import { httpCas } from "@/lib/tools/casClient";
@@ -144,11 +145,13 @@ async function runCase(model: string, c: EvalCase) {
   try {
     let siblingCost = 0;
     const run = async (name: string, input: unknown) => {
-      if (name === "math_check") return runMathCheck(cas, input);
+      // D36: a "chi_so" case runs with the in-app number checker only, as the app does without the algebra service.
+      const caseCas = c.state?.casMode === "chi_so" ? localCas(null) : cas;
+      if (name === "math_check") return runMathCheck(caseCas, input);
       if (name === "lookup") return runLookup(input);
       if (name === "make_sibling") {
         try {
-          const sib = await makeSibling({ client, model: SIBLING_MODEL, prompt: loadLayers().sibling, cas }, input as SiblingInput);
+          const sib = await makeSibling({ client, model: SIBLING_MODEL, prompt: loadLayers().sibling, cas: caseCas }, input as SiblingInput);
           siblingCost += sib.calls.reduce((t, x) => t + x.costUsd, 0);
           return { ok: true, output: sib.output };
         } catch (e) {
@@ -158,7 +161,7 @@ async function runCase(model: string, c: EvalCase) {
       return { ok: false, output: { error: "unknown_tool" } };
     };
     const loop = await runToolLoop(client, { model, system, messages, run, timeLeft: () => 240_000,
-      withoutTools: c.state?.casDown ? ["math_check", "make_sibling"] : undefined }); // as the app does without cas
+      withoutTools: c.state?.casMode === "loi" ? ["math_check", "make_sibling"] : undefined }); // as the app does without cas
     const r = { ...loop.final, costUsd: loop.calls.reduce((t, x) => t + x.costUsd, 0) + siblingCost };
     const ms = Date.now() - started;
     const toolsRun = loop.tools.flatMap(toolKeys);

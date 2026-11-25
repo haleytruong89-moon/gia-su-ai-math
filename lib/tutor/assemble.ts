@@ -23,15 +23,18 @@ export interface TurnStateBlock { grade: 6 | 9; hintLevel: number; wrongCount: n
   bridgeTurns?: number;
   /** G8-fix: the child already confirmed the statement — the tutor must not restate it or ask "đúng chưa?" again. */
   statementConfirmed?: boolean;
-  /** G8-fix2: the math checker is not configured on this deployment — the tutor must not call it this turn. */
-  casDown?: boolean }
+  /**
+   * G8-fix2 / D36: how much math_check can do this turn. "loi" = nothing (the tools are not offered);
+   * "chi_so" = no algebra service, only the in-app number checker (values, ƯCLN/BCNN, numbers put into equations).
+   */
+  casMode?: "loi" | "chi_so" | null }
 
 export function renderStateBlock(s: TurnStateBlock): string {
   return [
     "[TRẠNG THÁI — do app tính, cô làm theo]",
     `lop: ${s.grade} | muc_goi_y: H${s.hintLevel} | so_lan_sai: ${s.wrongCount} | nan: ${s.nan} | im_lau: ${s.idle}`,
     `da_nop_loi_giai: ${s.submitted} | che_do: ${s.mode} | max_lines: ${s.maxLines}`,
-    `thoi_gian_buoi_con_lai: ${s.minutesLeft} phút | luot_trong_bai: ${s.turn}/20${s.statementConfirmed === undefined ? "" : ` | de_da_xac_nhan: ${s.statementConfirmed}`}${s.casDown ? " | may_tinh: loi" : ""}`,
+    `thoi_gian_buoi_con_lai: ${s.minutesLeft} phút | luot_trong_bai: ${s.turn}/20${s.statementConfirmed === undefined ? "" : ` | de_da_xac_nhan: ${s.statementConfirmed}`}${s.casMode ? ` | may_tinh: ${s.casMode}` : ""}`,
     `cho_ket_cua_em: ${s.stuckKind ?? "khong_ro"} | ku_code: ${s.kuCode ?? "chua_ro"} | exam_slot: ${s.examSlot ?? "khong"}`,
     ...(s.bridgeTurns ? [`day_bu_nen: ${Math.min(s.bridgeTurns, 2)}/2${s.bridgeTurns >= 2 ? " — đã đủ, quay lại bài gốc" : ""}`] : []),
   ].join("\n");
