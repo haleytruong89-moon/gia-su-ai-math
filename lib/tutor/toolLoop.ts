@@ -28,7 +28,10 @@ export async function runToolLoop(client: ModelClient, req: {
   timeLeft: () => number;
   /** after a JSON answer: words that send it back for one more round, or null */
   review?: (output: TutorOutput | null, tools: readonly ToolRecord[]) => string | null;
+  /** G8-fix2: tools not offered this turn (the math checker is not configured → no math_check, no make_sibling). */
+  withoutTools?: readonly ToolName[];
 }): Promise<LoopResult> {
+  const offered = req.withoutTools?.length ? TOOL_DEFS.filter((t) => !req.withoutTools!.includes(t.name)) : TOOL_DEFS;
   const messages: Msg[] = [...req.messages];
   const calls: Answer[] = [];
   const tools: ToolRecord[] = [];
@@ -37,7 +40,7 @@ export async function runToolLoop(client: ModelClient, req: {
   let force = false;
 
   for (;;) {
-    const answer = await runTutorTurn(client, { model: req.model, system: req.system, messages: [...messages], tools: TOOL_DEFS,
+    const answer = await runTutorTurn(client, { model: req.model, system: req.system, messages: [...messages], tools: offered,
       toolChoice: force ? { type: "none" } : { type: "auto" } });
     calls.push(answer);
     const round = calls.length - 1;

@@ -397,6 +397,8 @@ export function toolSummary(t: ToolRecord): string {
 const confirmsAnswer = (tools: readonly ToolRecord[]) =>
   checksFrom(tools).some((c) => c.ok && (c.result?.equivalent === true || c.result?.is_root === true || c.result?.satisfies === true));
 
+const CAS_TOOLS = ["math_check", "make_sibling"] as const;
+
 /** The code of the card an answer names, when it is an approved card of the child's grade (else null). */
 function approvedCard(code: string | null | undefined, grade: 6 | 9): string | null {
   const c = code ? cardOf(code) : null;
@@ -531,7 +533,10 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
       }
       return { ok: false, output: { error: "unknown_tool" } };
     };
-    const loop = await runToolLoop(d.client, { model: d.models[tier], system, messages: msgs, run, timeLeft: left, review });
+    // G8-fix2: without the math checker the two tools that need it are not offered (in real use the tutor called
+    // math_check twice a turn and got "cas_not_configured" each time; the state block says `may_tinh: loi`).
+    const loop = await runToolLoop(d.client, { model: d.models[tier], system, messages: msgs, run, timeLeft: left, review,
+      withoutTools: d.cas === null ? CAS_TOOLS : undefined });
     const recs = loop.calls.map((c) => tutorRec(d.models[tier], c, reason));
     calls.push(...recs);
     const finalIndex = calls.length - 1;

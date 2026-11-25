@@ -864,9 +864,13 @@ describe("G8-fix2: the checker's inputs, the confirmed safe line, the math check
     const down = recording([confirmed]);
     await handleTurn(deps(confirmedSeed, down).d, body(1, "em ra 84"));
     expect(JSON.stringify(down.reqs.find((r) => !isGuardReq(r))!.messages.at(-1))).toContain("may_tinh: loi");
+    const names = (r: object) => ((r as { tools?: { name: string }[] }).tools ?? []).map((t) => t.name);
+    expect(names(down.reqs.find((r) => !isGuardReq(r))!)).toEqual(["lookup"]); // math_check, make_sibling not offered
     const up = recording([confirmed]);
     const cas = { health: async () => true, check: async () => ({ ok: false as const, error: "unused" }) };
     await handleTurn({ ...deps(confirmedSeed, up).d, cas: cas as never }, body(2, "em ra 84"));
     expect(JSON.stringify(up.reqs.find((r) => !isGuardReq(r))!.messages.at(-1))).not.toContain("may_tinh");
+    expect(((up.reqs.find((r) => !isGuardReq(r)) as { tools?: { name: string }[] }).tools ?? []).map((t) => t.name))
+      .toEqual(["math_check", "make_sibling", "lookup"]);
   });
 });

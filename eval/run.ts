@@ -157,7 +157,8 @@ async function runCase(model: string, c: EvalCase) {
       }
       return { ok: false, output: { error: "unknown_tool" } };
     };
-    const loop = await runToolLoop(client, { model, system, messages, run, timeLeft: () => 240_000 });
+    const loop = await runToolLoop(client, { model, system, messages, run, timeLeft: () => 240_000,
+      withoutTools: c.state?.casDown ? ["math_check", "make_sibling"] : undefined }); // as the app does without cas
     const r = { ...loop.final, costUsd: loop.calls.reduce((t, x) => t + x.costUsd, 0) + siblingCost };
     const ms = Date.now() - started;
     const toolsRun = loop.tools.flatMap(toolKeys);
