@@ -52,6 +52,7 @@ const VOI = "Hai vòi nước cùng chảy vào một bể cạn thì sau 4 gi�
 /** G6: the tutor asked where the child is stuck (scripted "Em vướng ở chỗ nào?") and the child pressed a way. */
 const docDe = (statement: string): Msg[] => started(statement, [
   { role: "user", content: "Em không hiểu đề" }, { role: "assistant", content: "Em vướng ở chỗ nào?" }]);
+const UC = "Tìm ƯCLN của 84 và 252, rồi từ đó tìm tập hợp các ước chung của 336 và 504.";
 const CAY = "Số cây của một vườn trong khoảng từ 100 đến 200 cây. Nếu trồng thành hàng 8 cây hay hàng 9 cây thì đều vừa đủ. Hỏi vườn có bao nhiêu cây?";
 
 /** The problem was typed, the tutor restated it and the child confirmed: the usual start of a later turn. */
@@ -225,6 +226,19 @@ export const CASES: EvalCase[] = [
     childText: "Em không biết dùng kiến thức nào", kuCode: "T6.11", state: { hintLevel: 1, turn: 4 }, forbid: ["12"],
     answer: "12 tổ (mỗi tổ 2 nam, 3 nữ)", expect: { theHien: "D6.1" },
     rubric: "the_hien = D6.1 (đọc đề chia đều – nhiều nhất); message ngắn, không nói 12, không tính ƯCLN hộ em." },
+  // ---------- G8-fix2 (D35): teach first; the math checker down — from real use 25/11, other numbers ----------
+  { id: "6.14", grade: 6, title: "Em bấm 'Em chưa biết' → cô giảng ngay, không hỏi thêm",
+    history: started(UC, [{ role: "user", content: "Tìm ƯCLN trước" },
+      { role: "assistant", content: "Em chọn làm ƯCLN(84, 252) trước là hợp lý!\nMuốn tìm ƯCLN của 84 và 252, em biết những cách nào?" }]),
+    childText: "Em chưa biết", kuCode: "T6.11", state: { ...confirmed, hintLevel: 0, turn: 4, statementConfirmed: true },
+    forbid: ["= 84", "là 84", "bằng 84"], answer: "ƯCLN(84, 252) = 84; ƯC(336, 504) = Ư(168)", expect: { verdictIn: ["khong_biet"] },
+    rubric: "Cô GIẢNG ngay trong lượt này: hoặc đặt the_hien là một thẻ giảng về ƯCLN, hoặc đưa một ví dụ KHÁC SỐ ngắn kèm vì sao; rồi giao một bước nhỏ trên bài của em. Không chỉ hỏi thêm một câu thăm dò. Không nói ƯCLN(84, 252) bằng bao nhiêu." },
+  { id: "6.15", grade: 6, title: "Máy tính đại số lỗi: em báo kết quả → cô chỉ cách tự thử lại",
+    history: started(UC, [{ role: "user", content: "Tìm ƯCLN trước" },
+      { role: "assistant", content: "Em chọn làm ƯCLN(84, 252) trước là hợp lý!\nMuốn tìm ƯCLN của 84 và 252, em biết những cách nào?" }]),
+    childText: "em làm ƯCLN(84, 252) rồi là 84", kuCode: "T6.11", state: { ...confirmed, hintLevel: 0, turn: 4, statementConfirmed: true, casDown: true },
+    answer: "ƯCLN(84, 252) = 84; ƯC(336, 504) = Ư(168)",
+    rubric: "Cô KHÔNG nói kết quả 84 của em là đúng hay sai. Cô chỉ em một cách tự thử lại (vd chia 252 cho 84, hoặc kiểm 84 có là ước của cả hai số) hoặc hỏi em đã làm bằng cách nào. Không hỏi lại 'đề cho gì, hỏi gì'. Không đề nghị để dành hỏi thầy." },
   // ---------- G6 grade 9 ----------
   { id: "9.26", grade: 9, title: "Đọc đề: 'không biết bắt đầu đặt ẩn' ở bài vòi nước → thẻ D9.1", history: docDe(VOI),
     childText: "Em không biết bắt đầu đặt ẩn", kuCode: "T9.3", state: { hintLevel: 1, turn: 4 }, forbid: ["8", "12"],
@@ -263,7 +277,6 @@ export interface GuardCase {
   mustFailWith?: string; mustPass?: boolean;
   buttons?: string[]; childText?: string; card?: string; maxLines?: number;
 }
-const UC = "Tìm ƯCLN của 84 và 252, rồi từ đó tìm tập hợp các ước chung của 336 và 504.";
 const TRON = "Cho đường tròn (O) đường kính PQ, R thuộc (O) và khác P, Q. Tiếp tuyến tại P cắt QR tại S. Kẻ OH vuông góc QR (H thuộc QR), N là trung điểm của PS. a) Chứng minh bốn điểm P, S, H, O cùng thuộc một đường tròn.";
 const CAS_ERR = ["math_check(evaluate → error: cas_not_configured)"];
 export const GUARD_CASES: GuardCase[] = [

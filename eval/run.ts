@@ -166,6 +166,15 @@ async function runCase(model: string, c: EvalCase) {
     const j = r.output
       ? await judge(c, r.output.message, sc ? sc.buttons : r.output.buttons, loop.tools, sc ? { code: r.output.the_hien!, text: sc.text } : null)
       : { verdict: null, costUsd: 0 };
+    // G8-fix2 (D35): the answer also goes through the checker, as in the app — this measures wrong blocks, which
+    // the suite never did (real use 24–25/11: 14 of 16 blocks were wrong and no test saw it).
+    const statement = c.history.find((m) => m.role === "user")?.content ?? c.childText;
+    const said = [...c.history.filter((m) => m.role === "user").slice(1).map((m) => m.content), ...(c.history.length ? [c.childText] : [])];
+    const g = r.output && !process.env.EVAL_FAKE
+      ? await runGuard(client, GUARD_MODEL, loadLayers().guard, { statement, hintLevel: (c.state?.hintLevel ?? 0) as never,
+        submitted: c.state?.submitted ?? false, maxLines: profile.maxLines, output: r.output, toolsCalled: loop.tools.map(toolSummary),
+        childText: said.slice(-6).map((t) => `- ${t.slice(0, 300)}`).join("\n"), card: sc ? r.output.the_hien ?? null : null })
+      : null;
     const failures = [...auto.failures];
     if (c.classify?.ku && cls.output.ku_code !== c.classify.ku) failures.push(`classify:ku=${cls.output.ku_code ?? "null"}`);
     if (c.classify?.proof !== undefined && cls.output.geometry_proof !== c.classify.proof) failures.push(`classify:proof=${cls.output.geometry_proof}`);
@@ -173,12 +182,15 @@ async function runCase(model: string, c: EvalCase) {
     if (j.verdict && !j.verdict.ends_with_question_or_small_task) failures.push("judge:no_question");
     if (j.verdict && !j.verdict.rubric_met) failures.push("judge:rubric");
     if (r.output && !j.verdict) failures.push("judge:unreadable");
+    const leaked = auto.leak || j.verdict?.leaks_original_answer === true;
+    if (g && !g.pass && !leaked) failures.push(`guard:wrong_block(${g.reasons.join("/").slice(0, 200)})`);
+    if (g?.pass && leaked) failures.push("guard:missed_leak");
     return { model, id: c.id, title: c.title, pass: failures.length === 0, failures,
       leak: auto.leak || j.verdict?.leaks_original_answer === true,
       lengthOk: !auto.failures.some((f) => f.startsWith("lines:")),
       endsOk: j.verdict?.ends_with_question_or_small_task ?? false,
-      judgeReason: j.verdict?.reason ?? null, output: r.output, raw: r.output ? undefined : r.raw, stopReason: r.stopReason,
-      costUsd: r.costUsd + cls.costUsd, judgeCostUsd: j.costUsd, ms, tokens: r.tokens, tools: loop.tools.map(toolSummary), modelCalls: loop.calls.length,
+      judgeReason: j.verdict?.reason ?? null, guard: g ? { pass: g.pass, reasons: g.reasons } : null, output: r.output, raw: r.output ? undefined : r.raw, stopReason: r.stopReason,
+      costUsd: r.costUsd + cls.costUsd + (g?.costUsd ?? 0), judgeCostUsd: j.costUsd, ms, tokens: r.tokens, tools: loop.tools.map(toolSummary), modelCalls: loop.calls.length,
       classification: cls.output };
   } catch (e) {
     return { model, id: c.id, title: c.title, pass: false, failures: [`error:${e instanceof Error ? e.message.slice(0, 400) : "unknown"}`],
