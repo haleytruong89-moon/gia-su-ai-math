@@ -55,6 +55,7 @@ Chủ dự án là phụ huynh, **không phải dev**. Giải thích bằng ti�
 3. `npm run typecheck && npm run lint && npm test` xanh; `cas/`: `pytest`; đụng prompt → chạy `npm run eval` (bộ test sư phạm) và ghi kết quả.
 4. PR → preview → cập nhật `docs/PROGRESS.md` **và `docs/ROADMAP.json`** (trạng thái lát + tính năng, PR, `parentTodo`, `log`, `updated`; CI job `roadmap` báo lỗi nếu PR đổi code mà quên). Không merge.
 5. Sau khi phụ huynh merge: cập nhật ROADMAP (PR → merged, lát → done) ở PR kế tiếp và **đăng lại `roadmap.json` lên trang bản đồ** (`publish_files`, chỉ file `roadmap.json`).
+6. **Trang một-trang của phụ huynh (chốt 24/11):** trang "Gia sư AI Toán · Trạng thái app" (artifact riêng tư của phụ huynh; link nằm trong Project instructions, **không** ghi ở repo công khai vì trang có thông tin thật) gộp trạng thái tính năng + lộ trình G0–G9. Cập nhật **2 lần mỗi đợt fix/nâng cấp**: khi **mở PR** (tính năng mới = 🟡 Đang làm, kèm số PR; "PR đang mở"; "Việc đang chờ" thêm dòng merge) và khi **phụ huynh merge** (→ 🔵 Đã gộp, ✅ nếu con đang dùng). Phần lộ trình lấy từ `docs/ROADMAP.json`; thêm 1 dòng "Lịch sử cập nhật" mỗi lần.
 
 ## Lệnh thường dùng
 ```bash
