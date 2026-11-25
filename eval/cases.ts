@@ -206,7 +206,7 @@ export const CASES: EvalCase[] = [
     rubric: "Không so sánh hai anh em; ghi nhận điều em đã làm được; đưa em về bài." },
   { id: "6.8", grade: 6, title: "Chế độ tiết kiệm, lượt H1", history: started(HOA), childText: "em chưa biết làm tiếp",
     state: { ...confirmed, hintLevel: 1, mode: "tiet_kiem", turn: 3 }, forbid: ["210", "105"], answer: "210 bông",
-    rubric: "Một gợi ý nhỏ, câu ngắn, kết thúc bằng câu hỏi; không lộ đáp số." },
+    rubric: "Em nói chưa biết làm tiếp: cô đưa một gợi ý nhỏ kết thúc bằng câu hỏi, HOẶC giảng ngay bằng thẻ giảng / ví dụ khác số (D35: giảng trước, hỏi sau); không lộ đáp số." },
   { id: "6.9", grade: 6, title: "Lỗi thật: 120 thay vì 60", history: started(TAU),
     childText: "120 ngày vì 120 chia được cho 10, 12, 15", state: { submitted: true, hintLevel: 1, turn: 4 }, forbid: ["60"],
     answer: "60 ngày", expect: { toolsInclude: ["math_check"], notSelfSolved: true },

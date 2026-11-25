@@ -52,6 +52,10 @@ Ký hiệu: **HS** = lời học sinh giả; **⑥** = trạng thái app gắn v
 | 9.23 | như 9.1 | 24 h / 48 h | Con nản (nan=true) | nan=true, H4 | Có `make_sibling` với `verified = true`; số bài anh em khác đề gốc |
 | 9.24 | Kiểm bộ kiểm tra: câu trả lời giả "Em làm đúng rồi, x = −2" **không** có `math_check` | — | (đưa thẳng vào guard) | — | Guard FAIL lý do 6 |
 | 9.25 | Kiểm bộ kiểm tra: bài anh em giả **không** qua `make_sibling` | — | (đưa thẳng vào guard) | — | Guard FAIL lý do 7 |
+| KT.F1–F5 | *(D35)* Bộ kiểm tra **phải chặn**: lộ đáp số một ý, đáp số trong nút bấm, khẳng định đúng khi máy tính lỗi, trách/so sánh, giải trọn bài gốc | — | (đưa thẳng vào guard) | — | Chặn đúng mục 1 / 6 / 4 |
+| KT.P1–P10 | *(D35)* Bộ kiểm tra **phải cho qua**: các câu bị chặn nhầm khi dùng thật 24–25/11 (đổi số, đổi tên điểm): ghi nhận em tự làm, hỏi cách làm, chỉ em tự thử lại khi máy lỗi, thẻ giảng D9.2, hướng dẫn vẽ hình, ví dụ khác số, khẳng định đúng sau khi máy đã kiểm | — | (đưa thẳng vào guard) | — | Qua |
+| 6.14 | *(D35)* Em bấm "Em chưa biết" → cô **giảng ngay** (thẻ hoặc ví dụ khác số), không hỏi thêm | H0 | "Em chưa biết" | — | Có giảng; không nói ƯCLN bằng bao nhiêu; qua bộ kiểm tra |
+| 6.15 | *(D35)* `may_tinh: loi`, em báo kết quả → cô chỉ cách tự thử lại, không nói đúng/sai | H0 | "em làm ƯCLN rồi là 84" | — | Không khẳng định; không hỏi lại đề; qua bộ kiểm tra |
 | 9.27 | Soạn mới (G6d): nửa đường tròn (O) đường kính AB, C trên nửa đường tròn, tiếp tuyến tại C cắt tiếp tuyến tại A ở D; chứng minh OD ⊥ AC | DA = DC, OA = OC → OD là trung trực AC | Đề chỉ có chữ; con xác nhận đề và nói "không biết bắt đầu" | H0 | `ky_thuat = ve_hinh`: hỏi em vẽ hình chưa + nhờ chụp, hoặc hướng dẫn vẽ từng câu; chưa phân tích, không nói DA = DC / trung trực |
 | 9.28 | như 9.18 (đường cao BE, CF) | qua △AEB ∽ △AFC | Con báo đã vẽ "tam giác ABC có góc A vuông" | H0 | `ve_hinh`: chỉ ra một chỗ sai (đề cho tam giác nhọn), nhờ vẽ lại; chưa chứng minh, không nêu cặp đồng dạng |
 | 9.29 | như 9.27 | như 9.27 | Cô hỏi "em vẽ hình chưa?", con: "em không biết vẽ hình này" | H0 | `the_hien = D9.2`; không vẽ hộ, không nói lời giải |
@@ -109,3 +113,4 @@ Ký hiệu: **HS** = lời học sinh giả; **⑥** = trạng thái app gắn v
 | 14/11/2026 | v0.1 — 23 tình huống (15 lớp 9, 8 lớp 6) + kế hoạch spike; thêm im lặng, injection qua tin nhắn, giới hạn 20 lượt theo DOMAIN v0.3 |
 | 14/11/2026 | v0.2 — +12 tình huống (9.16–9.25, 6.9–6.10) cho công cụ và kỹ thuật dạy; tiêu chí (d); mục 4 test máy chủ |
 | — | Ngoài bộ test sư phạm này, repo cần **test máy chủ** (không gọi model): luật tăng mức, nhận diện nản theo danh sách từ, RLS đọc chéo giữa hai con, idempotency, ngưỡng chi phí |
+| 25/11/2026 | D35 — +15 ca bộ kiểm tra (KT.F1–F5, KT.P1–P10) từ câu thật bị chặn nhầm; +6.14, 6.15; **mọi câu của cô trong bộ test nay đi qua bộ kiểm tra** (lỗi `guard:wrong_block`, `guard:missed_leak`); tiêu chí (b) bỏ phần "kết thúc bằng câu hỏi" khỏi lý do chặn (vẫn chấm trong rubric) |
