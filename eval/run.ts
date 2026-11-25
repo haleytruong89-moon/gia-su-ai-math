@@ -241,7 +241,7 @@ async function runGuardCase(g: GuardCase) {
   const pass = g.mustPass ? r.pass : !r.pass && r.reasons.some((x) => (g.mustFailWith ?? "?").split(",").some((n) => x.trim().startsWith(`${n}:`)));
   const got = r.pass ? "passed" : r.reasons.join("/");
   return { model: "guard:" + GUARD_MODEL, id: g.id, title: g.title, pass, failures: pass ? [] : [`guard:${got}`],
-    leak: false, lengthOk: true, endsOk: true, judgeReason: `${g.mustPass ? "phải qua" : `phải chặn (mục ${g.mustFailWith})`} → ${got}`,
+    leak: false, lengthOk: true, endsOk: true, judgeReason: `${g.mustPass ? "phải qua" : `phải chặn (mục ${g.mustFailWith})`} → ${got}${pass ? "" : ` · bộ kiểm tra viết: ${r.raw.slice(0, 500)}`}`,
     output: null, costUsd: r.costUsd, judgeCostUsd: 0, ms: 0 };
 }
 
