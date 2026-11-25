@@ -2,7 +2,7 @@
 // not numbers copied from running the code.
 import { describe, expect, it } from "vitest";
 import { addDays, dateVn } from "@/lib/time";
-import { isNanSignal, isTerse, NOT_UNDERSTOOD, type ChildEvent } from "@/lib/rules/nan";
+import { isNanSignal, isTerse, NOT_UNDERSTOOD, saysNoIdea, type ChildEvent } from "@/lib/rules/nan";
 import { applyPreTurn, nextHintLevel, type HintState } from "@/lib/rules/hints";
 import { applyReviewResult, pickDue, reopenAfterMistake, type ReviewItem } from "@/lib/rules/review";
 import { decideSolve } from "@/lib/rules/solveGate";
@@ -130,5 +130,14 @@ describe("§4.12 máy tính đại số bắt buộc", () => {
   it("a math_check that errored does not count", () => {
     expect(decideSolve({ isGeometryProof: false, checklistOpen: false,
       checks: [{ ok: false, mode: "equivalent", result: null }] }).allow).toBe(false);
+  });
+});
+
+describe("saysNoIdea (D36: a blocked turn still raises the level when the child is stuck)", () => {
+  it("the child says or presses that it does not know / understand", () => {
+    for (const t of ["Em chưa biết", "em ko biết làm", "không biết ạ", "Chưa hiểu", "em không hiểu chỗ này", "?", "k"]) expect(saysNoIdea(t), t).toBe(true);
+  });
+  it("an attempt, a choice or an answer is not 'no idea'", () => {
+    for (const t of ["em ra 84", "Tìm ƯCLN trước", "Đúng rồi", "em làm ƯCLN rồi", "Em vẽ xong rồi"]) expect(saysNoIdea(t), t).toBe(false);
   });
 });

@@ -6,7 +6,7 @@
 // §4.14, §5). G4 adds the tools and math_check (until then self_solved is never allowed).
 import { z } from "zod";
 import type { Actor } from "@/lib/actor";
-import { BTN_CARD_OK, CARD_BUTTONS, PHOTO_COPY, PHOTO_ONLY_TEXT, SAFE_BUSY, SPEND_PAUSED, safeLine, safeLinesInARow } from "@/lib/copy";
+import { BTN_CARD_OK, CARD_BUTTONS, CARD_FALLBACK_INTRO, PHOTO_COPY, PHOTO_ONLY_TEXT, SAFE_BUSY, SPEND_PAUSED, safeLine, safeLinesInARow } from "@/lib/copy";
 import { burnAlertDue, consoleAlertDue, economyAlertDue, isSpendLimitError } from "@/lib/rules/cost";
 import { processImage } from "@/lib/images";
 import { maxImagesFor } from "@/lib/rules/photoLimit";
@@ -14,7 +14,7 @@ import { isTooBig } from "@/lib/tutor/form";
 import { childEvents, type InputKind } from "@/lib/rules/events";
 import { applyPreTurn, nextHintLevel, type HintLevel } from "@/lib/rules/hints";
 import { pickModel, rewriteRoute, strongPaused, type ModelTier, type RouteReason } from "@/lib/rules/model";
-import { isNanSignal } from "@/lib/rules/nan";
+import { isNanSignal, saysNoIdea } from "@/lib/rules/nan";
 import { checksFrom, decideOutcome } from "@/lib/rules/outcome";
 import type { CasClient } from "@/lib/tools/casClient";
 import type { ToolRecord } from "@/lib/tools/defs";
@@ -29,7 +29,7 @@ import { dateVn } from "@/lib/time";
 import { RATING_REASONS, ratingProposal, rulesBlock, rulesVersionNow, type RatingReason } from "@/lib/rules/teachingRules";
 import { assemble, type ImageData, type Msg, type Turn } from "@/lib/tutor/assemble";
 import { writeReference, type ChildCheck } from "@/lib/tutor/reference";
-import { card as cardOf, cardFitsGrade, cardForModel, cardIndexText, pickVariant } from "@/lib/knowledge/cards";
+import { card as cardOf, cardFitsGrade, cardForModel, cardIndexText, lessonCard, pickVariant } from "@/lib/knowledge/cards";
 import { lastCardOf, scriptedTurn, type Scripted } from "@/lib/tutor/scripted";
 import { reviewItemsFromCard } from "@/lib/rules/review";
 import { runGuard, type GuardResult } from "@/lib/tutor/guard";
@@ -599,7 +599,8 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
   }
 
   // 6. Server rules after the answer: next hint level (§4.1), outcome (§4.12 gate, §5 off-topic, D15).
-  const verdict = shown?.danh_gia_luot_em ?? "khong_ap_dung";
+  // D36: a turn with no answer through the checker still counts "khong_biet" when the child said so (it stayed at H0).
+  const verdict = shown?.danh_gia_luot_em ?? (saysNoIdea(text) ? "khong_biet" : "khong_ap_dung");
   const next = nextHintLevel(pre.state, verdict);
   const outcome = decideOutcome({ turn, output: shown, submitted, offtopicCount: problem.offtopicCount,
     checks: checksFrom(shownTools),
@@ -609,7 +610,9 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
   // G8-fix: never the same safe line twice in a row. G8-fix2: no "read the problem again" once it is confirmed.
   const safe = safeLine(level, safeLinesInARow(problem.history), problem.statementConfirmed);
   // G6 (§4.15): the tutor names an approved card; the server picks the way (C1) and shows it word for word.
-  const named = shown?.the_hien ? cardOf(shown.the_hien) : null;
+  // D36: no answer got through → the lesson's approved card (not shown before in this problem) instead of a safe line.
+  const shownCodes = problem.thread.map((m) => m.cardRef?.split("#")[0]).filter((c): c is string => !!c);
+  const named = shown?.the_hien ? cardOf(shown.the_hien) : !shown ? lessonCard(kuCode, actor.grade, shownCodes) : null;
   const way = named && cardFitsGrade(named, actor.grade) && outcome.status === "in_progress"
     ? pickVariant(named, 1, problemTextOf(problem) || text) : null;
   const cardRef = named && way ? `${named.code}#${way}` : null;
@@ -635,7 +638,7 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
     wrongCount: problem.wrongCount + (verdict === "sai" ? 1 : 0),
     offtopicCount: outcome.offtopicCount,
     uLevel: shown ? (Number(shown.u_level_hien_tai.slice(1)) as 0 | 1 | 2 | 3) : problem.uLevel,
-    tutorText: shown?.message ?? safe.message,
+    tutorText: shown?.message ?? (cardRef ? CARD_FALLBACK_INTRO : safe.message),
     buttons: cardRef ? [...CARD_BUTTONS] : (shown?.buttons ?? safe.buttons),
     cardRef,
     calls,

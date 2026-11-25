@@ -3,7 +3,7 @@ import { guardVerdictJson } from "@/lib/tutor/guard";
 import { describe, expect, it } from "vitest";
 import { handleTurn, type Deps } from "@/lib/tutor/handlers";
 import type { ModelClient } from "@/lib/tutor/turn";
-import { BTN_CARD_AGAIN, BTN_NOT_UNDERSTAND_PROBLEM, CARD_AGAIN_INTRO, CARDS_DONE, DOC_DE_ASK } from "@/lib/copy";
+import { BTN_CARD_AGAIN, BTN_NOT_UNDERSTAND_PROBLEM, CARD_AGAIN_INTRO, CARD_BUTTONS, CARD_FALLBACK_INTRO, CARDS_DONE, DOC_DE_ASK, safeLine } from "@/lib/copy";
 import { memoryRepo, type Seed } from "./helpers/memoryRepo";
 import fewshot from "./fixtures/fewshot.json";
 
@@ -69,8 +69,9 @@ describe("G8-fix2: an approved card passes the checker", () => {
     const c = scripted(card, guardVerdictJson({ lo_dap_so: "150" }));
     const { d, repo } = deps(seed(SHIPS));
     const r = await handleTurn({ ...d, client: c as unknown as ModelClient }, turn(1, "BCNN là gì ạ"));
-    expect((r.json as Reply).cardRef).toBeNull();
     expect(repo.modelCalls.filter((m) => m.purpose === "tutor").every((m) => m.guardResult === "blocked")).toBe(true);
+    // the tutor's lead-in never reaches the child; the server shows the lesson's card with its own lead-in (D36)
+    expect(r.json).toMatchObject({ message: CARD_FALLBACK_INTRO, cardRef: expect.stringMatching(/^T6\.12#/) });
   });
   it("a card of the other grade is not an approved card for this child: 'sibling' blocks", async () => {
     const c = scripted(out({ the_hien: "D9.2", message: "Cô giảng cách vẽ hình bằng một bài khác nhé:", buttons: [] }),
@@ -78,6 +79,44 @@ describe("G8-fix2: an approved card passes the checker", () => {
     const { d, repo } = deps(seed(SHIPS));
     await handleTurn({ ...d, client: c as unknown as ModelClient }, turn(1, "vẽ hình thế nào ạ"));
     expect(repo.modelCalls.filter((m) => m.purpose === "tutor").every((m) => m.guardResult === "blocked")).toBe(true);
+  });
+});
+
+// D36: when no answer gets through the checker, the lesson's approved card is shown instead of a safe line.
+describe("D36: blocked twice → the lesson's card; a blocked 'chưa biết' still raises the level", () => {
+  const blocked = guardVerdictJson({ lo_dap_so: "84" });
+  function allBlocked() {
+    return { async create(req: object) {
+      const isGuard = typeof (req as { system?: unknown }).system === "string";
+      return { content: [{ type: "text", text: isGuard ? blocked : out({ message: "…", buttons: [] }) }], usage: { input_tokens: 10, output_tokens: 10 } };
+    } };
+  }
+  const UC = "Tìm ƯCLN của 84 và 252, rồi tìm các ước chung của 336 và 504.";
+  const ucSeed = (extra: Seed["messages"] = []): Seed => ({
+    problems: [{ id: "p1", childId: "c1", sessionId: "s1", turnCount: 2, statementConfirmed: true, confirmedStatement: UC, kuCode: "T6.11" }],
+    messages: [{ problemId: "p1", role: "child", text: UC }, { problemId: "p1", role: "tutor", text: "Cô đọc đề là…" }, ...extra],
+  });
+  it("the card of the lesson (T6.11) with a short lead-in and the card buttons", async () => {
+    const { d, repo } = deps(ucSeed());
+    const r = (await handleTurn({ ...d, client: allBlocked() as unknown as ModelClient }, turn(1, "em làm ƯCLN rồi"))).json as Reply;
+    expect(r.cardRef).toMatch(/^T6\.11#[12]$/);
+    expect(r.message).toBe(CARD_FALLBACK_INTRO);
+    expect(r.buttons).toEqual([...CARD_BUTTONS]);
+    expect(repo.messages.at(-1)!.cardRef).toBe(r.cardRef);
+  });
+  it("the card was shown already in this problem → the safe line as before", async () => {
+    const { d } = deps(ucSeed([{ problemId: "p1", role: "tutor", text: CARD_FALLBACK_INTRO, cardRef: "T6.11#1" }]));
+    const r = (await handleTurn({ ...d, client: allBlocked() as unknown as ModelClient }, turn(1, "em làm ƯCLN rồi"))).json as Reply;
+    expect(r.cardRef).toBeNull();
+    expect(r.message).toBe(safeLine(0, 0, true).message);
+  });
+  it("a blocked turn where the child said 'chưa biết' raises the hint level; an attempt does not", async () => {
+    const a = deps(ucSeed());
+    await handleTurn({ ...a.d, client: allBlocked() as unknown as ModelClient }, turn(1, "Em chưa biết"));
+    expect(a.repo.problems[0]!.hintLevel).toBe(1);
+    const b = deps(ucSeed());
+    await handleTurn({ ...b.d, client: allBlocked() as unknown as ModelClient }, turn(1, "em ra 84"));
+    expect(b.repo.problems[0]!.hintLevel).toBe(0);
   });
 });
 

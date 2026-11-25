@@ -1,6 +1,6 @@
 import { readdirSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { card, cardFromRef, cardIndexText, clashes, labelClashes, labelsIn, pickVariant, wayClashes } from "@/lib/knowledge/cards";
+import { card, cardFromRef, cardIndexText, clashes, labelClashes, labelsIn, lessonCard, pickVariant, wayClashes } from "@/lib/knowledge/cards";
 import { cardBlocks, runsOf } from "@/lib/cardBlocks";
 
 describe("clashes (C1: the card's example must use other numbers)", () => {
@@ -83,5 +83,21 @@ describe("cardBlocks", () => {
         expect(v.body, `${code}#${v.n}: code fences and quotes are not rendered`).not.toMatch(/^(```|> )/m);
       }
     }
+  });
+});
+
+describe("lessonCard (D36: the lesson's approved card instead of a safe line)", () => {
+  it("the 'ban_chat' card of the lesson, right grade, not shown yet in this problem", () => {
+    expect(lessonCard("T6.11", 6, [])?.code).toBe("T6.11");
+    expect(lessonCard("T9.16", 9, [])?.code).toBe("T9.16");
+  });
+  it("never a reading card (doc_de, e.g. D6.1 is also about T6.11), never the other grade, never twice", () => {
+    expect(lessonCard("T6.11", 6, [])?.kind).toBe("ban_chat");
+    expect(lessonCard("T6.11", 9, [])).toBeNull();
+    expect(lessonCard("T6.11", 6, ["T6.11"])).toBeNull();
+  });
+  it("no lesson, or a lesson without a card → null", () => {
+    expect(lessonCard(null, 6, [])).toBeNull();
+    expect(lessonCard("N8.02", 9, [])).toBeNull();
   });
 });

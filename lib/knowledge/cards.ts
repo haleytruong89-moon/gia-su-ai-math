@@ -17,6 +17,15 @@ export function cardFromRef(ref: string | null | undefined): { card: Card; n: 1 
   return c ? { card: c, n: Number(m![2]) as 1 | 2 } : null;
 }
 
+/**
+ * D36: the approved "ban_chat" card of a lesson, for a turn where no answer got through the checker — shown in place
+ * of a pre-written safe line. Never a reading card (doc_de), never the other grade, never a card already shown here.
+ */
+export function lessonCard(ku: string | null, grade: 6 | 9, shownCodes: readonly string[]): Card | null {
+  if (!ku) return null;
+  return BUNDLE.cards.find((c) => c.kind === "ban_chat" && c.ku === ku && c.grade === grade && !shownCodes.includes(c.code)) ?? null;
+}
+
 /** A card can be shown to a child of `grade` (a grade-6 child never gets T9/N8 cards, and the reverse). */
 export const cardFitsGrade = (c: Card, grade: 6 | 9): boolean => c.grade === grade;
 

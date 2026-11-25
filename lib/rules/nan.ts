@@ -28,6 +28,16 @@ export function isTerse(text: string): boolean {
   return TERSE_WORDS.has(normalize(t));
 }
 
+const NO_IDEA = /\b(chua|khong|ko|k|hong|chang) (biet|hieu)\b|\bkb\b|\bko bt\b/;
+
+/**
+ * D36: the child says it does not know or does not understand (or sends a dead-end message). Used when no answer got
+ * through the checker: the turn still counts as "khong_biet" for the hint level, so a stuck child is not left at H0.
+ */
+export function saysNoIdea(text: string): boolean {
+  return isTerse(text) || NO_IDEA.test(normalize(text));
+}
+
 /**
  * True when the newest events show nản:
  * - the last two events are both typed AND both terse (a button press breaks the run), or
