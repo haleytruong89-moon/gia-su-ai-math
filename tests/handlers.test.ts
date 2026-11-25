@@ -505,7 +505,7 @@ describe("G4 tools in a turn", () => {
         const r = req as { model: string; system?: unknown };
         const kind = typeof r.system !== "string" ? "tutor" : r.system.includes("BÀI ANH EM") ? "sibling" : "guard";
         log.push({ kind, model: r.model, req: JSON.parse(JSON.stringify(req)) });
-        if (kind === "guard") return { content: [{ type: "text", text: ((o.guard?.[gi++] ?? true) ? guardVerdictJson() : guardVerdictJson({ khang_dinh_chua_kiem: "Em làm đúng rồi" })) }], usage };
+        if (kind === "guard") return { content: [{ type: "text", text: ((o.guard?.[gi++] ?? true) ? guardVerdictJson() : guardVerdictJson({ khang_dinh_dung_sai: "Em làm đúng rồi" })) }], usage };
         if (kind === "sibling") return { content: [{ type: "text", text: JSON.stringify(o.sibling![Math.min(si++, o.sibling!.length - 1)]) }], usage };
         return o.tutor[Math.min(ti++, o.tutor.length - 1)] as never;
       },

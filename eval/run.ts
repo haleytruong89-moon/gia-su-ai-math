@@ -238,7 +238,7 @@ async function runGuardCase(g: GuardCase) {
   const r = await runGuard(client, GUARD_MODEL, loadLayers().guard,
     { statement: g.statement, hintLevel: 4, submitted: false, maxLines: g.maxLines ?? 6, output, toolsCalled: g.toolsCalled,
       childText: g.childText, card: g.card ?? null });
-  const pass = g.mustPass ? r.pass : !r.pass && r.reasons.some((x) => x.trim().startsWith(g.mustFailWith ?? "?"));
+  const pass = g.mustPass ? r.pass : !r.pass && r.reasons.some((x) => (g.mustFailWith ?? "?").split(",").some((n) => x.trim().startsWith(`${n}:`)));
   const got = r.pass ? "passed" : r.reasons.join("/");
   return { model: "guard:" + GUARD_MODEL, id: g.id, title: g.title, pass, failures: pass ? [] : [`guard:${got}`],
     leak: false, lengthOk: true, endsOk: true, judgeReason: `${g.mustPass ? "phải qua" : `phải chặn (mục ${g.mustFailWith})`} → ${got}`,

@@ -103,23 +103,40 @@ describe("safe lines in a row (G8-fix 24/11: never the same line twice in a row)
 });
 
 describe("decideGuard — the server decides, not Haiku (G8-fix2, D35)", () => {
-  const v = (x: Parameters<typeof guardVerdictJson>[0]) => JSON.parse(guardVerdictJson(x)) as GuardVerdict;
+  const v = (x: Parameters<typeof guardVerdictJson>[0], about?: Parameters<typeof guardVerdictJson>[1]) => JSON.parse(guardVerdictJson(x, about)) as GuardVerdict;
+  const OK_CHECK = ["math_check(equivalent → equivalent=true)"];
+  const ERR_CHECK = ["math_check(evaluate → error: cas_not_configured)"];
   it("nothing found → pass", () => expect(decideGuard(v({}))).toEqual([]));
   it("each rule keeps its DOMAIN number", () => {
-    expect(decideGuard(v({ lo_dap_so: "60", trach_moc: "sao em chậm thế", khang_dinh_chua_kiem: "Em tính đúng rồi", bai_anh_em_chua_kiem: "Bài anh em: …" }))
+    expect(decideGuard(v({ lo_dap_so: "60", trach_moc: "sao em chậm thế", khang_dinh_dung_sai: "Em tính đúng rồi", giai_bai_anh_em: "Bài anh em: …" }))
       .map((r) => r.split(":")[0])).toEqual(["1", "4", "6", "7"]);
   });
   it("a leak counts even without a quote; the other rules need the quoted sentence", () => {
     expect(decideGuard(v({ lo_dap_so: "" }))).toEqual(["1: lộ đáp số hoặc lời giải bài gốc"]);
-    expect(decideGuard(v({ trach_moc: " ", khang_dinh_chua_kiem: "", bai_anh_em_chua_kiem: "" }))).toEqual([]);
+    expect(decideGuard(v({ trach_moc: " ", khang_dinh_dung_sai: "", giai_bai_anh_em: "" }))).toEqual([]);
   });
-  it("an approved card is not a sibling problem — but a leak next to a card still blocks", () => {
-    expect(decideGuard(v({ bai_anh_em_chua_kiem: "Cô giảng bằng một bài khác" }), { card: "D9.2" })).toEqual([]);
-    expect(decideGuard(v({ bai_anh_em_chua_kiem: "Cô giảng bằng một bài khác" }))).toHaveLength(1);
-    expect(decideGuard(v({ lo_dap_so: "x = 24" }), { card: "T6.12" })).toHaveLength(1);
+  it("rule 6: only a claim about a calculation or an answer, and only when math_check did not run successfully", () => {
+    const said = { khang_dinh_dung_sai: "Đúng rồi, ƯCLN = 84" };
+    expect(decideGuard(v(said), { toolsCalled: [] })).toHaveLength(1);
+    expect(decideGuard(v(said), { toolsCalled: ERR_CHECK })).toHaveLength(1);
+    expect(decideGuard(v(said), { toolsCalled: OK_CHECK })).toEqual([]);
+    expect(decideGuard(v(said), { toolsCalled: ["lookup(T6.11 → ok)"] })).toHaveLength(1);
+    for (const about of ["chep_de", "chon_huong_hoac_cach_lam", "hinh_ve_hoac_chung_minh", "khac"] as const)
+      expect(decideGuard(v({ khang_dinh_dung_sai: "Em chép đề đúng rồi" }, about), { toolsCalled: [] }), about).toEqual([]);
   });
-  it("the schema asks for the quote before the yes/no, for exactly the four rules", () => {
-    expect(Object.keys(guardJsonSchema.properties)).toEqual(["lo_dap_so", "trach_moc", "khang_dinh_chua_kiem", "bai_anh_em_chua_kiem"]);
+  it("rule 7: not for an approved card, not when make_sibling verified the sibling", () => {
+    const sib = { giai_bai_anh_em: "Cô giảng bằng một bài khác" };
+    expect(decideGuard(v(sib))).toHaveLength(1);
+    expect(decideGuard(v(sib), { card: "D9.2" })).toEqual([]);
+    expect(decideGuard(v(sib), { toolsCalled: ["make_sibling(verified=true, numbers_differ=true)"] })).toEqual([]);
+    expect(decideGuard(v(sib), { toolsCalled: ["make_sibling(verified=false, numbers_differ=true)"] })).toHaveLength(1);
+  });
+  it("a leak blocks whatever the tools and the card", () => {
+    expect(decideGuard(v({ lo_dap_so: "x = 24" }), { card: "T6.12", toolsCalled: OK_CHECK })).toHaveLength(1);
+  });
+  it("the schema: the answer of the problem first, then for each rule the quote before the yes/no", () => {
+    expect(Object.keys(guardJsonSchema.properties)).toEqual(["dap_so_bai_goc", "lo_dap_so", "trach_moc", "khang_dinh_dung_sai", "giai_bai_anh_em"]);
     expect(Object.keys(guardJsonSchema.properties.lo_dap_so.properties)).toEqual(["trich", "vi_pham"]);
+    expect(Object.keys(guardJsonSchema.properties.khang_dinh_dung_sai.properties)).toEqual(["trich", "noi_ve", "vi_pham"]);
   });
 });

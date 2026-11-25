@@ -58,7 +58,7 @@ describe("G8-fix2: an approved card passes the checker", () => {
   }
   const card = out({ the_hien: "T6.12", message: "Cô giảng phần này bằng một ví dụ khác nhé, em đọc kỹ rồi chép phần Ghi vào vở:", buttons: [] });
   it("the checker says 'sibling' about the card's lead-in → the card is shown all the same", async () => {
-    const c = scripted(card, guardVerdictJson({ bai_anh_em_chua_kiem: "Cô giảng phần này bằng một ví dụ khác nhé" }));
+    const c = scripted(card, guardVerdictJson({ giai_bai_anh_em: "Cô giảng phần này bằng một ví dụ khác nhé" }));
     const { d, repo } = deps(seed(SHIPS));
     const r = await handleTurn({ ...d, client: c as unknown as ModelClient }, turn(1, "BCNN là gì ạ"));
     expect(r.json).toMatchObject({ cardRef: "T6.12#1" });
@@ -74,7 +74,7 @@ describe("G8-fix2: an approved card passes the checker", () => {
   });
   it("a card of the other grade is not an approved card for this child: 'sibling' blocks", async () => {
     const c = scripted(out({ the_hien: "D9.2", message: "Cô giảng cách vẽ hình bằng một bài khác nhé:", buttons: [] }),
-      guardVerdictJson({ bai_anh_em_chua_kiem: "Cô giảng cách vẽ hình bằng một bài khác nhé" }));
+      guardVerdictJson({ giai_bai_anh_em: "Cô giảng cách vẽ hình bằng một bài khác nhé" }));
     const { d, repo } = deps(seed(SHIPS));
     await handleTurn({ ...d, client: c as unknown as ModelClient }, turn(1, "vẽ hình thế nào ạ"));
     expect(repo.modelCalls.filter((m) => m.purpose === "tutor").every((m) => m.guardResult === "blocked")).toBe(true);

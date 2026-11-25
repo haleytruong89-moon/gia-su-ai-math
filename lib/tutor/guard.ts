@@ -28,49 +28,72 @@ export interface GuardResult {
   tokens: { in: number; cached: number; out: number };
 }
 
-/** The rules Haiku judges, in the order it answers them. `needsQuote`: without a quote the "yes" is ignored. */
+/** The rules Haiku answers, in the order it answers them. `needsQuote`: without a quote the "yes" is ignored. */
 export const GUARD_RULES = [
   { key: "lo_dap_so", no: 1, label: "lộ đáp số hoặc lời giải bài gốc", needsQuote: false },
   { key: "trach_moc", no: 4, label: "trách móc, so sánh hoặc nhắc tên/trường", needsQuote: true },
-  { key: "khang_dinh_chua_kiem", no: 6, label: "khẳng định đúng/sai khi máy chưa kiểm", needsQuote: true },
-  { key: "bai_anh_em_chua_kiem", no: 7, label: "bài anh em chưa qua make_sibling", needsQuote: true },
+  { key: "khang_dinh_dung_sai", no: 6, label: "khẳng định đúng/sai khi máy chưa kiểm", needsQuote: true },
+  { key: "giai_bai_anh_em", no: 7, label: "bài anh em chưa qua make_sibling", needsQuote: true },
 ] as const;
 type RuleKey = (typeof GUARD_RULES)[number]["key"];
+/** What a "right/wrong" sentence of the tutor is about. Only a calculation or an answer needs math_check. */
+export const CLAIM_KINDS = ["phep_tinh_hoac_dap_so", "chep_de", "chon_huong_hoac_cach_lam", "hinh_ve_hoac_chung_minh", "khac"] as const;
 const item = z.object({ trich: z.string(), vi_pham: z.boolean() }).strict();
-const verdict = z.object({ lo_dap_so: item, trach_moc: item, khang_dinh_chua_kiem: item, bai_anh_em_chua_kiem: item }).strict();
+const claim = z.object({ trich: z.string(), noi_ve: z.enum(CLAIM_KINDS), vi_pham: z.boolean() }).strict();
+const verdict = z.object({ dap_so_bai_goc: z.string(), lo_dap_so: item, trach_moc: item, khang_dinh_dung_sai: claim, giai_bai_anh_em: item }).strict();
 export type GuardVerdict = z.infer<typeof verdict>;
-// `trich` comes before `vi_pham`: the model writes the evidence first, then the yes/no.
-const itemSchema = { type: "object", properties: { trich: { type: "string" }, vi_pham: { type: "boolean" } }, required: ["trich", "vi_pham"], additionalProperties: false };
+// Order matters: the model first works out the answer of the original problem, then for each rule writes the
+// quote (and what it is about) BEFORE the yes/no. In real use the old "pass first, reasons after" shape gave
+// "pass: false" followed by reasons that all said "no violation".
+const str = { type: "string" };
+const bool = { type: "boolean" };
+const itemSchema = { type: "object", properties: { trich: str, vi_pham: bool }, required: ["trich", "vi_pham"], additionalProperties: false };
 export const guardJsonSchema = {
   type: "object",
-  properties: Object.fromEntries(GUARD_RULES.map((r) => [r.key, itemSchema])) as Record<RuleKey, typeof itemSchema>,
-  required: GUARD_RULES.map((r) => r.key),
+  properties: {
+    dap_so_bai_goc: str,
+    lo_dap_so: itemSchema,
+    trach_moc: itemSchema,
+    khang_dinh_dung_sai: { type: "object", properties: { trich: str, noi_ve: { type: "string", enum: [...CLAIM_KINDS] }, vi_pham: bool },
+      required: ["trich", "noi_ve", "vi_pham"], additionalProperties: false },
+    giai_bai_anh_em: itemSchema,
+  },
+  required: ["dap_so_bai_goc", "lo_dap_so", "trach_moc", "khang_dinh_dung_sai", "giai_bai_anh_em"],
   additionalProperties: false,
 };
 
+/** Facts the server knows better than Haiku: which tools really ran, and whether a card is shown. */
+export interface GuardFacts { card?: string | null; toolsCalled?: readonly string[] }
+const mathChecked = (tools: readonly string[]) => tools.some((t) => t.startsWith("math_check(") && !t.includes("→ error"));
+const siblingChecked = (tools: readonly string[]) => tools.includes("make_sibling(verified=true, numbers_differ=true)");
+
 /**
  * The server's decision from Haiku's per-rule answers: the reasons to block (empty = pass).
- * A leak (rule 1) counts even without a quote; the other rules need the quoted sentence.
- * An answer that shows an approved card is not a sibling problem (rule 7 does not apply).
+ * - rule 1 (leak) counts even without a quote; the other rules need the quoted sentence;
+ * - rule 6: only a claim about a calculation or an answer, and only when no math_check ran successfully this turn;
+ * - rule 7: not when make_sibling verified the sibling, and not when the answer shows an approved card.
  */
-export function decideGuard(v: GuardVerdict, o: { card?: string | null } = {}): string[] {
+export function decideGuard(v: GuardVerdict, f: GuardFacts = {}): string[] {
+  const tools = f.toolsCalled ?? [];
   const out: string[] = [];
   for (const r of GUARD_RULES) {
     const a = v[r.key];
     if (!a.vi_pham) continue;
     const quote = a.trich.trim();
     if (r.needsQuote && !quote) continue;
-    if (r.key === "bai_anh_em_chua_kiem" && o.card) continue;
+    if (r.key === "khang_dinh_dung_sai" && (v.khang_dinh_dung_sai.noi_ve !== "phep_tinh_hoac_dap_so" || mathChecked(tools))) continue;
+    if (r.key === "giai_bai_anh_em" && (f.card || siblingChecked(tools))) continue;
     out.push(`${r.no}: ${r.label}${quote ? ` — "${quote.slice(0, 160)}"` : ""}`);
   }
   return out;
 }
+
 const none = { in: 0, cached: 0, out: 0 };
 
 /** A checker reply in the wire format — for the fake client and the tests ({} = nothing found). */
-export function guardVerdictJson(violations: Partial<Record<RuleKey, string>> = {}): string {
-  return JSON.stringify(Object.fromEntries(GUARD_RULES.map((r) =>
-    [r.key, { trich: violations[r.key] ?? "", vi_pham: r.key in violations }])));
+export function guardVerdictJson(violations: Partial<Record<RuleKey, string>> = {}, claimAbout: (typeof CLAIM_KINDS)[number] = "phep_tinh_hoac_dap_so"): string {
+  const one = (k: RuleKey) => ({ trich: violations[k] ?? "", ...(k === "khang_dinh_dung_sai" ? { noi_ve: k in violations ? claimAbout : "khac" } : {}), vi_pham: k in violations });
+  return JSON.stringify({ dap_so_bai_goc: "", ...Object.fromEntries(GUARD_RULES.map((r) => [r.key, one(r.key)])) });
 }
 
 export async function runGuard(client: ModelClient, model: string, guardPrompt: string, i: GuardInput): Promise<GuardResult> {
@@ -101,7 +124,7 @@ export async function runGuard(client: ModelClient, model: string, guardPrompt: 
       parsed = null;
     }
     if (!parsed) return { pass: false, reasons: ["guard_unreadable"], raw, costUsd: cost, tokens, model };
-    const reasons = decideGuard(parsed, { card: i.card });
+    const reasons = decideGuard(parsed, { card: i.card, toolsCalled: i.toolsCalled });
     return { pass: reasons.length === 0, reasons, raw, costUsd: cost, tokens, model };
   } catch (e) {
     console.error("guard call failed", e instanceof Error ? e.message : "unknown");

@@ -259,7 +259,7 @@ export const CASES: EvalCase[] = [
  */
 export interface GuardCase {
   id: string; title: string; statement: string; message: string; toolsCalled: string[];
-  /** Rule number the block must carry — or `mustPass` for an answer that must go through. */
+  /** Rule number(s) the block must carry ("1" or "1,6" = any of them) — or `mustPass` for an answer that must go through. */
   mustFailWith?: string; mustPass?: boolean;
   buttons?: string[]; childText?: string; card?: string; maxLines?: number;
 }
