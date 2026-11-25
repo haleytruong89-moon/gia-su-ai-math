@@ -131,7 +131,7 @@ export function memoryRepo(seed: Seed = {}, strongModel = "claude-opus-5-5") {
         confirmedStatement: p.confirmedStatement, history, imageCount: images.filter((i) => i.problemId === p.id).length,
         thread: list.map((m) => ({ id: m.id, role: m.role, content: m.text, inputKind: m.inputKind, cardRef: m.cardRef ?? null })),
         statement: list.find((m) => m.role === "child")?.text ?? null,
-        usedStrong: calls.some((c) => c.purpose === "tutor" && c.model === strongModel),
+        usedStrong: calls.some((c) => c.purpose === "tutor" && c.model === strongModel && c.routeReason !== "guard_blocked"),
         lastTutorFlags: lastShown ? flagsOf(lastShown.raw) : [],
         siblingShown: toolCalls.some((t) => t.problemId === p.id && t.tool === "make_sibling" && t.ok && usableSibling(t.output)
           && modelCalls[t.callRow]?.shown === true),

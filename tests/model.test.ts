@@ -26,8 +26,10 @@ describe("pickModel (DOMAIN §4.14)", () => {
 });
 
 describe("rewriteRoute (§4.14 d, §5)", () => {
-  it("d: a blocked answer is rewritten on Opus", () => expect(rewriteRoute(false)).toEqual({ tier: "strong", reason: "guard_blocked" }));
-  it("paused: rewritten on Sonnet", () => expect(rewriteRoute(true)).toEqual({ tier: "main", reason: "opus_paused" }));
+  // D36 (25/11): a rewrite keeps the model of the turn. In real use every block moved the whole problem to Opus.
+  it("d: a Sonnet answer is rewritten on Sonnet", () => expect(rewriteRoute(false, "main")).toEqual({ tier: "main", reason: "guard_blocked" }));
+  it("d: an Opus answer is rewritten on Opus", () => expect(rewriteRoute(false, "strong")).toEqual({ tier: "strong", reason: "guard_blocked" }));
+  it("paused: always rewritten on Sonnet", () => expect(rewriteRoute(true, "strong")).toEqual({ tier: "main", reason: "opus_paused" }));
 });
 
 describe("strongPaused (D29)", () => {

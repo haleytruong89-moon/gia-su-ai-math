@@ -572,7 +572,7 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
   } else {
     first.finalRec.guardResult = "blocked";
     first.finalRec.guardReasons = g1?.reasons ?? (firstOut ? noTime : ["unreadable_output"]);
-    const rw = rewriteRoute(paused);
+    const rw = rewriteRoute(paused, route.tier);
     const why = (g1?.reasons.length ? g1.reasons : ["câu trả lời không đúng khuôn JSON"]).join("; ");
     const retry: Msg[] = [...messages, { role: "assistant", content: first.loop.final.raw || "(trống)" },
       { role: "user", content: `[BỘ KIỂM TRA CỦA APP] Câu trả lời vừa rồi chưa gửi được cho em vì: ${why}. Cô viết lại lượt này, giữ đúng luật cứng.` }];
