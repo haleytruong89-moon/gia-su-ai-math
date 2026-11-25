@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { decideGuard, guardJsonSchema, guardVerdictJson, runGuard, type GuardInput, type GuardVerdict } from "@/lib/tutor/guard";
+import { answerInButtons, decideGuard, guardJsonSchema, guardVerdictJson, runGuard, type GuardInput, type GuardVerdict } from "@/lib/tutor/guard";
 import { isSafeLine, SAFE_AGAIN, SAFE_CONFIRMED, SAFE_STOP, safeLine, safeLinesInARow } from "@/lib/copy";
 import fewshot from "./fixtures/fewshot.json";
 import type { TutorOutput } from "@/lib/tutor/schema";
@@ -138,5 +138,29 @@ describe("decideGuard — the server decides, not Haiku (G8-fix2, D35)", () => {
     expect(Object.keys(guardJsonSchema.properties)).toEqual(["dap_so_bai_goc", "lo_dap_so", "trach_moc", "khang_dinh_dung_sai", "giai_bai_anh_em"]);
     expect(Object.keys(guardJsonSchema.properties.lo_dap_so.properties)).toEqual(["trich", "vi_pham"]);
     expect(Object.keys(guardJsonSchema.properties.khang_dinh_dung_sai.properties)).toEqual(["trich", "noi_ve", "vi_pham"]);
+  });
+});
+
+describe("answerInButtons — the answer of the problem must not sit in a button (rules.md 1; G8-fix2)", () => {
+  const FLOWERS = "Số bông từ 200 đến 300; bó 3, 5 hay 7 bông đều vừa hết. Hỏi có bao nhiêu bông?";
+  it("a button with the answer Haiku worked out → that button", () => {
+    expect(answerInButtons({ answer: "210 bông", statement: FLOWERS, buttons: ["105", "210", "315"] })).toBe("210");
+    expect(answerInButtons({ answer: "x = 24, y = 48", statement: "…16 giờ… 25%…", buttons: ["24 giờ", "30 giờ"] })).toBe("24 giờ");
+  });
+  it("numbers of the statement and numbers the child wrote are not the tutor's leak", () => {
+    expect(answerInButtons({ answer: "210", statement: FLOWERS, buttons: ["200", "300", "3"] })).toBeNull();
+    expect(answerInButtons({ answer: "ƯCLN = 84", statement: "Tìm ƯCLN của 84 và 252", buttons: ["84", "252"] })).toBeNull();
+    expect(answerInButtons({ answer: "42", statement: "…", childText: "- em ra 42", buttons: ["42", "Em chưa chắc"] })).toBeNull();
+  });
+  it("no answer, a proof, or a long list of numbers (a set of divisors) → no backstop: Haiku's own answer stands", () => {
+    expect(answerInButtons({ answer: "", statement: FLOWERS, buttons: ["210"] })).toBeNull();
+    expect(answerInButtons({ answer: "ƯC = {1; 2; 3; 4; 6; 12}", statement: "Tìm ƯC của 24 và 36", buttons: ["6", "12"] })).toBeNull();
+  });
+  it("runGuard: Haiku found nothing but the answer is in a button → blocked; not after the child submitted", async () => {
+    const out = { ...output, message: "Em chọn số đúng nhé?", buttons: ["105", "210", "315"] };
+    const said = guardVerdictJson({}, "khac", "210");
+    const r = await runGuard(reply(said), "claude-haiku-5-5", "P", { ...input, statement: FLOWERS, output: out });
+    expect([r.pass, r.reasons]).toEqual([false, ['1: lộ đáp số hoặc lời giải bài gốc — nút "210"']]);
+    expect((await runGuard(reply(said), "claude-haiku-5-5", "P", { ...input, statement: FLOWERS, output: out, submitted: true })).pass).toBe(true);
   });
 });

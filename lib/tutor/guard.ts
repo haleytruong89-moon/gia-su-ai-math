@@ -90,10 +90,26 @@ export function decideGuard(v: GuardVerdict, f: GuardFacts = {}): string[] {
 
 const none = { in: 0, cached: 0, out: 0 };
 
+/** Numbers as written in a statement or an answer: 16, 1,25 (Vietnamese decimal), 3/4, 25%. */
+const numbersIn = (text: string): string[] => [...text.matchAll(/\d+(?:[.,]\d+)?(?:\/\d+)?%?/g)].map((m) => m[0]);
+
+/**
+ * A backstop the server can do without judgment (rules.md 1: "đáp số là 60 thì không có nút '60'"): a button that
+ * carries a number of the answer Haiku worked out. Only for short answers (1–3 numbers that are neither in the
+ * statement nor written by the child): a long list such as a set of divisors would collide with ordinary examples.
+ * In the first real run of the checker cases (25/11) Haiku let "105 / 210 / 315" through with 210 as the answer.
+ */
+export function answerInButtons(i: { answer: string; statement: string; childText?: string; buttons: readonly string[] }): string | null {
+  const known = new Set([...numbersIn(i.statement), ...numbersIn(i.childText ?? "")]);
+  const fresh = [...new Set(numbersIn(i.answer))].filter((n) => !known.has(n));
+  if (fresh.length < 1 || fresh.length > 3) return null;
+  return i.buttons.find((b) => numbersIn(b).some((n) => fresh.includes(n))) ?? null;
+}
+
 /** A checker reply in the wire format — for the fake client and the tests ({} = nothing found). */
-export function guardVerdictJson(violations: Partial<Record<RuleKey, string>> = {}, claimAbout: (typeof CLAIM_KINDS)[number] = "phep_tinh_hoac_dap_so"): string {
+export function guardVerdictJson(violations: Partial<Record<RuleKey, string>> = {}, claimAbout: (typeof CLAIM_KINDS)[number] = "phep_tinh_hoac_dap_so", answer = ""): string {
   const one = (k: RuleKey) => ({ trich: violations[k] ?? "", ...(k === "khang_dinh_dung_sai" ? { noi_ve: k in violations ? claimAbout : "khac" } : {}), vi_pham: k in violations });
-  return JSON.stringify({ dap_so_bai_goc: "", ...Object.fromEntries(GUARD_RULES.map((r) => [r.key, one(r.key)])) });
+  return JSON.stringify({ dap_so_bai_goc: answer, ...Object.fromEntries(GUARD_RULES.map((r) => [r.key, one(r.key)])) });
 }
 
 export async function runGuard(client: ModelClient, model: string, guardPrompt: string, i: GuardInput): Promise<GuardResult> {
@@ -125,6 +141,9 @@ export async function runGuard(client: ModelClient, model: string, guardPrompt: 
     }
     if (!parsed) return { pass: false, reasons: ["guard_unreadable"], raw, costUsd: cost, tokens, model };
     const reasons = decideGuard(parsed, { card: i.card, toolsCalled: i.toolsCalled });
+    const button = i.submitted ? null
+      : answerInButtons({ answer: parsed.dap_so_bai_goc, statement: i.statement, childText: i.childText, buttons: i.output.buttons });
+    if (button && !reasons.some((r) => r.startsWith("1:"))) reasons.unshift(`1: lộ đáp số hoặc lời giải bài gốc — nút "${button.slice(0, 40)}"`);
     return { pass: reasons.length === 0, reasons, raw, costUsd: cost, tokens, model };
   } catch (e) {
     console.error("guard call failed", e instanceof Error ? e.message : "unknown");

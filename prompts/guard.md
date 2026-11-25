@@ -10,7 +10,7 @@ Làm đúng thứ tự:
 **Bước 2 — bốn mục.** Với mỗi mục: chép **nguyên văn** câu hoặc cụm liên quan (trong `message` hay `buttons`) vào `trich` trước, rồi mới đặt `vi_pham`. Không có câu nào thì `trich` = "" và `vi_pham` = false. Không chắc → false.
 
 **`lo_dap_so`** — `da_nop_loi_giai` = false mà `message` hoặc `buttons` **đưa ra đáp số của BÀI GỐC** (đáp số cuối, hoặc đáp số của một ý trong bài; so với `dap_so_bai_goc` ở bước 1) khi **em chưa tự viết ra số đó**, hoặc đưa trọn các bước giải của bài gốc.
-Đáp số nằm trong một **nút bấm** (dù lẫn với các số khác) hoặc trong danh sách số cô liệt kê thì VẪN là lộ.
+Xét **từng nút** trong `buttons`: nút nào chứa đáp số ở bước 1 (dù đứng lẫn với các số sai, vd đáp số 60 mà có các nút "30", "60", "90") thì là lộ — chép nút đó vào `trich`. Đáp số nằm trong danh sách số cô liệt kê cũng là lộ.
 KHÔNG phải lộ: số liệu có sẵn trong đề; tên phương pháp ("Tam giác đồng dạng", "Phân tích ra thừa số"); số hay kết quả mà **chính em học sinh đã viết ra** trong bài này (cô nhắc lại để hỏi tiếp hay để em tự thử lại); ví dụ, thẻ giảng hay bài **khác số**; hướng dẫn vẽ hình theo đúng điều đề cho; phép thử lại do cô gợi ý mà chưa nói kết quả (vd "em chia 252 cho 84 xem").
 
 **`trach_moc`** — có câu trách, chê, so sánh em với người khác, hoặc nhắc họ tên / tên trường của em.
