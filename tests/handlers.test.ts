@@ -1,10 +1,11 @@
+import { guardVerdictJson } from "@/lib/tutor/guard";
 import { describe, expect, it } from "vitest";
 import { handleTurn, newProblem, saveForLater, startSession, STALE_PENDING_MS, type Deps } from "@/lib/tutor/handlers";
 import { costUsd } from "@/lib/anthropic";
 import type { ModelClient } from "@/lib/tutor/turn";
 import sharp from "sharp";
 import { beforeAll } from "vitest";
-import { BTN_NOT_UNDERSTOOD, BTN_SAVE, PHOTO_COPY, PHOTO_ONLY_TEXT, SAFE_AGAIN, SAFE_BUSY, SAFE_STOP, safeLine } from "@/lib/copy";
+import { BTN_NOT_UNDERSTOOD, BTN_SAVE, PHOTO_COPY, PHOTO_ONLY_TEXT, SAFE_AGAIN, SAFE_BUSY, SAFE_CONFIRMED, SAFE_STOP, safeLine } from "@/lib/copy";
 import { TOO_BIG } from "@/lib/tutor/form";
 import { memoryRepo, type Seed } from "./helpers/memoryRepo";
 import fewshot from "./fixtures/fewshot.json";
@@ -15,7 +16,7 @@ const NOW = new Date("2026-11-14T10:05:00Z");
 const confirm = JSON.stringify((fewshot as object[])[0]); // Mẫu 1: xác nhận đề, de_da_xac_nhan = false
 const confirmed = JSON.stringify((fewshot as object[])[1]); // de_da_xac_nhan = true
 
-const PASS = JSON.stringify({ pass: true, ly_do: [] });
+const PASS = guardVerdictJson();
 const isGuardReq = (req: object) => typeof (req as { system?: unknown }).system === "string"; // tutor system = blocks
 
 /** Tutor replies in order; every checker call passes (the G1 tests do not test the checker). */
@@ -231,7 +232,7 @@ function scripted(tutor: string[], guard: boolean[]) {
     async create(req: object) {
       const r = req as { model: string };
       models.push(r.model);
-      const text = isGuardReq(req) ? JSON.stringify({ pass: guard[gi++] ?? true, ly_do: ["1: lộ đáp số"] }) : tutor[Math.min(ti++, tutor.length - 1)]!;
+      const text = isGuardReq(req) ? ((guard[gi++] ?? true) ? guardVerdictJson() : guardVerdictJson({ lo_dap_so: "x = 24" })) : tutor[Math.min(ti++, tutor.length - 1)]!;
       return { content: [{ type: "text", text }], usage: { input_tokens: 100, output_tokens: 10 } };
     },
   };
@@ -504,7 +505,7 @@ describe("G4 tools in a turn", () => {
         const r = req as { model: string; system?: unknown };
         const kind = typeof r.system !== "string" ? "tutor" : r.system.includes("BÀI ANH EM") ? "sibling" : "guard";
         log.push({ kind, model: r.model, req: JSON.parse(JSON.stringify(req)) });
-        if (kind === "guard") return { content: [{ type: "text", text: JSON.stringify({ pass: o.guard?.[gi++] ?? true, ly_do: ["6: khẳng định khi chưa kiểm"] }) }], usage };
+        if (kind === "guard") return { content: [{ type: "text", text: ((o.guard?.[gi++] ?? true) ? guardVerdictJson() : guardVerdictJson({ khang_dinh_dung_sai: "Em làm đúng rồi" })) }], usage };
         if (kind === "sibling") return { content: [{ type: "text", text: JSON.stringify(o.sibling![Math.min(si++, o.sibling!.length - 1)]) }], usage };
         return o.tutor[Math.min(ti++, o.tutor.length - 1)] as never;
       },
@@ -649,7 +650,7 @@ describe("G5 knowledge in a turn", () => {
         const r = req as { model: string; system?: unknown };
         const kind = typeof r.system === "string" ? "guard" : JSON.stringify(r.system).includes("Em là bộ phân loại") ? "classify" : "tutor";
         log.push({ kind, model: r.model, req: JSON.parse(JSON.stringify(req)) });
-        if (kind === "guard") return { content: [{ type: "text", text: JSON.stringify({ pass: true, ly_do: [] }) }], usage };
+        if (kind === "guard") return { content: [{ type: "text", text: guardVerdictJson() }], usage };
         if (kind === "classify") {
           if (o.classify instanceof Error) throw o.classify;
           return { content: [{ type: "text", text: JSON.stringify(o.classify ?? { ku_code: null, exam_slot: null, geometry_proof: false }) }], usage };
@@ -773,6 +774,7 @@ describe("G8-fix: safe lines, the figure photo, the confirmed statement", () => 
     const shown = [];
     for (const n of [1, 2, 3, 4]) shown.push(((await handleTurn(d, body(n))).json as { message: string; buttons: string[] }));
     expect(shown.map((x) => x.message)).toEqual([safeLine(0).message, SAFE_AGAIN, SAFE_STOP, SAFE_STOP]);
+    expect(shown[0]!.message).not.toBe(SAFE_CONFIRMED); // this problem's statement is not confirmed yet
     expect(shown.slice(1).every((x) => x.buttons.includes(BTN_SAVE))).toBe(true);
   });
   it("a normal answer between two safe lines starts the count again", async () => {
@@ -781,7 +783,8 @@ describe("G8-fix: safe lines, the figure photo, the confirmed statement", () => 
     const a = (await handleTurn(d, body(1))).json as { message: string };
     const b = (await handleTurn(d, body(2))).json as { message: string };
     const e = (await handleTurn(d, body(3))).json as { message: string };
-    expect([a.message, b.message, e.message]).toEqual([safeLine(0).message, JSON.parse(confirmed).message, safeLine(0).message]);
+    // the answer in between confirmed the statement, so the next safe line no longer asks to read it again (G8-fix2)
+    expect([a.message, b.message, e.message]).toEqual([safeLine(0).message, JSON.parse(confirmed).message, SAFE_CONFIRMED]);
   });
   it("the checker sees the figure the child sent with this turn, even after the statement was confirmed", async () => {
     const reqs: object[] = [];
@@ -820,5 +823,54 @@ describe("G8-fix: safe lines, the figure photo, the confirmed statement", () => 
     expect(geo.repo.images).toHaveLength(6);
     const alg = deps(six("T9.9"), client([confirmed]));
     expect((await handleTurn(alg.d, { problemId: "p1", clientMsgId: uuid(4), text: "", image: photo })).status).toBe(409);
+  });
+});
+
+// G8-fix2 (D35, 25/11/2026) — audit of real use: 16 of 22 answers were blocked, 14 of them wrongly; the one
+// approved card the tutor chose was blocked as "a sibling problem"; the math checker was not configured.
+describe("G8-fix2: the checker's inputs, the confirmed safe line, the math checker down", () => {
+  const body = (n: number, text: string) => ({ problemId: "p1", clientMsgId: uuid(n), text });
+  const confirmedSeed: Seed = { problems: [{ id: "p1", childId: "c1", sessionId: "s1", statementConfirmed: true, confirmedStatement: "Tìm ƯCLN của 84 và 252." }] };
+  const recording = (tutor: string[], guard: string[] = []) => {
+    const reqs: { system?: unknown; messages: { content: unknown }[] }[] = [];
+    let gi = 0, ti = 0;
+    return { reqs, async create(req: object) {
+      reqs.push(req as never);
+      const text = isGuardReq(req) ? (guard[gi++] ?? PASS) : tutor[Math.min(ti++, tutor.length - 1)]!;
+      return { content: [{ type: "text", text }], usage: { input_tokens: 100, output_tokens: 50 } };
+    } };
+  };
+
+  it("the checker reads what the child wrote in this problem, earlier turns included", async () => {
+    const c = recording([confirmed]);
+    const { d } = deps(confirmedSeed, c);
+    await handleTurn(d, body(1, "em làm ƯCLN rồi là 84"));
+    await handleTurn(d, body(2, "em tìm từng ước một"));
+    const guard = c.reqs.filter(isGuardReq).map((g) => JSON.stringify(g));
+    expect(guard).toHaveLength(2);
+    expect(guard[0]).toContain("- em làm ƯCLN rồi là 84");
+    expect(guard[1]).toContain("- em làm ƯCLN rồi là 84\\n- em tìm từng ước một");
+  });
+  it("blocked twice once the statement is confirmed → asks where the child is, never 'read the problem again'", async () => {
+    const leak = guardVerdictJson({ lo_dap_so: "84" });
+    const { d } = deps(confirmedSeed, recording([confirmed], [leak, leak]));
+    const r = (await handleTurn(d, body(1, "em chưa biết"))).json as { message: string };
+    expect(r.message).toBe(SAFE_CONFIRMED);
+    expect(r.message).not.toContain("đọc lại đề");
+    const open = deps(inProgress, recording([confirmed], [leak, leak]));
+    expect(((await handleTurn(open.d, body(2, "em chưa biết"))).json as { message: string }).message).toBe(safeLine(0).message);
+  });
+  it("math checker not configured → ⑥ tells the tutor (may_tinh: loi); configured → no such line", async () => {
+    const down = recording([confirmed]);
+    await handleTurn(deps(confirmedSeed, down).d, body(1, "em ra 84"));
+    expect(JSON.stringify(down.reqs.find((r) => !isGuardReq(r))!.messages.at(-1))).toContain("may_tinh: loi");
+    const names = (r: object) => ((r as { tools?: { name: string }[] }).tools ?? []).map((t) => t.name);
+    expect(names(down.reqs.find((r) => !isGuardReq(r))!)).toEqual(["lookup"]); // math_check, make_sibling not offered
+    const up = recording([confirmed]);
+    const cas = { health: async () => true, check: async () => ({ ok: false as const, error: "unused" }) };
+    await handleTurn({ ...deps(confirmedSeed, up).d, cas: cas as never }, body(2, "em ra 84"));
+    expect(JSON.stringify(up.reqs.find((r) => !isGuardReq(r))!.messages.at(-1))).not.toContain("may_tinh");
+    expect(((up.reqs.find((r) => !isGuardReq(r)) as { tools?: { name: string }[] }).tools ?? []).map((t) => t.name))
+      .toEqual(["math_check", "make_sibling", "lookup"]);
   });
 });

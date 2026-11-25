@@ -22,14 +22,16 @@ export interface TurnStateBlock { grade: 6 | 9; hintLevel: number; wrongCount: n
   /** G5: answers in a row that taught background knowledge (§4.13, at most 2). */
   bridgeTurns?: number;
   /** G8-fix: the child already confirmed the statement — the tutor must not restate it or ask "đúng chưa?" again. */
-  statementConfirmed?: boolean }
+  statementConfirmed?: boolean;
+  /** G8-fix2: the math checker is not configured on this deployment — the tutor must not call it this turn. */
+  casDown?: boolean }
 
 export function renderStateBlock(s: TurnStateBlock): string {
   return [
     "[TRẠNG THÁI — do app tính, cô làm theo]",
     `lop: ${s.grade} | muc_goi_y: H${s.hintLevel} | so_lan_sai: ${s.wrongCount} | nan: ${s.nan} | im_lau: ${s.idle}`,
     `da_nop_loi_giai: ${s.submitted} | che_do: ${s.mode} | max_lines: ${s.maxLines}`,
-    `thoi_gian_buoi_con_lai: ${s.minutesLeft} phút | luot_trong_bai: ${s.turn}/20${s.statementConfirmed === undefined ? "" : ` | de_da_xac_nhan: ${s.statementConfirmed}`}`,
+    `thoi_gian_buoi_con_lai: ${s.minutesLeft} phút | luot_trong_bai: ${s.turn}/20${s.statementConfirmed === undefined ? "" : ` | de_da_xac_nhan: ${s.statementConfirmed}`}${s.casDown ? " | may_tinh: loi" : ""}`,
     `cho_ket_cua_em: ${s.stuckKind ?? "khong_ro"} | ku_code: ${s.kuCode ?? "chua_ro"} | exam_slot: ${s.examSlot ?? "khong"}`,
     ...(s.bridgeTurns ? [`day_bu_nen: ${Math.min(s.bridgeTurns, 2)}/2${s.bridgeTurns >= 2 ? " — đã đủ, quay lại bài gốc" : ""}`] : []),
   ].join("\n");

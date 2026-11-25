@@ -31,6 +31,10 @@ describe("assemble", () => {
     expect(renderStateBlock({ ...state, statementConfirmed: false })).toContain("de_da_xac_nhan: false");
     expect(renderStateBlock(state)).not.toContain("de_da_xac_nhan");
   });
+  it("⑥ says when the math checker is down (G8-fix2), and nothing when it works", () => {
+    expect(renderStateBlock({ ...state, statementConfirmed: true, casDown: true })).toContain("de_da_xac_nhan: true | may_tinh: loi");
+    expect(renderStateBlock({ ...state, casDown: false })).not.toContain("may_tinh");
+  });
   it("⑥ carries max_lines from the teaching profile", () => {
     expect(renderStateBlock({ ...state, maxLines: 4 })).toContain("max_lines: 4");
   });

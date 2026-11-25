@@ -1,4 +1,5 @@
 // G6a: the server shows approved cards (DOMAIN §4.15) and answers two buttons without the model (Y3).
+import { guardVerdictJson } from "@/lib/tutor/guard";
 import { describe, expect, it } from "vitest";
 import { handleTurn, type Deps } from "@/lib/tutor/handlers";
 import type { ModelClient } from "@/lib/tutor/turn";
@@ -9,7 +10,7 @@ import fewshot from "./fixtures/fewshot.json";
 const grade6 = { role: "child" as const, userId: "c1", familyId: "f1", grade: 6 as const, childCode: "HS-6A",
   maxLines: 6, profileVersion: 1, profileText: "HỒ SƠ HS-6A" };
 const NOW = new Date("2026-11-21T10:05:00Z");
-const PASS = JSON.stringify({ pass: true, ly_do: [] });
+const PASS = guardVerdictJson();
 const base = { ...(fewshot as object[])[1] as Record<string, unknown>, danh_gia_luot_em: "khong_ap_dung" };
 const out = (o: Record<string, unknown>) => JSON.stringify({ ...base, ...o });
 
@@ -43,6 +44,42 @@ const seed = (statement: string, extra: Seed["messages"] = []): Seed => ({
 });
 const turn = (n: number, text: string, kind: "text" | "button" = "text") => ({ problemId: "p1", clientMsgId: uuid(n), text, kind });
 type Reply = { message: string; buttons: string[]; cardRef: string | null; turnCount: number };
+
+// G8-fix2 (D35): in real use (24/11) the one card the tutor chose (D9.2) never reached the child — the checker
+// called the card "a sibling problem without make_sibling" and wanted the card message to end with a question.
+describe("G8-fix2: an approved card passes the checker", () => {
+  function scripted(text: string, guard: string) {
+    const guardReqs: object[] = [];
+    return { guardReqs, async create(req: object) {
+      const isGuard = typeof (req as { system?: unknown }).system === "string";
+      if (isGuard) guardReqs.push(req);
+      return { content: [{ type: "text", text: isGuard ? guard : text }], usage: { input_tokens: 10, output_tokens: 10 } };
+    } };
+  }
+  const card = out({ the_hien: "T6.12", message: "Cô giảng phần này bằng một ví dụ khác nhé, em đọc kỹ rồi chép phần Ghi vào vở:", buttons: [] });
+  it("the checker says 'sibling' about the card's lead-in → the card is shown all the same", async () => {
+    const c = scripted(card, guardVerdictJson({ giai_bai_anh_em: "Cô giảng phần này bằng một ví dụ khác nhé" }));
+    const { d, repo } = deps(seed(SHIPS));
+    const r = await handleTurn({ ...d, client: c as unknown as ModelClient }, turn(1, "BCNN là gì ạ"));
+    expect(r.json).toMatchObject({ cardRef: "T6.12#1" });
+    expect(repo.modelCalls.filter((m) => m.purpose === "tutor").map((m) => m.guardResult)).toEqual(["pass"]);
+    expect(JSON.stringify(c.guardReqs[0])).toContain("the_giang: T6.12");
+  });
+  it("a leak in the card's lead-in still blocks", async () => {
+    const c = scripted(card, guardVerdictJson({ lo_dap_so: "150" }));
+    const { d, repo } = deps(seed(SHIPS));
+    const r = await handleTurn({ ...d, client: c as unknown as ModelClient }, turn(1, "BCNN là gì ạ"));
+    expect((r.json as Reply).cardRef).toBeNull();
+    expect(repo.modelCalls.filter((m) => m.purpose === "tutor").every((m) => m.guardResult === "blocked")).toBe(true);
+  });
+  it("a card of the other grade is not an approved card for this child: 'sibling' blocks", async () => {
+    const c = scripted(out({ the_hien: "D9.2", message: "Cô giảng cách vẽ hình bằng một bài khác nhé:", buttons: [] }),
+      guardVerdictJson({ giai_bai_anh_em: "Cô giảng cách vẽ hình bằng một bài khác nhé" }));
+    const { d, repo } = deps(seed(SHIPS));
+    await handleTurn({ ...d, client: c as unknown as ModelClient }, turn(1, "vẽ hình thế nào ạ"));
+    expect(repo.modelCalls.filter((m) => m.purpose === "tutor").every((m) => m.guardResult === "blocked")).toBe(true);
+  });
+});
 
 describe("the tutor names a card, the server shows it (§4.15)", () => {
   it("way 1 when its example does not use the child's numbers; fixed buttons; H2 at least (Y1)", async () => {

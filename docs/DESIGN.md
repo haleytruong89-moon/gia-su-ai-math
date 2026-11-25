@@ -98,7 +98,8 @@ interface TurnEvent { kind: 'text' | 'button'; text: string; at: Date; }
 7. Chọn model (DOMAIN §4.14, D28, `lib/rules/model.ts`): Sonnet; Opus khi nản / ≥ H3 / lượt trước cô `tutor_unsure` / (G5) lớp 9 bài hình chứng minh (bộ phân loại hoặc cờ `geometry_proof` lượt trước) / ý chặn `exam_slot`
    (G5: bài chứng minh hình 9, câu thi khó); bài đã lên Opus thì ở lại Opus; tháng ≥ 45 USD (D29) → chỉ Sonnet.
    toolLoop (G4, tối đa 3 lần gọi công cụ) với output_format JSON schema
-8. Guard Haiku (`lib/tutor/guard.ts`, fail-closed) trên TutorOutput + danh sách tool đã gọi → pass | viết lại 1 lần
+8. Guard Haiku (`lib/tutor/guard.ts`, fail-closed) trên TutorOutput + danh sách tool đã gọi + lời con đã viết trong bài +
+   mã thẻ giảng → Haiku trả lời từng mục kèm trích dẫn, **máy chủ quyết** (`decideGuard`, D35) → pass | viết lại 1 lần
    trên Opus (Sonnet khi Opus tạm ngừng) | câu an toàn theo mức (blocked). Cả lượt có hạn TURN_BUDGET_MS = 240 s
 9. Luật sau model: nextHintLevel(state, output.danh_gia_luot_em); outcome = decideOutcome(state, output, toolLog); (G5) `ku_code` đổi theo `ku_code_de_xuat` khi cô xác nhận đề (hoặc khi chưa có); `prereq_gap` hợp lớp → `problems.prereq_gaps` + `diagnoses(concept)`; checklist bắt buộc cả lớp 6 (§4.10b, chờ chốt)
    (solveGate: self_solved cần math_check đạt — DOMAIN §4.12; bài chứng minh → pending_review)

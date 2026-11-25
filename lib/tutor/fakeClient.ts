@@ -1,4 +1,5 @@
 // lib/tutor/fakeClient.ts — canned replies for e2e (no API, no cost). Refused on Vercel.
+import { guardVerdictJson } from "@/lib/tutor/guard";
 import type { ModelClient } from "@/lib/tutor/turn";
 import fewshot from "@/tests/fixtures/fewshot.json";
 
@@ -18,7 +19,7 @@ export function fakeClient(): ModelClient {
       // G6 e2e: "… là gì" in the child's message → the tutor names the approved card of the grade.
       const asksWhat = last.includes("[EM]") && /là gì/.test(last.split("[EM]").at(-1) ?? "");
       const grade6 = last.includes("lop: 6");
-      const text = isGuard ? JSON.stringify({ pass: true, ly_do: [] })
+      const text = isGuard ? guardVerdictJson()
         : isClassify ? JSON.stringify({ ku_code: null, exam_slot: null, geometry_proof: false })
         : isRuleDraft ? JSON.stringify({ rule: "Trả lời ngắn hơn, mỗi lượt một ý.", skip: false })
         : isReference ? JSON.stringify({ steps: ["Bước mẫu (model giả)"], final_answer: "x = 4", final_expr: null, final_values: [{ name: "x", value: "4" }] })

@@ -2,7 +2,7 @@
   "schema": 1,
   "project": "Gia sư AI Toán",
   "updated": "2026-11-25",
-  "updatedNote": "Hai con dùng thật (D31). G8-fix (D34, #30) đã merge 24/11: nút \"Gửi ảnh\" có chữ, bài hình 6 ảnh, cô không lặp câu soạn sẵn, báo cáo đếm câu soạn sẵn. Tiếp: G8a (dọn ảnh, xóa dữ liệu)",
+  "updatedNote": "Audit dùng thật 25/11: 16/22 câu của cô bị chặn (14 chặn nhầm), thẻ giảng bị chặn, máy tính đại số chưa chạy trên bản thật. G8-fix2 (D35) đang chờ duyệt: bộ kiểm tra trả lời từng mục và máy chủ quyết, cô giảng trước hỏi sau. Bố mẹ cần kiểm cas-health. Tiếp: G8a",
   "vision": {
     "oneLiner": "Một \"cô\" gia sư AI giúp 2 con tự học Toán buổi chiều: gỡ chỗ kẹt bằng câu hỏi gợi mở, không đưa lời giải bài gốc, tối bố mẹ đọc báo cáo 5 phút.",
     "problem": "Buổi chiều 2 con có nhiều thời gian tự học nhưng không có người lớn. Bố mẹ có khoảng 2 giờ buổi tối, gia sư người 2 buổi/tuần. Tốc độ tiến bộ do giờ tự học buổi chiều quyết định.",
@@ -674,6 +674,10 @@
           "status": "done"
         },
         {
+          "name": "D35 G8-fix2 sau audit dùng thật: bộ kiểm tra trả lời từng mục, máy chủ quyết; thẻ giảng đi qua; giảng trước hỏi sau; xử lý khi máy tính đại số lỗi; bộ test nối cô → bộ kiểm tra",
+          "status": "review"
+        },
+        {
           "name": "Ca lộ / ca dở từ dùng thật → thêm vào bộ test (dữ liệu giả) và sửa",
           "status": "doing"
         },
@@ -722,6 +726,11 @@
           "repo": "gia-su",
           "number": 30,
           "status": "merged"
+        },
+        {
+          "repo": "gia-su",
+          "number": 32,
+          "status": "open"
         }
       ]
     },
@@ -934,11 +943,27 @@
       "text": "G8-fix từ dùng thật: nút \"Gửi ảnh\" có chữ; bài hình tối đa 6 ảnh; câu soạn sẵn không lặp liên tiếp (lần 2 đổi câu, lần 3 mời để dành hỏi thầy); bộ kiểm tra không đòi math_check khi cô nhận xét hình vẽ; báo cáo có cờ câu soạn sẵn",
       "status": "confirmed",
       "date": "2026-11-24"
+    },
+    {
+      "id": "D35",
+      "text": "G8-fix2 sau audit dùng thật: bộ kiểm tra (Haiku) chỉ trả lời từng mục kèm trích dẫn, máy chủ quyết chặn; bỏ chặn vì \"không kết thúc bằng câu hỏi\"; thẻ giảng không bị coi là bài anh em; cô giảng ngay khi con nói chưa biết/trả lời sai; máy tính đại số lỗi thì cô chỉ con cách tự thử lại",
+      "status": "confirmed",
+      "date": "2026-11-25"
     }
   ],
   "parentTodo": [
     {
-      "text": "Sau #30: dặn HS-9A vẽ xong bấm 📷 Gửi ảnh; vài tối xem cờ \"Cô phải dùng câu soạn sẵn\" trong báo cáo, còn thì gửi Claude dòng lý do",
+      "text": "GẤP: máy tính đại số chưa chạy trên bản thật. Mở /gia-su/api/admin/cas-health (đăng nhập tài khoản bố mẹ) và gửi Claude dòng chữ hiện ra",
+      "slice": "G4",
+      "status": "open"
+    },
+    {
+      "text": "Duyệt PR #32 G8-fix2 (D35) — merge = duyệt prompt v0.10 và luật \"giảng trước, hỏi sau\"",
+      "slice": "G9",
+      "status": "open"
+    },
+    {
+      "text": "Sau #30: dặn HS-9A vẽ xong bấm 📷 Gửi ảnh",
       "slice": "G9",
       "status": "open"
     },
@@ -1041,7 +1066,7 @@
     },
     {
       "text": "Vercel Services đang beta",
-      "mitigation": "Dự phòng: project riêng cho cas + biến CAS_URL (code đã hỗ trợ)",
+      "mitigation": "Dự phòng: project riêng cho cas + biến CAS_URL (code đã hỗ trợ) — 25/11: bản chạy thật báo cas_not_configured, đang chờ bố mẹ kiểm cas-health",
       "status": "open"
     },
     {
@@ -1209,6 +1234,10 @@
     {
       "date": "2026-11-25",
       "text": "Phụ huynh merge #30 (G8-fix, D34) tối 24/11. Trang trạng thái của phụ huynh gộp luôn lộ trình; cập nhật khi mở PR và khi merge"
+    },
+    {
+      "date": "2026-11-25",
+      "text": "Audit dùng thật (2 bài): 16/22 câu của cô bị bộ kiểm tra chặn, 14 chặn nhầm; thẻ giảng bị chặn; máy tính đại số chưa cấu hình trên bản thật. G8-fix2 (D35): bộ kiểm tra trả lời từng mục, máy chủ quyết; giảng trước hỏi sau (PR #32)"
     }
   ]
 }
