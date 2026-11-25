@@ -726,6 +726,11 @@
           "repo": "gia-su",
           "number": 30,
           "status": "merged"
+        },
+        {
+          "repo": "gia-su",
+          "number": 32,
+          "status": "open"
         }
       ]
     },
@@ -953,7 +958,7 @@
       "status": "open"
     },
     {
-      "text": "Duyệt PR G8-fix2 (D35) — merge = duyệt prompt v0.10 và luật \"giảng trước, hỏi sau\"",
+      "text": "Duyệt PR #32 G8-fix2 (D35) — merge = duyệt prompt v0.10 và luật \"giảng trước, hỏi sau\"",
       "slice": "G9",
       "status": "open"
     },
@@ -1232,7 +1237,7 @@
     },
     {
       "date": "2026-11-25",
-      "text": "Audit dùng thật (2 bài): 16/22 câu của cô bị bộ kiểm tra chặn, 14 chặn nhầm; thẻ giảng bị chặn; máy tính đại số chưa cấu hình trên bản thật. G8-fix2 (D35): bộ kiểm tra trả lời từng mục, máy chủ quyết; giảng trước hỏi sau"
+      "text": "Audit dùng thật (2 bài): 16/22 câu của cô bị bộ kiểm tra chặn, 14 chặn nhầm; thẻ giảng bị chặn; máy tính đại số chưa cấu hình trên bản thật. G8-fix2 (D35): bộ kiểm tra trả lời từng mục, máy chủ quyết; giảng trước hỏi sau (PR #32)"
     }
   ]
 }
