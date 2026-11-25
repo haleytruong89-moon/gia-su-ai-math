@@ -397,6 +397,12 @@ export function toolSummary(t: ToolRecord): string {
 const confirmsAnswer = (tools: readonly ToolRecord[]) =>
   checksFrom(tools).some((c) => c.ok && (c.result?.equivalent === true || c.result?.is_root === true || c.result?.satisfies === true));
 
+/** The code of the card an answer names, when it is an approved card of the child's grade (else null). */
+function approvedCard(code: string | null | undefined, grade: 6 | 9): string | null {
+  const c = code ? cardOf(code) : null;
+  return c && cardFitsGrade(c, grade) ? c.code : null;
+}
+
 const tutorRec = (model: string, a: Answer, reason: RouteReason | null): ModelCallRecord => ({
   purpose: "tutor", model, raw: a.raw, costUsd: a.costUsd, tokens: a.tokens, routeReason: reason,
   guardResult: null, guardReasons: [], shown: false,
@@ -469,6 +475,7 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
   const typed = problem.statement && problem.statement !== PHOTO_ONLY_TEXT ? problem.statement : null;
   const guardStatement = problem.confirmedStatement ?? typed ?? (text !== PHOTO_ONLY_TEXT ? text : "(đề trong ảnh, chưa xác nhận)");
   // G8-fix: the checker also sees the photo the child sent with this turn (a figure the tutor comments on).
+  const childSaid = thread.filter((m) => m.role === "child").slice(-6).map((m) => `- ${m.content.slice(0, 300)}`).join("\n");
   const guardImages = [...new Set([...(problem.confirmedStatement === null && photos.length ? [photos[0]!.image] : []),
     ...photosOf(messageId)])];
 
@@ -483,7 +490,7 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
     state: {
       grade: actor.grade, hintLevel: level, wrongCount: problem.wrongCount, nan, idle: false, submitted,
       mode: "thuong", minutesLeft: 45, turn, stuckKind: problem.stuckKind, kuCode, examSlot,
-      statementConfirmed: problem.statementConfirmed,
+      statementConfirmed: problem.statementConfirmed, casDown: d.cas === null,
       maxLines: actor.maxLines, bridgeTurns: problem.bridgeTurns,
     },
   });
@@ -492,6 +499,9 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
     : runGuard(d.client, d.models.light, d.layers.guard, {
       statement: guardStatement, images: guardImages.length ? guardImages : undefined, hintLevel: level, submitted, maxLines: actor.maxLines, output: o,
       toolsCalled: tools.map(toolSummary),
+      // G8-fix2 (D35): the checker sees the child's message (a number the child gave is not a leak) and knows when
+      // the answer shows an approved card (a card is not a sibling problem; it was blocked as one in real use).
+      childText: childSaid, card: approvedCard(o.the_hien, actor.grade),
     });
   const noTime = ["out_of_time"];
 
@@ -591,7 +601,8 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
     // Grade 9: G4 Q2 (phụ huynh chốt 15/11). Grade 6: DOMAIN §4.10b (phụ huynh chốt 18/11).
     checklistRequired: true,
     checklistAsked: [...new Set([...problem.checklistAsked, ...(shown?.checklist_da_hoi ?? [])])] });
-  const safe = safeLine(level, safeLinesInARow(problem.history)); // G8-fix: never the same safe line twice in a row
+  // G8-fix: never the same safe line twice in a row. G8-fix2: no "read the problem again" once it is confirmed.
+  const safe = safeLine(level, safeLinesInARow(problem.history), problem.statementConfirmed);
   // G6 (§4.15): the tutor names an approved card; the server picks the way (C1) and shows it word for word.
   const named = shown?.the_hien ? cardOf(shown.the_hien) : null;
   const way = named && cardFitsGrade(named, actor.grade) && outcome.status === "in_progress"

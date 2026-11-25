@@ -18,7 +18,16 @@ describe("prompt layers", () => {
     expect(l.method).toContain("📷 Gửi ảnh");
     expect(l.method).toContain("Không nhắc cùng một ý quá 2 lần");
     expect(l.rules).toContain("de_da_xac_nhan: true");
-    expect(l.guard).toContain("không FAIL theo mục 6");
+    expect(l.guard).toContain("nhận xét **hình vẽ** của em");
+  });
+  it("G8-fix2 (D35): teach first; the checker answers per rule and gives no verdict; the math checker down", () => {
+    const l = loadLayers();
+    expect(l.method).toContain("### Giảng trước, hỏi sau");
+    expect(l.method).not.toContain("Chỉ hỏi thăm dò để biết em đang ở đâu, chưa gợi ý");
+    expect(l.rules).toContain("may_tinh: loi");
+    for (const k of ["lo_dap_so", "trach_moc", "khang_dinh_chua_kiem", "bai_anh_em_chua_kiem"]) expect(l.guard).toContain(k);
+    expect(l.guard).not.toMatch(/"pass"/);
+    expect(l.guard).toContain("Em là bộ kiểm tra"); // the fake client and the tests recognise the checker by this
   });
   it("has a version", () => expect(promptVersion()).toMatch(/^v\d+\.\d+$/));
 });

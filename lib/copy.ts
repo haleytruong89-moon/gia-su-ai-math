@@ -35,7 +35,9 @@ const SAFE_BY_LEVEL: Record<0 | 1 | 2 | 3 | 4 | 5, string> = {
 export const SAFE_AGAIN = "Cô chưa nói được ý mới ở chỗ này. Em gõ bước em đang làm (hoặc bấm 📷 Gửi ảnh) cho cô xem, hay để dành bài này hỏi thầy?";
 /** G8-fix: a third safe line in a row — stop pushing and offer the teacher. */
 export const SAFE_STOP = "Hôm nay cô chưa giúp tốt được bài này. Mình để dành bài hỏi thầy, em làm bài khác trước nhé?";
-const SAFE_LINES = new Set<string>([...Object.values(SAFE_BY_LEVEL), SAFE_AGAIN, SAFE_STOP]);
+/** G8-fix2 (D35): the first safe line once the statement is confirmed — never "read the problem again" then. */
+export const SAFE_CONFIRMED = "Em đang làm tới bước nào rồi? Em gõ bước đó (hoặc bấm 📷 Gửi ảnh) cho cô xem nhé?";
+const SAFE_LINES = new Set<string>([...Object.values(SAFE_BY_LEVEL), SAFE_AGAIN, SAFE_STOP, SAFE_CONFIRMED]);
 
 export const isSafeLine = (text: string): boolean => SAFE_LINES.has(text.trim());
 /** Every safe line, for the evening report (G8-fix: how often the child got one). */
@@ -53,10 +55,14 @@ export function safeLinesInARow(history: readonly { role: string; content: strin
   return n;
 }
 
-/** `inARow`: safe lines the child has just seen in a row (G8-fix: the child saw the same line again and again). */
-export function safeLine(level: 0 | 1 | 2 | 3 | 4 | 5, inARow = 0): { message: string; buttons: string[] } {
+/**
+ * `inARow`: safe lines the child has just seen in a row (G8-fix: the child saw the same line again and again).
+ * `confirmed`: the statement is already confirmed — at H0–H1 the line asks where the child is, not to reread it.
+ */
+export function safeLine(level: 0 | 1 | 2 | 3 | 4 | 5, inARow = 0, confirmed = false): { message: string; buttons: string[] } {
   if (inARow >= 2) return { message: SAFE_STOP, buttons: [BTN_SAVE] };
   if (inARow === 1) return { message: SAFE_AGAIN, buttons: [BTN_SAVE] };
+  if (confirmed && level <= 1) return { message: SAFE_CONFIRMED, buttons: [] };
   return { message: SAFE_BY_LEVEL[level], buttons: level >= 4 ? [BTN_SAVE] : [] };
 }
 

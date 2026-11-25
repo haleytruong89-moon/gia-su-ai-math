@@ -1,4 +1,5 @@
 // G7b — Kết thúc buổi (§3.1), con chấm cô (US6, P2), luật dạy theo phiên bản buổi (§3.4, US8).
+import { guardVerdictJson } from "@/lib/tutor/guard";
 import { describe, expect, it } from "vitest";
 import { endSession, handleTurn, rateSession, startSession, type Deps } from "@/lib/tutor/handlers";
 import { memoryRepo, type Seed } from "./helpers/memoryRepo";
@@ -9,7 +10,7 @@ const child = { role: "child" as const, userId: "c1", familyId: "f1", grade: 9 a
 const parent = { role: "parent" as const, userId: "pa", familyId: "f1" };
 const NOW = new Date("2026-11-14T10:05:00Z");
 const confirm = JSON.stringify((fewshot as object[])[0]);
-const PASS = JSON.stringify({ pass: true, ly_do: [] });
+const PASS = guardVerdictJson();
 const MODELS = { main: "claude-sonnet-5-5", strong: "claude-opus-5-5", light: "claude-haiku-5-5" };
 
 function client() {

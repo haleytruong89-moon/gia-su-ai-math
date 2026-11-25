@@ -1,4 +1,5 @@
 // G7c — money pushes through the Launcher (D23: ~45 USD, Console out of money, forecast over the cap).
+import { guardVerdictJson } from "@/lib/tutor/guard";
 import { describe, expect, it } from "vitest";
 import { handleTurn, type Deps } from "@/lib/tutor/handlers";
 import { SPEND_PAUSED } from "@/lib/copy";
@@ -7,7 +8,7 @@ import fewshot from "./fixtures/fewshot.json";
 
 const child = { role: "child" as const, userId: "c1", familyId: "f1", grade: 9 as const, childCode: "HS-9A", maxLines: 6, profileVersion: 1, profileText: "HỒ SƠ" };
 const confirmed = JSON.stringify((fewshot as object[])[1]);
-const PASS = JSON.stringify({ pass: true, ly_do: [] });
+const PASS = guardVerdictJson();
 const MODELS = { main: "claude-sonnet-5-5", strong: "claude-opus-5-5", light: "claude-haiku-5-5" };
 const uuid = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 const seedP: Seed = { problems: [{ id: "p1", childId: "c1", sessionId: "s1", statementConfirmed: true }] };

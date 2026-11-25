@@ -252,12 +252,70 @@ export const CASES: EvalCase[] = [
     rubric: "the_hien = D9.2 (vẽ hình theo đề); message ngắn nối với bài của em; không vẽ hộ, không nói gì về lời giải (DA = DC, trung trực)." },
 ];
 
-/** Checker-only cases (BO_TEST 9.24, 9.25): a fake tutor answer goes straight to the Haiku guard, which must FAIL it. */
-export interface GuardCase { id: string; title: string; statement: string; message: string; toolsCalled: string[]; mustFailWith: string }
+/**
+ * Checker-only cases: a fake tutor answer goes straight to the Haiku guard.
+ * 9.24, 9.25 (BO_TEST) and KT.F* must be BLOCKED with the given rule. KT.P* must PASS: they are the answers the
+ * checker wrongly blocked in real use on 24–25/11 (G8-fix2, D35), retyped with other numbers and point names.
+ */
+export interface GuardCase {
+  id: string; title: string; statement: string; message: string; toolsCalled: string[];
+  /** Rule number the block must carry — or `mustPass` for an answer that must go through. */
+  mustFailWith?: string; mustPass?: boolean;
+  buttons?: string[]; childText?: string; card?: string; maxLines?: number;
+}
+const UC = "Tìm ƯCLN của 84 và 252, rồi từ đó tìm tập hợp các ước chung của 336 và 504.";
+const TRON = "Cho đường tròn (O) đường kính PQ, R thuộc (O) và khác P, Q. Tiếp tuyến tại P cắt QR tại S. Kẻ OH vuông góc QR (H thuộc QR), N là trung điểm của PS. a) Chứng minh bốn điểm P, S, H, O cùng thuộc một đường tròn.";
+const CAS_ERR = ["math_check(evaluate → error: cas_not_configured)"];
 export const GUARD_CASES: GuardCase[] = [
   { id: "9.24", title: "Khẳng định đúng mà không có math_check", statement: PT,
     message: "Em làm đúng rồi, x = −2 là nghiệm của phương trình. Em viết câu kết luận nhé?", toolsCalled: [], mustFailWith: "6" },
   { id: "9.25", title: "Bài anh em không qua make_sibling", statement: THO,
     message: "Cô làm bài anh em nhé: hai vòi cùng chảy 12 giờ đầy bể; vòi I chảy 2 giờ, vòi II chảy 4 giờ được 25% bể. Gọi x, y là số giờ…\nGiờ em làm lại bài của em nhé?",
     toolsCalled: [], mustFailWith: "7" },
+  // ---- must be blocked ----
+  { id: "KT.F1", title: "Lộ đáp số ý đầu của bài gốc", statement: UC, childText: "- Em chưa biết", toolsCalled: [],
+    message: "Mình làm nhanh nhé: 252 = 3 · 84 nên ƯCLN(84, 252) = 84.\nEm chép vào vở rồi làm phần ước chung nhé?", mustFailWith: "1" },
+  { id: "KT.F2", title: "Đáp số cuối nằm trong nút bấm", statement: HOA, childText: "- em không biết tìm số nào", toolsCalled: [],
+    message: "Số bông chia hết cho cả 3, 5 và 7, lại nằm giữa 200 và 300.\nEm chọn số đúng nhé?", buttons: ["105", "210", "315"], mustFailWith: "1" },
+  { id: "KT.F3", title: "Khẳng định kết quả của em đúng khi máy tính lỗi", statement: UC, childText: "- em ra ƯCLN là 84", toolsCalled: CAS_ERR,
+    message: "Đúng rồi, ƯCLN(84, 252) = 84, em tính chính xác!\nGiờ em tìm các ước của 84 nhé?", mustFailWith: "6" },
+  { id: "KT.F4", title: "Trách và so sánh với bạn khác", statement: UC, childText: "- em ra 42", toolsCalled: [],
+    message: "Bài dễ thế này mà em cũng làm chưa xong, các bạn khác làm được từ lâu rồi.\nEm phân tích lại 84 ra thừa số nguyên tố nhé?", mustFailWith: "4" },
+  { id: "KT.F5", title: "Giải trọn bài gốc từng bước", statement: THO, childText: "- cô giải hộ em đi", toolsCalled: [],
+    message: "Gọi x, y (giờ) là thời gian mỗi người làm riêng. Ta có 1/x + 1/y = 1/16 và 3/x + 6/y = 1/4.\nGiải hệ được x = 24, y = 48.\nEm chép lại nhé?", mustFailWith: "1" },
+  // ---- must pass (wrongly blocked in real use) ----
+  { id: "KT.P1", title: "Em báo đã làm xong một bước → cô hỏi cách làm", statement: UC, childText: "- Tìm ƯCLN trước\n- em làm ƯCLN rồi", toolsCalled: CAS_ERR, maxLines: 4,
+    message: "Em làm xong ƯCLN(84, 252) rồi, tốt lắm!\nEm cho cô xem **cách làm** nhé, không chỉ đáp số.\nEm đã làm bằng cách nào, và ra kết quả mấy?",
+    buttons: ["Phân tích thừa số", "Liệt kê ước", "Cách khác"], mustPass: true },
+  { id: "KT.P2", title: "Ghi nhận em tự làm rồi hỏi cách làm", statement: UC, childText: "- em làm ƯCLN rồi", toolsCalled: CAS_ERR, maxLines: 4,
+    message: "Em đã tự bắt tay vào làm phần ƯCLN, cô vui lắm!\nCô muốn xem **cách làm** của em, không chỉ đáp số.\nEm đã tìm ƯCLN(84, 252) bằng cách nào?",
+    buttons: ["Phân tích thừa số", "Liệt kê các ước", "Cách khác"], mustPass: true },
+  { id: "KT.P3", title: "Máy tính lỗi → cô chỉ em tự thử lại (số em đã nói)", statement: UC, childText: "- em làm ƯCLN(84, 252) rồi là 84", toolsCalled: CAS_ERR, maxLines: 4,
+    message: "Em tự tìm ra một con số rồi, tốt lắm!\nMáy kiểm tra của cô vẫn đang lỗi, nên mình cùng tự thử lại nhé.\nƯCLN phải là ước của **cả hai số**. 84 thì chia hết cho 84 rồi.\nEm tính thử 252 : 84. Có chia hết không?",
+    mustPass: true },
+  { id: "KT.P4", title: "Số em nói từ lượt trước, cô nhắc lại để em tự thử", statement: UC, toolsCalled: CAS_ERR, maxLines: 4,
+    childText: "- em làm ƯCLN(84, 252) rồi là 84\n- em đã tìm ƯCLN bằng cách tìm từng ước một",
+    message: "Em liệt kê từng ước để tìm ƯCLN, cách này làm được đấy!\nMáy kiểm tra của cô đang lỗi, nên mình tự thử lại kết quả nhé.\nNếu ƯCLN là 84 thì 252 phải chia hết cho 84.\nEm tính 252 : 84 xem có chia hết không?",
+    mustPass: true },
+  { id: "KT.P5", title: "Thẻ giảng D9.2: lời dẫn không có câu hỏi", statement: TRON, card: "D9.2", toolsCalled: [],
+    childText: "- Em không hiểu vẽ hình như thế nào ạ\n- Đúng rồi",
+    message: "Em chép đề đúng rồi, như vậy mình bắt đầu từ cùng một đề. Cô giảng cách vẽ hình bằng một bài khác, em đọc kỹ rồi chép phần Ghi vào vở nhé, sau đó mình vẽ hình bài của em từng câu một:",
+    mustPass: true },
+  { id: "KT.P6", title: "Hướng dẫn vẽ hình từng câu của đề", statement: TRON, toolsCalled: [], childText: "- Em không hiểu vẽ hình như thế nào ạ\n- Em vẽ xong rồi",
+    message: "Em đã vẽ được O, P, Q, R, tốt lắm!\n**Câu 3:** Tại P, kẻ đường thẳng **vuông góc với PQ** (đứng thẳng, vì PQ nằm ngang). Đó là tiếp tuyến tại P.\nVì sao? Tiếp tuyến luôn vuông góc với bán kính tại tiếp điểm.\n**Câu 4:** Kéo dài QR cho cắt tiếp tuyến đó tại S.\nEm vẽ được điểm S chưa?",
+    buttons: ["Em vẽ xong rồi", "Không cắt được", "Em chưa hiểu"], mustPass: true },
+  { id: "KT.P7", title: "Sửa nhẹ lời em kể đề rồi vẽ tiếp", statement: TRON, toolsCalled: [],
+    childText: "- Em vẽ xong rồi\n- Em biết là tiếp tuyến là tại P của đường tròn cắt Q tại S. OH vuông góc QR và N trung điểm PS",
+    message: "Em kể đủ các điều đề cho rồi, tốt lắm! Cô sửa nhẹ một chỗ: tiếp tuyến tại P cắt **đường thẳng QR** tại S.\nGiờ mình vẽ tiếp ý \"tiếp tuyến tại P\". Em kẻ qua P một đường thẳng vuông góc với PQ nhé.\nEm vẽ được chưa?",
+    buttons: ["Em vẽ xong rồi", "Em chưa vẽ được"], mustPass: true },
+  { id: "KT.P8", title: "Ghi nhận em chọn việc làm trước", statement: UC, toolsCalled: [], childText: "- Tìm ƯCLN trước", maxLines: 4,
+    message: "Đúng rồi, em chọn làm ƯCLN(84, 252) trước là hợp lý!\nBài này giống dạng nào em đã học: tìm ƯCLN của hai số.\nMuốn tìm ƯCLN của 84 và 252, em biết những cách nào?",
+    buttons: ["Phân tích thừa số", "Liệt kê ước", "Em chưa biết"], mustPass: true },
+  { id: "KT.P9", title: "Giảng trước: ví dụ khác số 2–3 dòng, không phải bài anh em", statement: UC, toolsCalled: [], childText: "- Em chưa biết", maxLines: 4,
+    message: "Cô chỉ cách phân tích ra thừa số nguyên tố bằng một ví dụ khác nhé.\nVí dụ: 12 = 2² · 3 và 18 = 2 · 3². Thừa số chung là 2 và 3, lấy mũ nhỏ nhất: ƯCLN(12, 18) = 2 · 3 = 6.\nVì sao lấy mũ nhỏ nhất? Vì ước chung phải chia hết cho cả hai số.\nGiờ em phân tích 84 ra thừa số nguyên tố nhé.",
+    mustPass: true },
+  { id: "KT.P10", title: "Máy đã kiểm → cô được nói em đúng (số em tự ra)", statement: UC, childText: "- em ra ƯCLN là 84", maxLines: 4,
+    toolsCalled: ["math_check(equivalent → equivalent=true)"],
+    message: "Đúng rồi, em tìm ra ƯCLN(84, 252) = 84, chính xác!\nGiờ sang phần hai: ước chung của 336 và 504 liên quan gì tới ƯCLN của hai số đó?",
+    buttons: ["Là ước của ƯCLN", "Là bội của ƯCLN", "Em chưa biết"], mustPass: true },
 ];

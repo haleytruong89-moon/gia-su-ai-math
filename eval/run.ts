@@ -231,15 +231,18 @@ function summary(rows: Row[], caseCount: number): string {
   return lines.join("\n") + "\n";
 }
 
-/** BO_TEST 9.24, 9.25: the checker alone must FAIL a fake answer with the right rule. */
+/** The checker alone: 9.24, 9.25, KT.F* must be blocked with the right rule; KT.P* must pass (G8-fix2). */
 async function runGuardCase(g: GuardCase) {
   const base = (fewshot as unknown as Record<string, unknown>[])[1]!;
-  const output = { ...base, message: g.message, buttons: [], danh_gia_luot_em: "dung" } as never;
+  const output = { ...base, message: g.message, buttons: g.buttons ?? [], danh_gia_luot_em: "dung", the_hien: g.card ?? null } as never;
   const r = await runGuard(client, GUARD_MODEL, loadLayers().guard,
-    { statement: g.statement, hintLevel: 4, submitted: false, maxLines: 6, output, toolsCalled: g.toolsCalled });
-  const pass = !r.pass && r.reasons.some((x) => x.trim().startsWith(g.mustFailWith));
-  return { model: "guard:" + GUARD_MODEL, id: g.id, title: g.title, pass, failures: pass ? [] : [`guard:${r.pass ? "passed" : r.reasons.join("/")}`],
-    leak: false, lengthOk: true, endsOk: true, judgeReason: r.reasons.join("; "), output: null, costUsd: r.costUsd, judgeCostUsd: 0, ms: 0 };
+    { statement: g.statement, hintLevel: 4, submitted: false, maxLines: g.maxLines ?? 6, output, toolsCalled: g.toolsCalled,
+      childText: g.childText, card: g.card ?? null });
+  const pass = g.mustPass ? r.pass : !r.pass && r.reasons.some((x) => x.trim().startsWith(g.mustFailWith ?? "?"));
+  const got = r.pass ? "passed" : r.reasons.join("/");
+  return { model: "guard:" + GUARD_MODEL, id: g.id, title: g.title, pass, failures: pass ? [] : [`guard:${got}`],
+    leak: false, lengthOk: true, endsOk: true, judgeReason: `${g.mustPass ? "phải qua" : `phải chặn (mục ${g.mustFailWith})`} → ${got}`,
+    output: null, costUsd: r.costUsd, judgeCostUsd: 0, ms: 0 };
 }
 
 async function main() {
@@ -255,18 +258,20 @@ async function main() {
   });
   for (const m of models)
     writeFileSync(join(outDir, `${m}.jsonl`), rows.filter((r) => r.model === m).map((r) => JSON.stringify(r)).join("\n") + "\n");
-  const guardRows = process.env.EVAL_FAKE ? [] : await Promise.all(guardCases.map(runGuardCase));
+  // GUARD_REPEAT > 1: the same answer several times, to see how steady the checker is.
+  const repeat = Math.max(1, Number(process.env.GUARD_REPEAT ?? "1") || 1);
+  const guardRows = process.env.EVAL_FAKE ? [] : await Promise.all(Array.from({ length: repeat }, () => guardCases).flat().map(runGuardCase));
   for (const g of guardRows) console.log(`${g.pass ? "PASS" : "FAIL"} ${g.model} ${g.id} ${g.failures.join(",")}`);
   if (guardRows.length) writeFileSync(join(outDir, "guard.jsonl"), guardRows.map((r) => JSON.stringify(r)).join("\n") + "\n");
   const md = summary(rows, cases.length) + (guardRows.length
-    ? ["", "## Bộ kiểm tra (9.24, 9.25)", "", "| # | Tình huống | Kết quả | Lý do |", "|---|---|---|---|",
+    ? ["", `## Bộ kiểm tra: ${guardRows.filter((g) => g.pass).length}/${guardRows.length} đạt, ${guardRows.reduce((k, g) => k + g.costUsd, 0).toFixed(4)} USD`, "", "| # | Tình huống | Kết quả | Lý do |", "|---|---|---|---|",
        ...guardRows.map((g) => `| ${g.id} | ${g.title} | ${g.pass ? "✅" : "❌"} | ${(g.judgeReason ?? "").replace(/\|/g, "/")} |`), ""].join("\n")
     : "");
   writeFileSync(join(outDir, "SUMMARY.md"), md);
   if (process.env.GITHUB_STEP_SUMMARY) writeFileSync(process.env.GITHUB_STEP_SUMMARY, md, { flag: "a" });
   console.log(md);
   // Every turn failed before the tutor answered (bad key, bad request…): make the run red.
-  if (rows.every((r) => r.failures.some((f) => f.startsWith("error:")))) process.exitCode = 1;
+  if (rows.length > 0 && rows.every((r) => r.failures.some((f) => f.startsWith("error:")))) process.exitCode = 1;
 }
 
 void main();
