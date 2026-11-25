@@ -128,7 +128,9 @@ export function supabaseRepo(db: SupabaseClient = createAdminClient(), strongMod
         cardRef: m.card_ref ?? null }));
 
       const { count: strongCalls, error: e3 } = await t().from("model_calls").select("id", { count: "exact", head: true })
-        .eq("problem_id", p.id).eq("purpose", "tutor").eq("model", strongModel);
+        .eq("problem_id", p.id).eq("purpose", "tutor").eq("model", strongModel)
+        // D36: an Opus rewrite of a blocked answer does not make the problem stick to Opus; only real signals do.
+        .or("route_reason.is.null,route_reason.neq.guard_blocked");
       if (e3) fail("getProblem.strong", e3);
       // The answers the child saw (message_id set), newest first: flags of the last one, checklist items of all.
       const { data: shownCalls, error: e4 } = await t().from("model_calls").select("id, raw_output")

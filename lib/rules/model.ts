@@ -35,7 +35,11 @@ export function pickModel(i: RouteInput): { tier: ModelTier; reason: RouteReason
   return s ? { tier: "strong", reason: s } : { tier: "main", reason: null };
 }
 
-/** A blocked answer is rewritten on Opus, or on Sonnet while Opus is paused (§4.14 d, §5). */
-export function rewriteRoute(strongPausedNow: boolean): { tier: ModelTier; reason: RouteReason } {
-  return strongPausedNow ? { tier: "main", reason: "opus_paused" } : { tier: "strong", reason: "guard_blocked" };
+/**
+ * A blocked answer is rewritten on the model of the turn, Sonnet while Opus is paused (§4.14 d, §5).
+ * D36 (25/11): it used to go to Opus, and the Opus rewrite then made the whole problem sticky — in real use 84% of
+ * the cost and 15–25 s a turn, for answers that were mostly blocked by mistake.
+ */
+export function rewriteRoute(strongPausedNow: boolean, tier: ModelTier): { tier: ModelTier; reason: RouteReason } {
+  return strongPausedNow ? { tier: "main", reason: "opus_paused" } : { tier, reason: "guard_blocked" };
 }

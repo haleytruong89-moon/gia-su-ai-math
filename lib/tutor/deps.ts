@@ -7,6 +7,7 @@ import { supabaseRepo } from "@/lib/db/supabaseRepo";
 import { casUrl, serverEnv } from "@/lib/env";
 import { launcherNotify } from "@/lib/notify";
 import { httpCas } from "@/lib/tools/casClient";
+import { localCas } from "@/lib/tools/localCas";
 import { fakeAllowed, fakeClient } from "@/lib/tutor/fakeClient";
 import { readBody } from "@/lib/tutor/form";
 import type { Deps } from "@/lib/tutor/handlers";
@@ -23,8 +24,9 @@ export async function liveDeps(): Promise<Deps> {
     now: new Date(),
     layers: loadLayers(),
     promptVersion: promptVersion(),
-    // The private math checker: Vercel binding (CAS_SERVICE_URL) or CAS_URL, with the shared secret.
-    cas: (() => { const url = casUrl(env); return url && env.CAS_SECRET ? httpCas(url, env.CAS_SECRET) : null; })(),
+    // The private math checker: Vercel binding (CAS_SERVICE_URL) or CAS_URL, with the shared secret. D36: wrapped by the
+    // in-app number checker, which answers number jobs when the algebra service is missing or down.
+    cas: localCas((() => { const url = casUrl(env); return url && env.CAS_SECRET ? httpCas(url, env.CAS_SECRET) : null; })()),
     models: { main: env.TUTOR_MODEL_MAIN, strong: env.TUTOR_MODEL_STRONG, light: env.TUTOR_MODEL_LIGHT },
     classify: true, // G5
     notify: launcherNotify(env), // G7c (D23): money pushes through the Launcher

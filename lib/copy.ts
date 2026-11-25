@@ -90,6 +90,8 @@ export const BTN_CARD_OK = "Em hiểu rồi";
 export const BTN_CARD_AGAIN = "Giảng lại cách khác";
 export const BTN_TRY_AGAIN = "Em thử lại";
 export const CARD_BUTTONS = [BTN_CARD_OK, BTN_CARD_AGAIN] as const;
+/** D36: the lead-in when the server shows the lesson's card because no answer got through the checker. */
+export const CARD_FALLBACK_INTRO = "Cô giảng phần kiến thức của bài này bằng một ví dụ khác nhé. Em đọc kỹ rồi chép phần Ghi vào vở:";
 export const DOC_DE_ASK = "Em vướng ở chỗ nào?";
 /** Grade 6 gets the first three (no unknowns to set up yet). */
 export const DOC_DE_BUTTONS = ["Em không hiểu đề kể chuyện gì", "Em không biết đề hỏi gì",

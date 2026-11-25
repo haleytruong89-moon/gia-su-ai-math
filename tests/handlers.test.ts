@@ -1,3 +1,4 @@
+import { localCas } from "@/lib/tools/localCas";
 import { guardVerdictJson } from "@/lib/tutor/guard";
 import { describe, expect, it } from "vitest";
 import { handleTurn, newProblem, saveForLater, startSession, STALE_PENDING_MS, type Deps } from "@/lib/tutor/handlers";
@@ -252,17 +253,27 @@ describe("G2 turn pipeline", () => {
     expect(repo.modelCalls.map((m) => [m.purpose, m.routeReason, m.guardResult, m.shown]))
       .toEqual([["tutor", null, "pass", true], ["guard", null, null, false]]);
   });
-  it("§4.14 d: blocked → rewritten on Opus; the child sees Opus' answer; the next turn stays on Opus", async () => {
+  it("§4.14 d (D36): blocked → rewritten on the same model (Sonnet); the next turn stays on Sonnet", async () => {
     const c = scripted([confirm, confirmed, confirmed], [false, true, true]);
     const { d, repo } = deps(inProgress, c);
     const r = await handleTurn(d, body(1));
-    expect(c.models).toEqual(["claude-sonnet-5-5", "claude-haiku-5-5", "claude-opus-5-5", "claude-haiku-5-5"]);
+    expect(c.models).toEqual(["claude-sonnet-5-5", "claude-haiku-5-5", "claude-sonnet-5-5", "claude-haiku-5-5"]);
     expect((r.json as { message: string }).message).toBe(JSON.parse(confirmed).message);
     expect(repo.modelCalls.filter((m) => m.purpose === "tutor").map((m) => [m.routeReason, m.guardResult]))
       .toEqual([[null, "blocked"], ["guard_blocked", "rewritten"]]);
     await handleTurn(d, body(2));
-    expect(c.models.at(-2)).toBe("claude-opus-5-5"); // sticky
-    expect(repo.modelCalls.filter((m) => m.purpose === "tutor").at(-1)?.routeReason).toBe("sticky");
+    expect(c.models.at(-2)).toBe("claude-sonnet-5-5"); // no longer sticky after a rewrite
+    expect(repo.modelCalls.filter((m) => m.purpose === "tutor").at(-1)?.routeReason).toBeNull();
+  });
+  it("D36: an Opus rewrite (Opus paused never) does not make the problem sticky; a real Opus signal does", async () => {
+    const seed: Seed = { problems: [{ id: "p1", childId: "c1", sessionId: "s1", hintLevel: 3 }] }; // H3 → Opus (signal)
+    const c = scripted([confirmed, confirmed, confirmed], [false, true, true]);
+    const { d, repo } = deps(seed, c);
+    await handleTurn(d, body(1));
+    expect(repo.modelCalls.filter((m) => m.purpose === "tutor").map((m) => [m.model, m.routeReason]))
+      .toEqual([["claude-opus-5-5", "hint_h3"], ["claude-opus-5-5", "guard_blocked"]]);
+    await handleTurn(d, body(2));
+    expect(repo.modelCalls.filter((m) => m.purpose === "tutor").at(-1)?.routeReason).toBe("sticky"); // the H3 Opus turn sticks
   });
   it("the rewrite tells the tutor why the checker blocked the answer", async () => {
     const reqs: { messages: { content: string }[] }[] = [];
@@ -623,11 +634,11 @@ describe("G4 tools in a turn", () => {
     const guardReq = JSON.stringify(w.log.find((x) => x.kind === "guard")!.req);
     expect(guardReq).toContain("math_check(simplify_check → equivalent=true, fully_simplified=false)");
   });
-  it("the rewrite after a block may call tools too (on Opus)", async () => {
+  it("the rewrite after a block may call tools too (same model as the turn)", async () => {
     const w = world({ tutor: [reply({}), ask("t9", "math_check", { mode: "check_root", equation: "x - 4 = 0", value: "4" }), reply({})], guard: [false, true] });
     const { d, repo } = deps(inProgress, client([confirmed]));
     await handleTurn({ ...d, client: w, cas: fakeCas({ check_root: () => ({ is_root: true }) }) }, body1(1, "x = 4"));
-    expect(w.log.filter((x) => x.kind === "tutor").map((x) => x.model)).toEqual(["claude-sonnet-5-5", "claude-opus-5-5", "claude-opus-5-5"]);
+    expect(w.log.filter((x) => x.kind === "tutor").map((x) => x.model)).toEqual(["claude-sonnet-5-5", "claude-sonnet-5-5", "claude-sonnet-5-5"]);
     expect(repo.toolCalls).toHaveLength(1);
     expect(repo.modelCalls.find((c) => c.shown)?.guardResult).toBe("rewritten");
   });
@@ -872,5 +883,11 @@ describe("G8-fix2: the checker's inputs, the confirmed safe line, the math check
     expect(JSON.stringify(up.reqs.find((r) => !isGuardReq(r))!.messages.at(-1))).not.toContain("may_tinh");
     expect(((up.reqs.find((r) => !isGuardReq(r)) as { tools?: { name: string }[] }).tools ?? []).map((t) => t.name))
       .toEqual(["math_check", "make_sibling", "lookup"]);
+    // D36: only the in-app number checker → ⑥ says chi_so and the tools are offered
+    const num = recording([confirmed]);
+    await handleTurn({ ...deps(confirmedSeed, num).d, cas: localCas(null) }, body(3, "em ra 84"));
+    const req = num.reqs.find((r) => !isGuardReq(r))!;
+    expect(JSON.stringify(req.messages.at(-1))).toContain("may_tinh: chi_so");
+    expect(((req as { tools?: { name: string }[] }).tools ?? []).map((t) => t.name)).toEqual(["math_check", "make_sibling", "lookup"]);
   });
 });
