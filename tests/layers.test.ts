@@ -25,7 +25,7 @@ describe("prompt layers", () => {
     expect(l.method).toContain("### Giảng trước, hỏi sau");
     expect(l.method).not.toContain("Chỉ hỏi thăm dò để biết em đang ở đâu, chưa gợi ý");
     expect(l.rules).toContain("may_tinh: loi");
-    for (const k of ["dap_so_bai_goc", "lo_dap_so", "trach_moc", "khang_dinh_dung_sai", "giai_bai_anh_em", "phep_tinh_hoac_dap_so"]) expect(l.guard).toContain(k);
+    for (const k of ["tinh_nhap", "dap_so_bai_goc", "lo_dap_so", "trach_moc", "khang_dinh_dung_sai", "giai_bai_anh_em", "phep_tinh_hoac_dap_so"]) expect(l.guard).toContain(k);
     expect(l.guard).not.toMatch(/"pass"/);
     expect(l.guard).toContain("Em là bộ kiểm tra"); // the fake client and the tests recognise the checker by this
   });

@@ -40,9 +40,10 @@ type RuleKey = (typeof GUARD_RULES)[number]["key"];
 export const CLAIM_KINDS = ["phep_tinh_hoac_dap_so", "chep_de", "chon_huong_hoac_cach_lam", "hinh_ve_hoac_chung_minh", "khac"] as const;
 const item = z.object({ trich: z.string(), vi_pham: z.boolean() }).strict();
 const claim = z.object({ trich: z.string(), noi_ve: z.enum(CLAIM_KINDS), vi_pham: z.boolean() }).strict();
-const verdict = z.object({ dap_so_bai_goc: z.string(), lo_dap_so: item, trach_moc: item, khang_dinh_dung_sai: claim, giai_bai_anh_em: item }).strict();
+const verdict = z.object({ tinh_nhap: z.string(), dap_so_bai_goc: z.array(z.string()), lo_dap_so: item, trach_moc: item, khang_dinh_dung_sai: claim, giai_bai_anh_em: item }).strict();
 export type GuardVerdict = z.infer<typeof verdict>;
-// Order matters: the model first works out the answer of the original problem, then for each rule writes the
+// Order matters: the model first works out the original problem (`tinh_nhap` is its scratch space — it runs without
+// thinking), writes the answers alone (`dap_so_bai_goc`), then for each rule writes the
 // quote (and what it is about) BEFORE the yes/no. In real use the old "pass first, reasons after" shape gave
 // "pass: false" followed by reasons that all said "no violation".
 const str = { type: "string" };
@@ -51,14 +52,15 @@ const itemSchema = { type: "object", properties: { trich: str, vi_pham: bool }, 
 export const guardJsonSchema = {
   type: "object",
   properties: {
-    dap_so_bai_goc: str,
+    tinh_nhap: str,
+    dap_so_bai_goc: { type: "array", items: str },
     lo_dap_so: itemSchema,
     trach_moc: itemSchema,
     khang_dinh_dung_sai: { type: "object", properties: { trich: str, noi_ve: { type: "string", enum: [...CLAIM_KINDS] }, vi_pham: bool },
       required: ["trich", "noi_ve", "vi_pham"], additionalProperties: false },
     giai_bai_anh_em: itemSchema,
   },
-  required: ["dap_so_bai_goc", "lo_dap_so", "trach_moc", "khang_dinh_dung_sai", "giai_bai_anh_em"],
+  required: ["tinh_nhap", "dap_so_bai_goc", "lo_dap_so", "trach_moc", "khang_dinh_dung_sai", "giai_bai_anh_em"],
   additionalProperties: false,
 };
 
@@ -95,21 +97,21 @@ const numbersIn = (text: string): string[] => [...text.matchAll(/\d+(?:[.,]\d+)?
 
 /**
  * A backstop the server can do without judgment (rules.md 1: "đáp số là 60 thì không có nút '60'"): a button that
- * carries a number of the answer Haiku worked out. Only for short answers (1–3 numbers that are neither in the
+ * carries a number of the answers Haiku listed. Only for short answers (1–4 numbers that are neither in the
  * statement nor written by the child): a long list such as a set of divisors would collide with ordinary examples.
  * In the first real run of the checker cases (25/11) Haiku let "105 / 210 / 315" through with 210 as the answer.
  */
-export function answerInButtons(i: { answer: string; statement: string; childText?: string; buttons: readonly string[] }): string | null {
+export function answerInButtons(i: { answers: readonly string[]; statement: string; childText?: string; buttons: readonly string[] }): string | null {
   const known = new Set([...numbersIn(i.statement), ...numbersIn(i.childText ?? "")]);
-  const fresh = [...new Set(numbersIn(i.answer))].filter((n) => !known.has(n));
-  if (fresh.length < 1 || fresh.length > 3) return null;
+  const fresh = [...new Set(i.answers.flatMap(numbersIn))].filter((n) => !known.has(n));
+  if (fresh.length < 1 || fresh.length > 4) return null;
   return i.buttons.find((b) => numbersIn(b).some((n) => fresh.includes(n))) ?? null;
 }
 
 /** A checker reply in the wire format — for the fake client and the tests ({} = nothing found). */
-export function guardVerdictJson(violations: Partial<Record<RuleKey, string>> = {}, claimAbout: (typeof CLAIM_KINDS)[number] = "phep_tinh_hoac_dap_so", answer = ""): string {
+export function guardVerdictJson(violations: Partial<Record<RuleKey, string>> = {}, claimAbout: (typeof CLAIM_KINDS)[number] = "phep_tinh_hoac_dap_so", answers: string[] = []): string {
   const one = (k: RuleKey) => ({ trich: violations[k] ?? "", ...(k === "khang_dinh_dung_sai" ? { noi_ve: k in violations ? claimAbout : "khac" } : {}), vi_pham: k in violations });
-  return JSON.stringify({ dap_so_bai_goc: answer, ...Object.fromEntries(GUARD_RULES.map((r) => [r.key, one(r.key)])) });
+  return JSON.stringify({ tinh_nhap: "", dap_so_bai_goc: answers, ...Object.fromEntries(GUARD_RULES.map((r) => [r.key, one(r.key)])) });
 }
 
 export async function runGuard(client: ModelClient, model: string, guardPrompt: string, i: GuardInput): Promise<GuardResult> {
@@ -142,7 +144,7 @@ export async function runGuard(client: ModelClient, model: string, guardPrompt: 
     if (!parsed) return { pass: false, reasons: ["guard_unreadable"], raw, costUsd: cost, tokens, model };
     const reasons = decideGuard(parsed, { card: i.card, toolsCalled: i.toolsCalled });
     const button = i.submitted ? null
-      : answerInButtons({ answer: parsed.dap_so_bai_goc, statement: i.statement, childText: i.childText, buttons: i.output.buttons });
+      : answerInButtons({ answers: parsed.dap_so_bai_goc, statement: i.statement, childText: i.childText, buttons: i.output.buttons });
     if (button && !reasons.some((r) => r.startsWith("1:"))) reasons.unshift(`1: lộ đáp số hoặc lời giải bài gốc — nút "${button.slice(0, 40)}"`);
     return { pass: reasons.length === 0, reasons, raw, costUsd: cost, tokens, model };
   } catch (e) {
