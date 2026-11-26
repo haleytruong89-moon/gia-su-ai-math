@@ -12,6 +12,7 @@ import { factsFromRows, type ProblemRowLite } from "./facts";
 import type { CardGap } from "./cardGaps";
 import { loadCardGaps, loadReviewDay } from "./gapsLoad";
 import { loadFeedbackDay } from "./feedbackLoad";
+import { writeAttention } from "./attentionSync";
 import type { FeedbackItem } from "@/lib/rules/feedback";
 
 export { kuTitle };
@@ -52,13 +53,20 @@ export async function loadDayReport(parent: ParentActor, date: string, db: Supab
   const children = await Promise.all((kids ?? []).map(async (k): Promise<ChildDay> => {
     const [d, review, feedback] = await Promise.all([loadChildDay(db, parent.familyId, k.id as string, date),
       loadReviewDay(db, parent.familyId, k.id as string, date), loadFeedbackDay(db, parent.familyId, k.id as string, date)]);
+    const flags = dayFlags(factsFromRows(d), kuTitle);
+    // G8-fix4: what the parents read here is also what the Launcher shows ("Học với app"). Never breaks the page.
+    try {
+      await writeAttention(db, { familyId: parent.familyId, childId: k.id as string, date, now: new Date() }, flags);
+    } catch (e) {
+      console.error("attention sync failed", e instanceof Error ? e.message : "unknown");
+    }
     return {
       childId: k.id as string,
       name: (k.display_name as string | null) ?? "Con",
       grade: (k.grade as number | null) ?? null,
       minutes: (summary ?? []).filter((s) => s.child_id === k.id).reduce((n, s) => n + Number(s.minutes ?? 0), 0),
       sessions: d.sessions,
-      flags: dayFlags(factsFromRows(d), kuTitle),
+      flags,
       problems: d.problems.map((p) => ({ ...p, kuTitle: p.ku_code ? kuTitle(p.ku_code) : null })),
       ratings: d.ratings,
       review,

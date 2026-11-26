@@ -536,15 +536,20 @@ describe("G4 tools in a turn", () => {
     expect(repo.toolCalls).toEqual([expect.objectContaining({ tool: "math_check", ok: true })]);
     expect(repo.modelCalls[repo.toolCalls[0]!.callRow]?.shown).toBe(true); // linked to the answer the child saw
   });
-  it("G7: a problem that ends rewrites the day's attention lines; a turn that stays open does not", async () => {
+  // G8-fix4 (real use 24–25/11): both problems stayed open and no session ended, so the Launcher got 0 lines
+  // while the report showed 2 flags. Every turn now rewrites the lines (an open problem: after the answer is sent).
+  it("G7/G8-fix4: every turn rewrites the day's attention lines — an ended problem at once, an open one in the background", async () => {
     const w = world({ tutor: [ask("t1", "math_check", simplify), reply({ ket_qua_bai: "self_solved", danh_gia_luot_em: "dung", checklist_da_hoi: [7] })] });
     const { d, repo } = deps(inProgress, client([confirmed]));
     const cas = fakeCas({ simplify_check: () => ({ equivalent: true, fully_simplified: true, common_factor: null }) });
     await handleTurn({ ...d, client: w, cas }, submit(1, "P = 3/(3 - √x)"));
     expect(repo.attentionSyncs).toEqual([{ familyId: "f1", childId: "c1", dateVn: "2026-11-14" }]);
     const open = deps(inProgress, client([confirmed]));
-    await handleTurn(open.d, { problemId: "p1", clientMsgId: uuid(2), text: "x = 3", kind: "text" });
-    expect(open.repo.attentionSyncs).toEqual([]);
+    const later: (() => Promise<void>)[] = [];
+    await handleTurn({ ...open.d, later: (w) => { later.push(w); } }, { problemId: "p1", clientMsgId: uuid(2), text: "x = 3", kind: "text" });
+    expect(open.repo.attentionSyncs).toEqual([]); // not before the child's answer is sent
+    await Promise.all(later.map((w) => w()));
+    expect(open.repo.attentionSyncs).toEqual([{ familyId: "f1", childId: "c1", dateVn: "2026-11-14" }]);
   });
   it("G7c: self_solved → a reference solution is written, checked against the child's answer by cas, and stored (P4, X5)", async () => {
     const ref = { steps: ["ĐKXĐ: x ≥ 0, x ≠ 9", "Vậy P = 3/(3 − √x)"], final_answer: "P = 3/(3 − √x)", final_expr: "3/(3 - sqrt(x))", final_values: [] };
