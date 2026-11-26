@@ -140,7 +140,9 @@ async function runCase(model: string, c: EvalCase) {
     layers: loadLayers(), profileText: profile.text, knowledgeCard: knowledgeCard(cls.output.ku_code, c.grade),
     cardIndex: cardIndexText(c.grade), history: c.history,
     childText: c.childText, childImages: c.image ? [await sheet(c.image.lines, { rotate: c.image.rotate })] : undefined,
-    state: { ...baseState, grade: c.grade, maxLines: profile.maxLines, kuCode: cls.output.ku_code, examSlot: cls.output.exam_slot, ...c.state },
+    // D37: cases are photo statements with no worked example yet unless they say otherwise (c.state.lesson).
+    state: { ...baseState, grade: c.grade, maxLines: profile.maxLines, kuCode: cls.output.ku_code, examSlot: cls.output.exam_slot,
+      lesson: { fromPhoto: true, sampleShown: false, proof: cls.output.geometry_proof }, ...c.state },
   });
   const started = Date.now();
   try {
