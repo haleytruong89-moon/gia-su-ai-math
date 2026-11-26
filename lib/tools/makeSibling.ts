@@ -6,7 +6,9 @@ import { runMathCheck } from "@/lib/tools/mathCheck";
 import type { ModelClient } from "@/lib/tutor/turn";
 import { z } from "zod";
 
-export interface SiblingInput { original_statement: string; ku_code: string | null; difficulty: "same" | "easier" }
+export interface SiblingInput { original_statement: string; ku_code: string | null; difficulty: "same" | "easier";
+  /** D37: the way the child chose; the worked example follows it step by step. */
+  method?: string | null }
 export interface SiblingOutput { statement: string; solution_steps: string[]; final_answer: string; verified: boolean; numbers_differ: boolean }
 /** One model call made for the sibling (logged as purpose = "sibling"). */
 export interface SiblingCall { model: string; raw: string; costUsd: number; tokens: { in: number; cached: number; out: number } }
@@ -78,6 +80,7 @@ export async function makeSibling(
     const user = [
       `Đề gốc:\n${input.original_statement}`,
       `Mã kiến thức: ${input.ku_code ?? "chưa rõ"} | Độ khó: ${input.difficulty}`,
+      ...(input.method ? [`Cách giải phải dùng: ${input.method.slice(0, 120)}`] : []),
       ...(why ? [`Lần trước chưa đúng: ${why}. Soạn lại.`] : []),
     ].join("\n\n");
     let res: Awaited<ReturnType<ModelClient["create"]>>;

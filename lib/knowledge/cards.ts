@@ -33,7 +33,8 @@ export const cardFitsGrade = (c: Card, grade: 6 | 9): boolean => c.grade === gra
 export function cardIndexText(grade: 6 | 9): string {
   const own = BUNDLE.cards.filter((c) => c.grade === grade);
   if (!own.length) return "[MỤC LỤC THẺ — chưa có thẻ nào]";
-  const line = (c: Card) => `${c.code} · ${c.title}${c.kind === "doc_de" ? " (đọc đề)" : ""}`;
+  const tag = { ban_chat: "", doc_de: " (đọc đề)", cach_lam: " (cách làm — bài mẫu)" } as const;
+  const line = (c: Card) => `${c.code} · ${c.title}${tag[c.kind]}`;
   return ["[MỤC LỤC THẺ — chỉ dùng đúng các mã này cho the_hien]", ...own.map(line)].join("\n");
 }
 

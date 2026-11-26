@@ -10,6 +10,7 @@ import { assemble, type TurnStateBlock } from "@/lib/tutor/assemble";
 import { loadLayers, promptVersion } from "@/lib/tutor/layers";
 import { type Effort, type ModelClient } from "@/lib/tutor/turn";
 import { runToolLoop } from "@/lib/tutor/toolLoop";
+import { linesAllowed, sampleChecked } from "@/lib/tutor/lines";
 import { localCas } from "@/lib/tools/localCas";
 import { runGuard } from "@/lib/tutor/guard";
 import { toolSummary } from "@/lib/tutor/handlers";
@@ -165,7 +166,8 @@ async function runCase(model: string, c: EvalCase) {
     const r = { ...loop.final, costUsd: loop.calls.reduce((t, x) => t + x.costUsd, 0) + siblingCost };
     const ms = Date.now() - started;
     const toolsRun = loop.tools.flatMap(toolKeys);
-    const auto = checkOutput(r.output, { maxLines: profile.maxLines, forbid: c.forbid, expect: c.expect, tools: toolsRun });
+    const maxLines = r.output ? linesAllowed(r.output, sampleChecked(loop.tools), profile.maxLines) : profile.maxLines; // D37
+    const auto = checkOutput(r.output, { maxLines, forbid: c.forbid, expect: c.expect, tools: toolsRun });
     const sc = r.output ? shownCard(c, r.output.the_hien) : null;
     const j = r.output
       ? await judge(c, r.output.message, sc ? sc.buttons : r.output.buttons, loop.tools, sc ? { code: r.output.the_hien!, text: sc.text } : null)
@@ -176,7 +178,7 @@ async function runCase(model: string, c: EvalCase) {
     const said = [...c.history.filter((m) => m.role === "user").slice(1).map((m) => m.content), ...(c.history.length ? [c.childText] : [])];
     const g = r.output && !process.env.EVAL_FAKE
       ? await runGuard(client, GUARD_MODEL, loadLayers().guard, { statement, hintLevel: (c.state?.hintLevel ?? 0) as never,
-        submitted: c.state?.submitted ?? false, maxLines: profile.maxLines, output: r.output, toolsCalled: loop.tools.map(toolSummary),
+        submitted: c.state?.submitted ?? false, maxLines, output: r.output, toolsCalled: loop.tools.map(toolSummary),
         childText: said.slice(-6).map((t) => `- ${t.slice(0, 300)}`).join("\n"), card: sc ? r.output.the_hien ?? null : null })
       : null;
     const failures = [...auto.failures];

@@ -43,6 +43,15 @@ describe("makeSibling", () => {
     expect(r.output.statement).toBe(good.statement);
     expect(JSON.stringify(client.reqs[1])).toContain("chưa đúng"); // the retry says why
   });
+  it("D37: the chosen way goes to the sibling writer; a number-only sibling is checked with gcd (in-app checker)", async () => {
+    const { localCas } = await import("@/lib/tools/localCas");
+    const uc = { statement: "Tìm ƯCLN(48, 72).", solution_steps: ["Ư(48) = …", "Ư(72) = …", "ƯC = …, lớn nhất 24"],
+      final_answer: "ƯCLN(48, 72) = 24", check: { mode: "equivalent", expr_a: "gcd(48, 72)", expr_b: "24" } };
+    const client = scriptedJson([uc]);
+    const r = await makeSibling(deps(client, localCas(null)), { original_statement: "Tìm ƯCLN(84, 120)", ku_code: "T6.11", difficulty: "same", method: "liệt kê ước" });
+    expect(JSON.stringify(client.reqs[0])).toContain("Cách giải phải dùng: liệt kê ước");
+    expect([r.output.verified, r.output.numbers_differ]).toEqual([true, true]);
+  });
   it("numbers reused from the original → retried; still reused → numbers_differ false", async () => {
     const copy = { ...good, statement: THO };
     const client = scriptedJson([copy, copy]);

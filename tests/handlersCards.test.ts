@@ -129,6 +129,20 @@ describe("the tutor names a card, the server shows it (§4.15)", () => {
     expect(repo.problems[0]!.hintLevelMax).toBeGreaterThanOrEqual(2);
     expect(repo.messages.at(-1)!.cardRef).toBe("T6.12#1");
   });
+  it("D37: a worked-example card (cách làm, C6.1) is shown the same way but is not a hint (H stays 0)", async () => {
+    const { d, repo } = deps(seed("Tìm ƯCLN(84, 120)"), out({ the_hien: "C6.1", ky_thuat: "bai_mau", message: "Cô làm mẫu cách liệt kê ước trên số khác nhé:" }));
+    const r = await handleTurn(d, turn(1, "Liệt kê ước"));
+    expect(r.json).toMatchObject({ cardRef: "C6.1#1", buttons: ["Em hiểu rồi", "Giảng lại cách khác"] });
+    expect(repo.problems[0]!.hintLevelMax).toBe(0);
+  });
+  it("D37: the state block tells the tutor whether the statement was typed and whether a worked example was shown", async () => {
+    const a = deps(seed("Tìm ƯCLN(84, 120)"));
+    await handleTurn(a.d, turn(1, "Liệt kê ước"));
+    expect(JSON.stringify(a.c.reqs[0])).toContain("de_tu_anh: false | da_co_bai_mau: false | chung_minh_hinh: false");
+    const b = deps(seed("Tìm ƯCLN(84, 120)", [{ problemId: "p1", role: "tutor", text: "Cô làm mẫu:", cardRef: "C6.1#1" }]));
+    await handleTurn(b.d, turn(1, "Em làm ra 12"));
+    expect(JSON.stringify(b.c.reqs[0])).toContain("da_co_bai_mau: true");
+  });
   it("way 2 when way 1 uses the child's numbers (C1)", async () => {
     const { d } = deps(seed("Hai đèn nháy sau 12 giây và 18 giây. Sau bao lâu cùng nháy?"), out({ the_hien: "T6.12" }));
     expect(((await handleTurn(d, turn(1, "BCNN là gì ạ"))).json as Reply).cardRef).toBe("T6.12#2");

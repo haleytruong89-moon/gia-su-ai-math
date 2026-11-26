@@ -1,6 +1,7 @@
 // lib/knowledge/cardText.ts — the text of a shown card for the screens (client-safe: no zod, no server code).
 // The bundle is validated at build (`npm run cards:check`) and on the server (lib/knowledge/cards.ts).
 import data from "@/knowledge/cards.json";
+import { CARD_REF } from "./cardCodes";
 import type { CardBundle } from "./cardSchema";
 
 const CARDS = (data as CardBundle).cards;
@@ -9,7 +10,7 @@ export interface CardText { code: string; n: 1 | 2; title: string; wayTitle: str
 
 /** "T6.12#1" → what the child sees; null when the bundle no longer has it (an older thread). */
 export function cardText(ref: string | null | undefined): CardText | null {
-  const m = ref ? /^((?:T6|T9|N7|N8|TH|D6|D9)\.[0-9]{1,2})#([12])$/.exec(ref) : null;
+  const m = ref ? CARD_REF.exec(ref) : null;
   const c = m ? CARDS.find((x) => x.code === m[1]) : undefined;
   if (!m || !c) return null;
   const n = Number(m[2]) as 1 | 2;

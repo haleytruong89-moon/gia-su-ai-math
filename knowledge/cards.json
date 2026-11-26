@@ -1,6 +1,129 @@
 {
-  "version": "2026-11-22.d016ecd2",
+  "version": "2026-11-26.9354ae82",
   "cards": [
+    {
+      "code": "C6.1",
+      "grade": 6,
+      "kind": "cach_lam",
+      "ku": "T6.11",
+      "title": "Tìm ƯCLN bằng cách liệt kê ước",
+      "variants": [
+        {
+          "n": 1,
+          "title": "Liệt kê ước theo cặp",
+          "body": "**Bài mẫu.** Tìm ƯCLN(20, 30).\n\n**Bước 1 — Liệt kê ước của 20 theo cặp.** Thử chia 20 cho 1, 2, 3, 4… Chia hết thì được **một cặp**:\n1 × 20, 2 × 10, 4 × 5 → Ư(20) = {1; 2; 4; 5; 10; 20}.\n*Vì sao theo cặp?* Mỗi lần chia hết là được 2 ước cùng lúc (2 × 10 = 20), nên không sót. Thử tới khi số chia gặp số thương (4 và 5) thì dừng.\n\n**Bước 2 — Liệt kê ước của 30 như vậy.**\n1 × 30, 2 × 15, 3 × 10, 5 × 6 → Ư(30) = {1; 2; 3; 5; 6; 10; 15; 30}.\n\n**Bước 3 — Gạch chân số có ở cả hai tập.** ƯC(20, 30) = {1; 2; 5; 10}.\n*Vì sao?* Ước chung phải chia hết **cả** 20 **lẫn** 30.\n\n**Bước 4 — Chọn số lớn nhất.** ƯCLN(20, 30) = **10**.\n\n**Kiểm lại:** 20 : 10 = 2 ✓, 30 : 10 = 3 ✓.\n\n**Khi nào nên dùng cách này?** Khi số **nhỏ** (dưới 100), ít ước. Số lớn như 120, 300 thì có nhiều ước, dễ sót → nên dùng cách **phân tích ra thừa số nguyên tố**.\n\n🔎 **Ghi vào vở:** *Liệt kê ước theo cặp → gạch chân ước chung → lấy số lớn nhất.*\n\n**Đến lượt em:** làm bài của em đúng 4 bước như trên, rồi gõ kết quả (hoặc bấm 📷 Gửi ảnh) cho cô xem.",
+          "keyNumbers": [
+            "20",
+            "30"
+          ],
+          "checks": [
+            "gcd(20, 30) == 10",
+            "20 % 10 == 0",
+            "30 % 10 == 0",
+            "1 * 20 == 20 and 2 * 10 == 20 and 4 * 5 == 20",
+            "1 * 30 == 30 and 2 * 15 == 30 and 3 * 10 == 30 and 5 * 6 == 30"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Liệt kê ước của số nhỏ hơn",
+          "body": "**Bài mẫu.** Tìm ƯCLN(18, 42).\n\n**Bước 1 — Liệt kê ước của số nhỏ hơn (18), từ lớn xuống.**\nƯ(18) = {18; 9; 6; 3; 2; 1}.\n*Vì sao chọn số nhỏ hơn?* ƯCLN không thể lớn hơn số nhỏ nhất, nên chỉ cần xét ước của số nhỏ.\n\n**Bước 2 — Thử từng ước, từ lớn nhất, xem có chia hết số kia (42) không.**\n- 42 : 18 → không chia hết ✗\n- 42 : 9 → không chia hết ✗\n- 42 : 6 = 7 ✓ → **dừng ở đây**.\n\n*Vì sao được dừng?* Mình đi từ lớn xuống, nên số **đầu tiên** chia hết cả hai chính là số **lớn nhất**.\n\n**Bước 3 — Kết luận.** ƯCLN(18, 42) = **6**.\n\n**Kiểm lại:** 18 : 6 = 3 ✓, 42 : 6 = 7 ✓.\n\n**Khi nào nên dùng cách này?** Khi một số nhỏ, ít ước. Cả hai số đều lớn → nên dùng cách **phân tích ra thừa số nguyên tố**.\n\n🔎 **Ghi vào vở:** *Ước của số nhỏ, xếp từ lớn xuống → thử chia số kia → số đầu tiên chia hết là ƯCLN.*\n\n**Đến lượt em:** làm bài của em như trên, rồi gõ kết quả (hoặc bấm 📷 Gửi ảnh) cho cô xem.",
+          "keyNumbers": [
+            "18",
+            "42"
+          ],
+          "checks": [
+            "gcd(18, 42) == 6",
+            "42 % 9 != 0",
+            "42 % 18 != 0",
+            "42 % 6 == 0",
+            "18 % 6 == 0"
+          ]
+        }
+      ],
+      "review": [
+        {
+          "key": "why1",
+          "kind": "why",
+          "prompt": "Khi liệt kê ước, vì sao nên tìm theo cặp (vd 2 × 10 = 20)?",
+          "buttons": [
+            "Để không sót ước",
+            "Để ra số lớn nhất",
+            "Vì sách bảo vậy"
+          ],
+          "answer": "Để không sót ước",
+          "check": "exact"
+        },
+        {
+          "key": "mini1",
+          "kind": "mini_problem",
+          "prompt": "Liệt kê ước rồi tìm ƯCLN(16, 24).",
+          "buttons": [],
+          "answer": "8",
+          "check": "math_check"
+        }
+      ]
+    },
+    {
+      "code": "C6.2",
+      "grade": 6,
+      "kind": "cach_lam",
+      "ku": "T6.12",
+      "title": "Tìm BCNN bằng cách liệt kê bội",
+      "variants": [
+        {
+          "n": 1,
+          "title": "Liệt kê bội của cả hai số",
+          "body": "**Bài mẫu.** Tìm BCNN(6, 8).\n\n**Bước 1 — Viết bội của 6** (nhân 6 với 1, 2, 3, …):\nB(6) = {0; 6; 12; 18; **24**; 30; 36; 42; **48**; …}\n\n**Bước 2 — Viết bội của 8:**\nB(8) = {0; 8; 16; **24**; 32; 40; **48**; …}\n\n**Bước 3 — Gạch chân số có ở cả hai dãy (bỏ số 0).** BC(6, 8) = {24; 48; …}.\n*Vì sao bỏ 0?* BCNN là bội chung **nhỏ nhất khác 0**; số 0 là bội của mọi số nên không giúp gì.\n\n**Bước 4 — Chọn số nhỏ nhất.** BCNN(6, 8) = **24**.\n\n**Kiểm lại:** 24 : 6 = 4 ✓, 24 : 8 = 3 ✓.\n\n**Khi nào nên dùng cách này?** Khi số **nhỏ** (thường dưới 20). Số lớn thì dãy bội rất dài mới gặp nhau → nên dùng cách **phân tích ra thừa số nguyên tố**.\n\n🔎 **Ghi vào vở:** *Viết bội của từng số → gạch chân số chung (khác 0) → lấy số nhỏ nhất.*\n\n**Đến lượt em:** làm bài của em đúng 4 bước như trên, rồi gõ kết quả (hoặc bấm 📷 Gửi ảnh) cho cô xem.",
+          "keyNumbers": [
+            "6",
+            "8"
+          ],
+          "checks": [
+            "ilcm(6, 8) == 24",
+            "24 % 6 == 0 and 24 % 8 == 0",
+            "48 % 6 == 0 and 48 % 8 == 0",
+            "12 % 8 != 0 and 18 % 8 != 0"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Nhân dần số lớn hơn",
+          "body": "**Bài mẫu.** Tìm BCNN(4, 10).\n\n**Bước 1 — Lấy số lớn hơn (10), nhân dần với 1, 2, 3, …**\n10 · 1 = 10 → 10 có chia hết cho 4 không? ✗\n10 · 2 = 20 → 20 có chia hết cho 4 không? ✓ → **dừng**.\n*Vì sao bắt đầu từ số lớn?* BCNN không thể nhỏ hơn số lớn nhất, và các bội của số lớn \"thưa\" hơn, nên ít lần thử hơn.\n\n**Bước 2 — Kết luận.** BCNN(4, 10) = **20**.\n*Vì sao được dừng ngay?* Mình đi từ nhỏ lên, nên số **đầu tiên** chia hết cho cả hai là số **nhỏ nhất**.\n\n**Kiểm lại:** 20 : 4 = 5 ✓, 20 : 10 = 2 ✓.\n\n**Khi nào nên dùng cách này?** Khi số lớn chia gần hết cho số nhỏ (thử ít lần). Thử quá 5–6 lần chưa ra → đổi sang **phân tích ra thừa số nguyên tố**.\n\n🔎 **Ghi vào vở:** *Nhân dần số lớn → số đầu tiên chia hết cho số kia là BCNN.*\n\n**Đến lượt em:** làm bài của em như trên, rồi gõ kết quả (hoặc bấm 📷 Gửi ảnh) cho cô xem.",
+          "keyNumbers": [
+            "4",
+            "10"
+          ],
+          "checks": [
+            "ilcm(4, 10) == 20",
+            "10 % 4 != 0",
+            "20 % 4 == 0"
+          ]
+        }
+      ],
+      "review": [
+        {
+          "key": "why1",
+          "kind": "why",
+          "prompt": "Khi tìm BCNN bằng cách liệt kê bội, vì sao bỏ số 0?",
+          "buttons": [
+            "Vì 0 là bội của mọi số",
+            "Vì 0 quá nhỏ",
+            "Vì sách bảo vậy"
+          ],
+          "answer": "Vì 0 là bội của mọi số",
+          "check": "exact"
+        },
+        {
+          "key": "mini1",
+          "kind": "mini_problem",
+          "prompt": "Nhân dần số lớn hơn để tìm BCNN(6, 9).",
+          "buttons": [],
+          "answer": "18",
+          "check": "math_check"
+        }
+      ]
+    },
     {
       "code": "D6.1",
       "grade": 6,

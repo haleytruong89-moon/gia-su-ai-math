@@ -4,6 +4,7 @@
 // G2: one turn = nản check → hint level → model choice (Sonnet / Opus) → answer → Haiku checker →
 // one rewrite → safe line → next hint level → problem outcome (docs/DESIGN.md §4, DOMAIN §4.1, §4.2,
 // §4.14, §5). G4 adds the tools and math_check (until then self_solved is never allowed).
+import { linesAllowed, sampleChecked } from "@/lib/tutor/lines";
 import { z } from "zod";
 import type { Actor } from "@/lib/actor";
 import { BTN_CARD_OK, CARD_BUTTONS, CARD_FALLBACK_INTRO, PHOTO_COPY, PHOTO_ONLY_TEXT, SAFE_BUSY, SPEND_PAUSED, safeLine, safeLinesInARow } from "@/lib/copy";
@@ -463,9 +464,9 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
   const kuCode = problem.kuCode ?? cls.ku_code;
   const examSlot = problem.examSlot ?? cls.exam_slot;
 
+  const geometryProof = cls.geometry_proof || problem.lastTutorFlags.includes("geometry_proof");
   const route = pickModel({ grade: actor.grade, hintLevel: level, nan, prevTutorUnsure: problem.lastTutorFlags.includes("tutor_unsure"),
-    problemUsedStrong: problem.usedStrong, strongPaused: paused,
-    geometryProof: cls.geometry_proof || problem.lastTutorFlags.includes("geometry_proof"), examSlot });
+    problemUsedStrong: problem.usedStrong, strongPaused: paused, geometryProof, examSlot });
 
   // D36: no math checker at all → "loi"; only the in-app number checker (no algebra service) → "chi_so".
   const casMode = !d.cas ? "loi" : (d.cas as { limited?: boolean }).limited ? "chi_so" : null;
@@ -496,12 +497,15 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
       mode: "thuong", minutesLeft: 45, turn, stuckKind: problem.stuckKind, kuCode, examSlot,
       statementConfirmed: problem.statementConfirmed, casMode,
       maxLines: actor.maxLines, bridgeTurns: problem.bridgeTurns,
+      lesson: { fromPhoto: typed === null || photosOf(thread.find((m) => m.role === "child")?.id ?? "").length > 0,
+        sampleShown: problem.siblingShown || problem.thread.some((m) => m.cardRef?.startsWith("C")), proof: geometryProof },
     },
   });
   // Out of time counts as not passed (fail-closed). The checker sees which tools ran and what they said (rules 6–7).
   const check = async (o: TutorOutput, tools: readonly ToolRecord[]): Promise<GuardResult | null> => left() < GUARD_NEEDS_MS ? null
     : runGuard(d.client, d.models.light, d.layers.guard, {
-      statement: guardStatement, images: guardImages.length ? guardImages : undefined, hintLevel: level, submitted, maxLines: actor.maxLines, output: o,
+      statement: guardStatement, images: guardImages.length ? guardImages : undefined, hintLevel: level, submitted,
+      maxLines: linesAllowed(o, sampleChecked(tools), actor.maxLines), output: o,
       toolsCalled: tools.map(toolSummary),
       // G8-fix2 (D35): the checker sees the child's message (a number the child gave is not a leak) and knows when
       // the answer shows an approved card (a card is not a sibling problem; it was blocked as one in real use).
@@ -635,7 +639,8 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
       ? (problem.history.filter((h) => h.role === "assistant").at(-1)?.content ?? null) : null,
     replyHintLevel: level,
     hintLevel: next.hintLevel,
-    hintLevelMax: cardRef ? (Math.max(next.hintLevelMax, 2) as HintLevel) : next.hintLevelMax, // Y1: a card is H2
+    // Y1: a card is H2. D37: a worked example (cách làm) opens every problem, so it is not a hint.
+    hintLevelMax: cardRef && named?.kind !== "cach_lam" ? (Math.max(next.hintLevelMax, 2) as HintLevel) : next.hintLevelMax,
     nanJumps: next.nanJumps,
     wrongCount: problem.wrongCount + (verdict === "sai" ? 1 : 0),
     offtopicCount: outcome.offtopicCount,
