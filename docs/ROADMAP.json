@@ -1,8 +1,8 @@
 {
   "schema": 1,
   "project": "Gia sư AI Toán",
-  "updated": "2026-11-25",
-  "updatedNote": "#32 (D35) đã merge 25/11. G8-fix3 (D36) chờ duyệt (PR #33): Opus không dính cả bài, thẻ giảng khi bị chặn, máy kiểm số trong app khi máy tính đại số chưa chạy. Bố mẹ vẫn cần kiểm cas-health. Tiếp: G8a",
+  "updated": "2026-11-26",
+  "updatedNote": "#33 (D36) đã merge 26/11. G8-fix5 (D37, PR #35) chờ duyệt: luồng mở bài ≤ 4 lượt (giảng các cách → bài mẫu → con tự làm), thẻ cách làm C6.1, C6.2. Bố mẹ vẫn cần kiểm cas-health. Tiếp: G8a",
   "vision": {
     "oneLiner": "Một \"cô\" gia sư AI giúp 2 con tự học Toán buổi chiều: gỡ chỗ kẹt bằng câu hỏi gợi mở, không đưa lời giải bài gốc, tối bố mẹ đọc báo cáo 5 phút.",
     "problem": "Buổi chiều 2 con có nhiều thời gian tự học nhưng không có người lớn. Bố mẹ có khoảng 2 giờ buổi tối, gia sư người 2 buổi/tuần. Tốc độ tiến bộ do giờ tự học buổi chiều quyết định.",
@@ -679,6 +679,10 @@
         },
         {
           "name": "D36 G8-fix3 dùng mượt: viết lại bằng Opus không dính cả bài; bị chặn 2 lần khi \"chưa biết\" → thẻ giảng của bài; máy kiểm số trong app khi máy tính đại số không chạy",
+          "status": "done"
+        },
+        {
+          "name": "D37 G8-fix5 luồng mở bài ≤ 4 lượt: giảng các cách → bài mẫu đúng cách con chọn → con tự làm; không hỏi thăm dò; thẻ cách làm C6.1, C6.2; bài mẫu không tính là gợi ý",
           "status": "review"
         },
         {
@@ -739,6 +743,11 @@
         {
           "repo": "gia-su",
           "number": 33,
+          "status": "merged"
+        },
+        {
+          "repo": "gia-su",
+          "number": 35,
           "status": "open"
         }
       ]
@@ -967,9 +976,14 @@
       "status": "open"
     },
     {
-      "text": "Duyệt PR #33 G8-fix3 (D36) — merge = duyệt prompt v0.11, thẻ giảng khi bị chặn, máy kiểm số trong app",
+      "text": "Duyệt PR #35 G8-fix5 (D37) — merge = duyệt prompt v0.12 (giảng các cách → bài mẫu → con tự làm) và 2 thẻ cách làm C6.1, C6.2",
       "slice": "G9",
       "status": "open"
+    },
+    {
+      "text": "Duyệt PR #33 G8-fix3 (D36) — merge = duyệt prompt v0.11, thẻ giảng khi bị chặn, máy kiểm số trong app",
+      "slice": "G9",
+      "status": "done"
     },
     {
       "text": "Duyệt PR #32 G8-fix2 (D35) — merge = duyệt prompt v0.10 và luật \"giảng trước, hỏi sau\"",
@@ -1256,6 +1270,10 @@
     {
       "date": "2026-11-25",
       "text": "Phụ huynh merge #32 (D35). Đêm 25/11 chạy tự động G8-fix3 (D36, PR #33): Opus không dính cả bài, thẻ giảng thay câu soạn sẵn khi \"chưa biết\", máy kiểm số trong app"
+    },
+    {
+      "date": "2026-11-26",
+      "text": "Phụ huynh merge #33 (D36). Sau bài ƯCLN thật: D37 luồng mở bài ≤ 4 lượt, không hỏi thăm dò; thẻ cách làm C6.1, C6.2 (PR #35)"
     }
   ]
 }

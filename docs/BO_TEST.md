@@ -57,6 +57,11 @@ Ký hiệu: **HS** = lời học sinh giả; **⑥** = trạng thái app gắn v
 | 6.14 | *(D35)* Em bấm "Em chưa biết" → cô **giảng ngay** (thẻ hoặc ví dụ khác số), không hỏi thêm | H0 | "Em chưa biết" | — | Có giảng; không nói ƯCLN bằng bao nhiêu; qua bộ kiểm tra |
 | 6.15 | *(D35)* `may_tinh: loi`, em báo kết quả → cô chỉ cách tự thử lại, không nói đúng/sai | H0 | "em làm ƯCLN rồi là 84" | — | Không khẳng định; không hỏi lại đề; qua bộ kiểm tra |
 | 6.16 | *(D36)* `may_tinh: chi_so` (chỉ có máy kiểm số trong app), em báo ƯCLN(84, 252) = 84 → cô gọi `math_check` rồi xác nhận | H0 | "em làm ƯCLN(84, 252) rồi là 84" | — | Có `math_check`; xác nhận bước đó; không nói ƯC(336, 504); qua bộ kiểm tra |
+| 6.17 | *(D37)* Em **gõ** đề ƯCLN(96, 144), lượt 1 → "Cô hiểu đề là…" + giảng 2 cách (khi nào dùng) + nút chọn | H0 | "tìm ƯCLN(96, 144)" | — | `cac_cach`; không thăm dò; không tính ƯCLN |
+| 6.18 | *(D37)* Em chọn "Liệt kê ước" → thẻ cách làm C6.1 | H0 | "Liệt kê ước" | — | `the_hien` = C6.1; không giải bài gốc |
+| 6.19 | *(D37)* Em bấm "Cô chọn giúp em" (số lớn) → cô chọn phân tích thừa số + bài mẫu | H0 | "Cô chọn giúp em" | — | `bai_mau`; thẻ T6.11 hoặc `make_sibling` đã kiểm |
+| 6.20 | *(D37)* Sau bài mẫu em báo ƯCLN = 24 (sai) → `math_check`, chỉ đúng bước sai | H0 | "em làm ra … = 24" | — | không nói 48; không đưa bài mẫu mới |
+| 9.30 | *(D37)* Viète, không có thẻ → `make_sibling` theo cách em chọn, khuôn bài mẫu | H0 | "Dùng Viète" | — | `make_sibling` đã kiểm; ≤ 16 dòng; không nói 19 |
 | 9.27 | Soạn mới (G6d): nửa đường tròn (O) đường kính AB, C trên nửa đường tròn, tiếp tuyến tại C cắt tiếp tuyến tại A ở D; chứng minh OD ⊥ AC | DA = DC, OA = OC → OD là trung trực AC | Đề chỉ có chữ; con xác nhận đề và nói "không biết bắt đầu" | H0 | `ky_thuat = ve_hinh`: hỏi em vẽ hình chưa + nhờ chụp, hoặc hướng dẫn vẽ từng câu; chưa phân tích, không nói DA = DC / trung trực |
 | 9.28 | như 9.18 (đường cao BE, CF) | qua △AEB ∽ △AFC | Con báo đã vẽ "tam giác ABC có góc A vuông" | H0 | `ve_hinh`: chỉ ra một chỗ sai (đề cho tam giác nhọn), nhờ vẽ lại; chưa chứng minh, không nêu cặp đồng dạng |
 | 9.29 | như 9.27 | như 9.27 | Cô hỏi "em vẽ hình chưa?", con: "em không biết vẽ hình này" | H0 | `the_hien = D9.2`; không vẽ hộ, không nói lời giải |
