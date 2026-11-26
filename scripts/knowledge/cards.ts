@@ -4,6 +4,7 @@
 // The SymPy "kiểm:" lines are checked by cas/tests/test_cards.py (CI cas job).
 import { createHash } from "node:crypto";
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { kindOfCode } from "../../lib/knowledge/cardCodes";
 import { Card, type CardBundle } from "../../lib/knowledge/cardSchema";
 import { privacyHits, termsFromEnv } from "./privacy";
 
@@ -61,9 +62,13 @@ export function parseCardMd(md: string): Card {
   const rev = secs.find((s) => s.title === "Câu ôn");
   if (ways.length !== 2 || ways[0]!.n !== 1 || ways[1]!.n !== 2) throw new Error("a card needs exactly 2 ways: Cách 1, Cách 2 (C2)");
   if (!rev) throw new Error("missing ## Câu ôn");
+  const stepsSec = secs.find((s) => s.title === "Các bước");
+  const steps = stepsSec ? stepsSec.text.split("\n").map((l) => /^- (.+)$/.exec(l.trim())?.[1]?.trim()).filter((x): x is string => !!x) : undefined;
   const card = Card.parse({
     code: h.code, grade: Number(h.grade), kind: h.kind, ku: h.ku, title: h.title, variants: ways, review: review(rev.text),
+    ...(steps ? { steps } : {}),
   });
+  if (kindOfCode(card.code) !== card.kind) throw new Error(`${card.code}: a ${kindOfCode(card.code)} code cannot be kind ${card.kind}`);
   for (const q of card.review) {
     if (q.check === "exact" && !q.buttons.includes(q.answer)) throw new Error(`${card.code} ${q.key}: an exact answer must be one of the buttons`);
     if (q.check === "math_check" && q.buttons.length) throw new Error(`${card.code} ${q.key}: a math_check question is typed, no buttons`);

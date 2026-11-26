@@ -9,6 +9,7 @@ import type { InputKind } from "@/lib/rules/events";
 import type { HintLevel } from "@/lib/rules/hints";
 import { deleteAfterVn } from "@/lib/rules/photo";
 import { maxImagesFor } from "@/lib/rules/photoLimit";
+import { ticksForThread } from "@/lib/rules/plan";
 import { syncAttention } from "@/lib/report/attentionSync";
 import { activeRules, type RuleRow } from "@/lib/rules/teachingRules";
 import { reopenAfterMistake } from "@/lib/rules/review";
@@ -122,6 +123,7 @@ export function supabaseRepo(db: SupabaseClient = createAdminClient(), strongMod
         .eq("problem_id", p.id).is("deleted_at", null).neq("role", "system").order("created_at", { ascending: true }).returns<MessageDb[]>();
       if (e2) fail("getProblem.messages", e2);
       const list = (rows ?? []) as (MessageDb & { role: "child" | "tutor" })[];
+      const planTicks = await planTicksOf(db, p.id, list);
       const last = list.at(-1);
       const answered = last?.role === "child" ? list.slice(0, -1) : list;
       const history: HistoryItem[] = answered.map((m) => ({ id: m.id, role: m.role === "child" ? "user" : "assistant", content: m.content,
@@ -159,6 +161,7 @@ export function supabaseRepo(db: SupabaseClient = createAdminClient(), strongMod
         kuCode: p.ku_code, examSlot: p.exam_slot, prereqGaps: p.prereq_gaps ?? [],
         bridgeTurns: bridgeTurnsOf(shown.map((c) => c.raw_output)),
         pending: last?.role === "child" ? { messageId: last.id, clientMsgId: last.client_msg_id, text: last.content, at: new Date(last.created_at) } : null,
+        planTicks,
       };
       return row;
     },
@@ -190,6 +193,16 @@ export function supabaseRepo(db: SupabaseClient = createAdminClient(), strongMod
       if (error?.code === UNIQUE_VIOLATION) return { conflict: true };
       if (error || !data) fail("insertChildMessage", error);
       return { messageId: data.id as string };
+    },
+
+    async savePlanEvent(a) {
+      const { error } = await t().from("messages").insert({
+        family_id: a.actor.familyId, child_id: a.actor.userId, problem_id: a.problemId, role: "system",
+        content: a.content, client_msg_id: a.clientMsgId, input_kind: "button", created_by: a.actor.userId,
+      });
+      if (error?.code === UNIQUE_VIOLATION) return "already";
+      if (error) fail("savePlanEvent", error);
+      return "saved";
     },
 
     async deleteMessage(messageId) {
@@ -579,9 +592,23 @@ export async function addUsage(db: SupabaseClient, familyId: string, now: Date, 
   if (error) fail("usage.add", error);
 }
 
+/** D38: tick events (role "system") merged with the messages by time → the ticks of the newest list. */
+async function planTicksOf(db: SupabaseClient, problemId: string, list: readonly MessageDb[]): Promise<number[]> {
+  const { data: ev, error } = await db.schema("tutor").from("messages").select("content, created_at")
+    .eq("problem_id", problemId).eq("role", "system").is("deleted_at", null).order("created_at", { ascending: true });
+  if (error) fail("planTicks", error);
+  if (!ev?.length) return [];
+  const items = [...list.map((m) => ({ role: m.role, content: m.content, at: m.created_at })),
+    ...ev.map((e) => ({ role: "system" as const, content: e.content as string, at: e.created_at as string }))]
+    .sort((a, b) => Date.parse(a.at) - Date.parse(b.at));
+  return ticksForThread(items);
+}
+
 export interface ThreadMessage { id: string; role: "child" | "tutor"; text: string; buttons: string[]; images: string[]; cardRef: string | null }
 export interface Thread {
   problemId: string; status: ProblemStatus; turnCount: number; statementConfirmed: boolean; hasImages: boolean; messages: ThreadMessage[];
+  /** D38: jobs ticked on the newest list ("Bài của em"). */
+  planTicks: number[];
   /** G8-fix: photos allowed for this problem (6 for geometry lessons, else 4) — the server enforces the same number. */
   maxImages: number;
 }
@@ -597,6 +624,7 @@ export async function problemThread(problemId: string, childId: string, db: Supa
   const { data: rows, error: e2 } = await t.from("messages").select(MESSAGE_COLS)
     .eq("problem_id", problemId).is("deleted_at", null).neq("role", "system").order("created_at", { ascending: true }).returns<MessageDb[]>();
   if (e2) fail("problemThread.messages", e2);
+  const planTicks = await planTicksOf(db, problemId, rows ?? []);
   const { data: att, error: e3 } = await t.from("attachments").select("message_id, storage_path")
     .eq("problem_id", problemId).is("file_deleted_at", null).order("created_at", { ascending: true });
   if (e3) fail("problemThread.photos", e3);
@@ -612,7 +640,7 @@ export async function problemThread(problemId: string, childId: string, db: Supa
   return {
     problemId, status: p.status as ProblemStatus, turnCount: p.turn_count as number,
     statementConfirmed: p.statement_confirmed as boolean, hasImages: (att?.length ?? 0) > 0,
-    maxImages: maxImagesFor((p.ku_code as string | null) ?? null),
+    maxImages: maxImagesFor((p.ku_code as string | null) ?? null), planTicks,
     messages: (rows ?? []).map((m) => ({ id: m.id, role: m.role === "child" ? "child" : "tutor", text: m.content, buttons: m.buttons ?? [],
       images: byMessage.get(m.id) ?? [], cardRef: m.card_ref ?? null })),
   };

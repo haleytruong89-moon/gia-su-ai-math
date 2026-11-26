@@ -38,6 +38,9 @@ describe("parseCardMd (G6 design C)", () => {
     expect(c.variants[0].body).not.toMatch(/nhãn:|kiểm:/);
     expect(parseCardMd(md).variants[0].keyLabels).toBeUndefined();
   });
+  it("D37: the code letter must match the kind (C = cách làm, D = đọc đề, T/N = hiểu bản chất)", () => {
+    expect(() => parseCardMd(md.replace(/^kind: .*$/m, "kind: cach_lam"))).toThrow(/cannot be kind cach_lam/);
+  });
   it("no review section is refused", () => expect(() => parseCardMd(md.replace(/## Câu ôn[\s\S]*$/, ""))).toThrow(/Câu ôn/));
 });
 

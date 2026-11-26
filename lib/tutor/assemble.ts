@@ -27,7 +27,15 @@ export interface TurnStateBlock { grade: 6 | 9; hintLevel: number; wrongCount: n
    * G8-fix2 / D36: how much math_check can do this turn. "loi" = nothing (the tools are not offered);
    * "chi_so" = no algebra service, only the in-app number checker (values, ƯCLN/BCNN, numbers put into equations).
    */
-  casMode?: "loi" | "chi_so" | null }
+  casMode?: "loi" | "chi_so" | null;
+  /**
+   * D37: what the opening lesson needs. fromPhoto = the statement came as a photo (confirm it on its own turn);
+   * sampleShown = a worked example was shown in this problem (a checked sibling or a cách làm card);
+   * proof = geometry proof (the opening lesson does not apply).
+   */
+  lesson?: { fromPhoto: boolean; sampleShown: boolean; proof: boolean;
+    /** D38: the list of jobs the child ticks ("Bài của em"): how many jobs, which are ticked. */
+    plan?: { steps: number; ticked: number[] } | null } }
 
 export function renderStateBlock(s: TurnStateBlock): string {
   return [
@@ -36,6 +44,9 @@ export function renderStateBlock(s: TurnStateBlock): string {
     `da_nop_loi_giai: ${s.submitted} | che_do: ${s.mode} | max_lines: ${s.maxLines}`,
     `thoi_gian_buoi_con_lai: ${s.minutesLeft} phút | luot_trong_bai: ${s.turn}/20${s.statementConfirmed === undefined ? "" : ` | de_da_xac_nhan: ${s.statementConfirmed}`}${s.casMode ? ` | may_tinh: ${s.casMode}` : ""}`,
     `cho_ket_cua_em: ${s.stuckKind ?? "khong_ro"} | ku_code: ${s.kuCode ?? "chua_ro"} | exam_slot: ${s.examSlot ?? "khong"}`,
+    ...(s.lesson ? [`de_tu_anh: ${s.lesson.fromPhoto} | da_co_bai_mau: ${s.lesson.sampleShown} | chung_minh_hinh: ${s.lesson.proof}`] : []),
+    ...(s.lesson?.plan ? [`danh_sach_viec: em đã tick ${s.lesson.plan.ticked.length}/${s.lesson.plan.steps} việc${s.lesson.plan.ticked.length ? ` (${s.lesson.plan.ticked.join(", ")})` : ""}`]
+      : s.lesson?.plan === null ? ["danh_sach_viec: chưa có"] : []),
     ...(s.bridgeTurns ? [`day_bu_nen: ${Math.min(s.bridgeTurns, 2)}/2${s.bridgeTurns >= 2 ? " — đã đủ, quay lại bài gốc" : ""}`] : []),
   ].join("\n");
 }

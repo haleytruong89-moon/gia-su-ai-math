@@ -4,9 +4,12 @@
 // G2: one turn = nản check → hint level → model choice (Sonnet / Opus) → answer → Haiku checker →
 // one rewrite → safe line → next hint level → problem outcome (docs/DESIGN.md §4, DOMAIN §4.1, §4.2,
 // §4.14, §5). G4 adds the tools and math_check (until then self_solved is never allowed).
+import { applyTicks, currentPlan, formatPlan, planEventText } from "@/lib/rules/plan";
+import { validPlan } from "@/lib/tutor/planCheck";
+import { linesAllowed, sampleChecked } from "@/lib/tutor/lines";
 import { z } from "zod";
 import type { Actor } from "@/lib/actor";
-import { BTN_CARD_OK, CARD_BUTTONS, CARD_FALLBACK_INTRO, PHOTO_COPY, PHOTO_ONLY_TEXT, SAFE_BUSY, SPEND_PAUSED, safeLine, safeLinesInARow } from "@/lib/copy";
+import { BTN_CARD_AGAIN, BTN_CARD_OK, CARD_BUTTONS, CARD_FALLBACK_INTRO, PHOTO_COPY, PHOTO_ONLY_TEXT, SAFE_BUSY, SPEND_PAUSED, safeLine, safeLinesInARow } from "@/lib/copy";
 import { burnAlertDue, consoleAlertDue, economyAlertDue, isSpendLimitError } from "@/lib/rules/cost";
 import { processImage } from "@/lib/images";
 import { maxImagesFor } from "@/lib/rules/photoLimit";
@@ -103,6 +106,8 @@ const turnBody = z.object({
   image: photo,
 }).refine((b) => b.text.length > 0 || b.image !== undefined);
 const saveBody = z.object({ problemId: z.string().min(1).max(64), clientMsgId: z.string().uuid() });
+const tickBody = z.object({ problemId: z.string().min(1).max(64), clientMsgId: z.string().uuid(), step: z.number().int().min(1).max(7),
+  done: z.boolean() });
 const endBody = z.object({ sessionId: z.string().min(1).max(64) });
 const rateBody = z.object({
   sessionId: z.string().min(1).max(64),
@@ -154,7 +159,7 @@ export async function newProblem(d: Deps, raw: unknown): Promise<Result> {
   // A double tap or a resend: answer with the problem the first tap opened.
   const seen = await d.repo.findByClientMsg(actor.userId, clientMsgId);
   if (seen) {
-    if (seen.reply) return { status: 200, json: { problemId: seen.problemId, reply: seen.reply } };
+    if (seen.reply) return { status: 200, json: { problemId: seen.problemId, reply: { ...seen.reply, planTicks: [] } } };
     if (!isStale({ messageId: seen.messageId, clientMsgId, text: seen.text, at: seen.at }, d.now)) return pending;
     // The first call died before replying: run the first turn again on that problem.
     const stuck = await d.repo.getProblemForChild(seen.problemId, actor.userId);
@@ -196,7 +201,7 @@ export async function handleTurn(d: Deps, raw: unknown): Promise<Result> {
   const seen = await d.repo.findByClientMsg(actor.userId, clientMsgId);
   if (seen) {
     if (seen.problemId !== problemId) return { status: 409, json: { error: "client_msg_reused" } };
-    if (seen.reply) return { status: 200, json: seen.reply };
+    if (seen.reply) return { status: 200, json: { ...seen.reply, planTicks: problem.planTicks } };
     if (!isStale({ messageId: seen.messageId, clientMsgId, text: seen.text, at: seen.at }, d.now)) return pending;
     // The first call died before replying: run the turn again with what the child sent then.
     if (problem.status !== "in_progress") return closed(problem.status);
@@ -227,6 +232,35 @@ export async function saveForLater(d: Deps, raw: unknown): Promise<Result> {
   if (r === "not_open") return closed(problem.status);
   if (r === "saved") await syncAttention(d, actor);
   return { status: 200, json: { status: "saved_for_later" } };
+}
+
+/**
+ * D38: the child ticks (or unticks) a job of "Bài của em". No model call, no turn counted. When the last job of a
+ * list that came with an approved card is ticked, the card's review questions join the queue (as "Em hiểu rồi" did).
+ */
+export async function tickPlan(d: Deps, raw: unknown): Promise<Result> {
+  const actor = asChild(d.actor);
+  if (!actor) return unauthorized;
+  const parsed = tickBody.safeParse(raw);
+  if (!parsed.success) return badRequest;
+  const { problemId, clientMsgId, step, done } = parsed.data;
+  const problem = await d.repo.getProblemForChild(problemId, actor.userId);
+  if (!problem) return { status: 404, json: { error: "not_found" } };
+  if (problem.status !== "in_progress") return closed(problem.status);
+  const plan = currentPlan(problem.thread);
+  if (!plan || step > plan.steps.length) return { status: 409, json: { error: "no_such_job" } };
+  const r = await d.repo.savePlanEvent({ actor, problemId, clientMsgId, content: planEventText({ step, done }), now: d.now });
+  const ticks = r === "already" ? problem.planTicks : applyTicks(problem.planTicks, [{ step, done }]);
+  const allDone = ticks.length === plan.steps.length;
+  if (r === "saved" && allDone && problem.planTicks.length < plan.steps.length && plan.cardRef) {
+    try {
+      const c = cardOf(plan.cardRef.split("#")[0]!);
+      if (c && cardFitsGrade(c, actor.grade)) await d.repo.addReviewItems({ actor, items: reviewItemsFromCard(c, dateVn(d.now)), now: d.now });
+    } catch (err) {
+      console.error("review queue failed", err instanceof Error ? err.message : "unknown");
+    }
+  }
+  return { status: 200, json: { planTicks: ticks, allDone } };
 }
 
 /** Layer ④: the teaching profile, then the parents' approved rules of the session (G7b, §3.4). */
@@ -341,7 +375,7 @@ const scriptedFor = (actor: ChildActor, p: ProblemRow, text: string, kind: Input
 async function saveScripted(d: Deps, actor: ChildActor, problem: ProblemRow, s: Scripted): Promise<Result> {
   const reply = await d.repo.saveScriptedReply({ actor, problem, message: s.message, buttons: s.buttons,
     cardRef: s.kind === "card" ? s.cardRef : null, now: d.now });
-  return { status: 200, json: reply };
+  return { status: 200, json: { ...reply, planTicks: problem.planTicks } };
 }
 
 async function runScripted(d: Deps, actor: ChildActor, problem: ProblemRow, clientMsgId: string, text: string, kind: InputKind,
@@ -463,10 +497,12 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
   const kuCode = problem.kuCode ?? cls.ku_code;
   const examSlot = problem.examSlot ?? cls.exam_slot;
 
+  const geometryProof = cls.geometry_proof || problem.lastTutorFlags.includes("geometry_proof");
   const route = pickModel({ grade: actor.grade, hintLevel: level, nan, prevTutorUnsure: problem.lastTutorFlags.includes("tutor_unsure"),
-    problemUsedStrong: problem.usedStrong, strongPaused: paused,
-    geometryProof: cls.geometry_proof || problem.lastTutorFlags.includes("geometry_proof"), examSlot });
+    problemUsedStrong: problem.usedStrong, strongPaused: paused, geometryProof, examSlot });
 
+  // D38: the newest list of jobs of this problem and what the child ticked on it.
+  const plan = currentPlan(problem.thread);
   // D36: no math checker at all → "loi"; only the in-app number checker (no algebra service) → "chi_so".
   const casMode = !d.cas ? "loi" : (d.cas as { limited?: boolean }).limited ? "chi_so" : null;
   const photosOf = (id: string): ImageData[] => photos.filter((p) => p.messageId === id).map((p) => p.image);
@@ -496,12 +532,18 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
       mode: "thuong", minutesLeft: 45, turn, stuckKind: problem.stuckKind, kuCode, examSlot,
       statementConfirmed: problem.statementConfirmed, casMode,
       maxLines: actor.maxLines, bridgeTurns: problem.bridgeTurns,
+      lesson: { fromPhoto: typed === null || photosOf(thread.find((m) => m.role === "child")?.id ?? "").length > 0,
+        sampleShown: problem.siblingShown || problem.thread.some((m) => m.cardRef?.startsWith("C")), proof: geometryProof,
+        plan: plan ? { steps: plan.steps.length, ticked: problem.planTicks } : null },
     },
   });
   // Out of time counts as not passed (fail-closed). The checker sees which tools ran and what they said (rules 6–7).
+  // D38: it also reads the list of jobs the tutor wrote (shown under the message), which has its own lines.
+  const withPlan = (o: TutorOutput): TutorOutput => o.ke_hoach?.length ? { ...o, message: `${o.message}\n${formatPlan(o.ke_hoach)}` } : o;
   const check = async (o: TutorOutput, tools: readonly ToolRecord[]): Promise<GuardResult | null> => left() < GUARD_NEEDS_MS ? null
     : runGuard(d.client, d.models.light, d.layers.guard, {
-      statement: guardStatement, images: guardImages.length ? guardImages : undefined, hintLevel: level, submitted, maxLines: actor.maxLines, output: o,
+      statement: guardStatement, images: guardImages.length ? guardImages : undefined, hintLevel: level, submitted,
+      maxLines: linesAllowed(o, sampleChecked(tools), actor.maxLines) + (o.ke_hoach?.length ? o.ke_hoach.length + 1 : 0), output: withPlan(o),
       toolsCalled: tools.map(toolSummary),
       // G8-fix2 (D35): the checker sees the child's message (a number the child gave is not a leak) and knows when
       // the answer shows an approved card (a card is not a sibling problem; it was blocked as one in real use).
@@ -618,6 +660,12 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
   const way = named && cardFitsGrade(named, actor.grade) && outcome.status === "in_progress"
     ? pickVariant(named, 1, problemTextOf(problem) || text) : null;
   const cardRef = named && way ? `${named.code}#${way}` : null;
+  // D38: the list of jobs ("Bài của em"). An approved card with jobs, shown as the worked example, brings its own;
+  // else the tutor's list when it gives nothing away (only the problem's numbers). A new list replaces the old one.
+  const planSteps = !shown || outcome.status !== "in_progress" ? null
+    : cardRef && named?.steps && (named.kind === "cach_lam" || shown.ky_thuat === "bai_mau") ? named.steps
+      : validPlan(shown.ke_hoach, problemTextOf(problem) || text);
+  const redo = plan && !planSteps ? [...new Set(shown?.viec_can_lam_lai ?? [])].filter((n) => n <= plan.steps.length) : [];
   // G5: the lesson code may change when the tutor confirms the statement (or when it was unknown); background gaps (§4.13).
   const confirmsNow = !problem.statementConfirmed && shown?.de_da_xac_nhan === true;
   const proposed = shown?.ku_code_de_xuat ?? null;
@@ -635,13 +683,15 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
       ? (problem.history.filter((h) => h.role === "assistant").at(-1)?.content ?? null) : null,
     replyHintLevel: level,
     hintLevel: next.hintLevel,
-    hintLevelMax: cardRef ? (Math.max(next.hintLevelMax, 2) as HintLevel) : next.hintLevelMax, // Y1: a card is H2
+    // Y1: a card is H2. D37: a worked example (cách làm) opens every problem, so it is not a hint.
+    hintLevelMax: cardRef && named?.kind !== "cach_lam" ? (Math.max(next.hintLevelMax, 2) as HintLevel) : next.hintLevelMax,
     nanJumps: next.nanJumps,
     wrongCount: problem.wrongCount + (verdict === "sai" ? 1 : 0),
     offtopicCount: outcome.offtopicCount,
     uLevel: shown ? (Number(shown.u_level_hien_tai.slice(1)) as 0 | 1 | 2 | 3) : problem.uLevel,
-    tutorText: shown?.message ?? (cardRef ? CARD_FALLBACK_INTRO : safe.message),
-    buttons: cardRef ? [...CARD_BUTTONS] : (shown?.buttons ?? safe.buttons),
+    tutorText: (shown?.message ?? (cardRef ? CARD_FALLBACK_INTRO : safe.message)) + (planSteps ? `\n\n${formatPlan(planSteps)}` : ""),
+    // D38: with a list the child works through it; "Em hiểu rồi" (which led to one small question per turn) goes away.
+    buttons: cardRef ? (planSteps ? [BTN_CARD_AGAIN] : [...CARD_BUTTONS]) : planSteps ? [] : (shown?.buttons ?? safe.buttons),
     cardRef,
     calls,
     tools: turnTools,
@@ -658,6 +708,9 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
     return pending;
   }
   if (saved.status !== "in_progress") await syncAttention(d, actor);
+  // D38: the jobs the tutor sent back after a wrong answer are unticked.
+  for (const n of redo) await d.repo.savePlanEvent({ actor, problemId: problem.id, clientMsgId: null, content: planEventText({ step: n, done: false }), now: d.now });
+  const planTicks = planSteps ? [] : applyTicks(problem.planTicks, redo.map((n) => ({ step: n, done: false })));
   await reviewQueue(d, actor, problem, { cardOk: kind === "button" && text === BTN_CARD_OK, wrongOn: verdict === "sai" ? newKu : null });
   if (saved.status === "self_solved") {
     // G4 Q3 / G7 P4: the reference solution, written after the answer and shown only when cas confirms it (X5).
@@ -671,5 +724,5 @@ async function runClaimed(d: Deps, actor: ChildActor, problem: ProblemRow, messa
   // §4.5 b2: the month's pace would pass the cap → one push a week (from day 5, X2).
   const forecast = burnAlertDue({ costUsd: usage.costUsd + calls.reduce((n, c) => n + c.costUsd, 0), burnAlertSentAt: usage.burnAlertSentAt ?? null }, d.now);
   if (forecast !== null) await moneyAlert(d, actor.familyId, "burn", forecast);
-  return { status: 200, json: saved };
+  return { status: 200, json: { ...saved, planTicks } };
 }

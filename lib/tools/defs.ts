@@ -39,7 +39,8 @@ export const TOOL_DEFS = [
   {
     name: "make_sibling" as const,
     description:
-      "Chỉ dùng ở mức H4: tạo BÀI ANH EM cùng dạng, số khác đề gốc, có lời giải từng bước. Máy đã kiểm đáp số bài anh em. " +
+      "Tạo BÀI MẪU (bài anh em) cùng dạng, số khác đề gốc, có lời giải từng bước theo đúng cách em chọn (method). " +
+      "Dùng ở lượt bài mẫu của luồng mở bài (D37) khi không có thẻ cách làm hợp, hoặc ở H4. Máy đã kiểm đáp số bài mẫu. " +
       "Chỉ dùng kết quả khi verified = true và numbers_differ = true; ngược lại không đưa bài anh em, gắn cờ tutor_unsure.",
     input_schema: {
       type: "object",
@@ -47,6 +48,7 @@ export const TOOL_DEFS = [
         original_statement: str,
         ku_code: { type: ["string", "null"] },
         difficulty: { type: "string", enum: ["same", "easier"] },
+        method: { type: ["string", "null"], description: "Cách giải em chọn, vd \"liệt kê ước\", \"phân tích ra thừa số nguyên tố\", \"đặt ẩn, lập hệ\"" },
       },
       required: ["original_statement", "difficulty"],
       additionalProperties: false,

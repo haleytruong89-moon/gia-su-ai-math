@@ -59,6 +59,19 @@ describe("cardFromRef / cardIndexText", () => {
     expect(six).not.toContain("T9.9");
     expect(cardIndexText(9)).toContain("D9.1");
   });
+  it("D37: worked-example cards (C6.*) are listed as such and parse as refs", () => {
+    expect(cardIndexText(6)).toContain("C6.1 · Tìm ƯCLN bằng cách liệt kê ước (cách làm — bài mẫu)");
+    expect(cardIndexText(6)).toContain("C6.2 · Tìm BCNN bằng cách liệt kê bội (cách làm — bài mẫu)");
+    expect(cardFromRef("C6.2#2")).toMatchObject({ card: { code: "C6.2", kind: "cach_lam" }, n: 2 });
+    expect(lessonCard("T6.11", 6, [])?.code).toBe("T6.11"); // the fallback lesson card stays a ban_chat card
+  });
+  it("D38: the approved cards of ƯCLN/BCNN carry the jobs for the child's own problem, with no numbers", () => {
+    for (const code of ["C6.1", "C6.2", "T6.11", "T6.12"]) {
+      const steps = card(code)?.steps ?? [];
+      expect(steps.length, code).toBeGreaterThanOrEqual(4);
+      expect(steps.join(" "), code).not.toMatch(/\d/);
+    }
+  });
 });
 
 describe("cardBlocks", () => {

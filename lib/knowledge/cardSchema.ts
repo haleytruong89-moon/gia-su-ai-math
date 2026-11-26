@@ -1,9 +1,9 @@
 // lib/knowledge/cardSchema.ts — approved teaching cards (G6, design C). Source: knowledge/src/cards/*.md,
 // built into knowledge/cards.json by scripts/knowledge/cards.ts. Never edit the JSON by hand.
 import { z } from "zod";
+import { CARD_CODE } from "./cardCodes";
 
-export const CARD_CODE = /^(T6|T9|N7|N8|TH|D6|D9)\.[0-9]{1,2}$/;
-export const CARD_REF = /^((?:T6|T9|N7|N8|TH|D6|D9)\.[0-9]{1,2})#([12])$/;
+export { CARD_CODE, CARD_REF } from "./cardCodes";
 
 export const CardVariant = z.object({
   n: z.union([z.literal(1), z.literal(2)]),
@@ -32,11 +32,14 @@ export const ReviewQuestion = z.object({
 export const Card = z.object({
   code: z.string().regex(CARD_CODE),
   grade: z.union([z.literal(6), z.literal(9)]),
-  kind: z.enum(["ban_chat", "doc_de"]),
+  /** D37: cach_lam = a worked example of one way to solve a type (C6.*, C9.*). */
+  kind: z.enum(["ban_chat", "doc_de", "cach_lam"]),
   /** The lesson the card belongs to (a reading card D6.1 → T6.11): review items carry it. */
   ku: z.string().regex(/^(T6|T9|N7|N8|TH)\.[0-9]{1,2}$/),
   title: z.string().min(3).max(100),
   variants: z.tuple([CardVariant, CardVariant]),
+  /** D38: the jobs of the child's own problem with this way ("## Các bước"); the app shows them as a list to tick. */
+  steps: z.array(z.string().min(3).max(120)).min(2).max(7).optional(),
   review: z.array(ReviewQuestion).min(1).max(3),
 }).strict();
 export type Card = z.infer<typeof Card>;

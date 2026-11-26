@@ -64,6 +64,8 @@ export interface ProblemRow {
   /** Answers the child saw, at the end of the problem, with ky_thuat = day_bu_nen (§4.13: at most 2 in a row). */
   bridgeTurns: number;
   pending: PendingMessage | null;
+  /** D38: the jobs ticked on the newest list of this problem (empty when there is no list). */
+  planTicks: number[];
 }
 
 /** What the child's screen shows after a turn (also the idempotent answer to a resend). */
@@ -75,6 +77,8 @@ export interface StoredReply {
   status: ProblemStatus;
   turnCount: number;
   statementConfirmed: boolean;
+  /** D38: jobs ticked on the newest list after this turn (added by the handler; [] when a new list came). */
+  planTicks?: number[];
   /** G6: the approved card shown under the message ("T6.12#1"), or null. */
   cardRef: string | null;
 }
@@ -199,6 +203,11 @@ export interface TutorRepo {
    * saved_for_later. `already` for a resend of the same press; `not_open` when the problem is closed.
    */
   saveForLater(a: { actor: ChildActor; problemId: string; clientMsgId: string; now: Date }): Promise<"saved" | "already" | "not_open">;
+  /**
+   * D38: the child ticked (or unticked) a job of the list, or the tutor sent a job back after a wrong answer.
+   * A message with role "system": never in the model's history, never a pending turn. Same client id = stored once.
+   */
+  savePlanEvent(a: { actor: ChildActor; problemId: string; clientMsgId: string | null; content: string; now: Date }): Promise<"saved" | "already">;
   /** G7: rewrite the child's "cần chú ý" lines of `dateVn` for the Launcher (≤ 2, DOMAIN §4.7, X1). */
   syncAttention(a: { familyId: string; childId: string; dateVn: string; now: Date }): Promise<void>;
   /** G7b: every teaching rule of the child (any status, not deleted). */

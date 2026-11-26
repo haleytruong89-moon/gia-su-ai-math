@@ -28,6 +28,8 @@ describe("assemble", () => {
   });
   it("⑥ says whether the statement is already confirmed (G8-fix), only when the caller knows", () => {
     expect(renderStateBlock({ ...state, statementConfirmed: true })).toContain("luot_trong_bai: 7/20 | de_da_xac_nhan: true");
+    expect(renderStateBlock({ ...state, lesson: { fromPhoto: false, sampleShown: true, proof: false } }))
+      .toContain("de_tu_anh: false | da_co_bai_mau: true | chung_minh_hinh: false"); // D37
     expect(renderStateBlock({ ...state, statementConfirmed: false })).toContain("de_da_xac_nhan: false");
     expect(renderStateBlock(state)).not.toContain("de_da_xac_nhan");
   });
