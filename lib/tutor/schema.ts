@@ -22,6 +22,10 @@ export const tutorOutput = z.object({
   the_hien: z.string().regex(CARD_CODE).nullable().optional(),
   /** G6 (C5): no card fits where the child is stuck → a short description of the missing card. */
   the_thieu: z.string().max(80).nullable().optional(),
+  /** D38: the jobs of the child's own problem, shown as a list the child ticks (no results; the server checks). */
+  ke_hoach: z.array(z.string().min(1).max(160)).max(7).nullable().optional(),
+  /** D38: jobs of the list the child must redo (the submitted answer was wrong there): the server unticks them. */
+  viec_can_lam_lai: z.array(z.number().int().min(1).max(7)).max(7).nullable().optional(),
 }).strict();
 export type TutorOutput = z.infer<typeof tutorOutput>;
 
@@ -37,6 +41,8 @@ function normalize(raw: unknown): unknown {
   for (const k of ["ku_code_de_xuat", "prereq_gap"]) if (typeof o[k] === "string" && !KU.test(o[k] as string)) o[k] = null;
   if (typeof o.the_hien === "string" && !CARD_CODE.test(o.the_hien)) o.the_hien = null;
   if (typeof o.the_thieu === "string") o.the_thieu = o.the_thieu.trim().slice(0, 80) || null;
+  if (Array.isArray(o.ke_hoach)) o.ke_hoach = o.ke_hoach.filter((s): s is string => typeof s === "string" && s.trim().length > 0).map((s) => s.slice(0, 160)).slice(0, 7);
+  if (Array.isArray(o.viec_can_lam_lai)) o.viec_can_lam_lai = o.viec_can_lam_lai.filter((n) => Number.isInteger(n) && n >= 1 && n <= 7).slice(0, 7);
   if (Array.isArray(o.checklist_da_hoi)) o.checklist_da_hoi = o.checklist_da_hoi.filter((n) => Number.isInteger(n) && n >= 1 && n <= 10);
   return o;
 }

@@ -1,4 +1,5 @@
 // In-memory TutorRepo for the handler tests. Same contract as lib/db/supabaseRepo.ts.
+import { ticksForThread } from "@/lib/rules/plan";
 import { BTN_SAVE } from "@/lib/copy";
 import { deleteAfterVn } from "@/lib/rules/photo";
 import type { HintLevel } from "@/lib/rules/hints";
@@ -67,6 +68,8 @@ export function memoryRepo(seed: Seed = {}, strongModel = "claude-opus-5-5") {
   /** G7: every syncAttention call (the real repo rewrites public.learning_attention). */
   const attentionSyncs: { familyId: string; childId: string; dateVn: string }[] = [];
   const failAttention = { on: false };
+  /** D38: tick events; `after` = how many messages of the problem existed when it was stored (time order). */
+  const planEvents: { problemId: string; childId: string; clientMsgId: string | null; content: string; after: number }[] = [];
   const diagnoses: (Diagnosis & { problemId: string; childId: string })[] = [];
   const usage = new Map<string, number>();
   const modes = new Map<string, "normal" | "economy">();
@@ -122,6 +125,9 @@ export function memoryRepo(seed: Seed = {}, strongModel = "claude-opus-5-5") {
       const history: HistoryItem[] = answered.map((m) => ({ id: m.id, role: m.role === "child" ? "user" : "assistant", content: m.text,
         cardRef: m.cardRef ?? null }));
       const pending = last?.role === "child" ? { messageId: last.id, clientMsgId: last.clientMsgId, text: last.text, at: last.at } : null;
+      const evs = planEvents.filter((e) => e.problemId === p.id);
+      const merged = list.flatMap((m, i) => [...evs.filter((e) => e.after === i).map((e) => ({ role: "system" as const, content: e.content })),
+        { role: m.role, content: m.text }]).concat(evs.filter((e) => e.after >= list.length).map((e) => ({ role: "system" as const, content: e.content })));
       const calls = modelCalls.filter((c) => c.problemId === p.id);
       const lastShown = calls.filter((c) => c.purpose === "tutor" && c.shown).at(-1);
       const row: ProblemRow = {
@@ -139,6 +145,7 @@ export function memoryRepo(seed: Seed = {}, strongModel = "claude-opus-5-5") {
         kuCode: p.kuCode, examSlot: p.examSlot, prereqGaps: [...p.prereqGaps],
         bridgeTurns: bridgeTurnsOf(calls.filter((c) => c.purpose === "tutor" && c.shown).map((c) => c.raw).reverse()),
         pending,
+        planTicks: ticksForThread(merged),
       };
       return row;
     },
@@ -237,6 +244,12 @@ export function memoryRepo(seed: Seed = {}, strongModel = "claude-opus-5-5") {
     },
     async markAlert(familyId, kind, now) {
       alerts.set(`${monthKey(familyId, now)}|${kind}`, now);
+    },
+    async savePlanEvent(a) {
+      if (a.clientMsgId && planEvents.some((e) => e.childId === a.actor.userId && e.clientMsgId === a.clientMsgId)) return "already";
+      planEvents.push({ problemId: a.problemId, childId: a.actor.userId, clientMsgId: a.clientMsgId, content: a.content,
+        after: messages.filter((m) => m.problemId === a.problemId).length });
+      return "saved";
     },
     async saveForLater(a) {
       const p = problems.find((x) => x.id === a.problemId && x.childId === a.actor.userId);
@@ -353,6 +366,6 @@ export function memoryRepo(seed: Seed = {}, strongModel = "claude-opus-5-5") {
       return { sessionId: sess.id, sessionStatus: sess.status, rated: ratings.some((r) => r.sessionId === sess.id), earlierEnded };
     },
   };
-  return Object.assign(repo, { sessions, problems, messages, modelCalls, usage, modes, images, toolCalls, diagnoses, attentionSyncs, failAttention, rules, ratings, alerts, references,
+  return Object.assign(repo, { planEvents, sessions, problems, messages, modelCalls, usage, modes, images, toolCalls, diagnoses, attentionSyncs, failAttention, rules, ratings, alerts, references,
     reviewItems, reviewAttempts, feedback });
 }

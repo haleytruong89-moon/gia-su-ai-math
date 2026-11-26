@@ -14,7 +14,7 @@ const msg = (i: number, role: "child" | "tutor", images: string[] = []) =>
   ({ id: `m${i}`, role, text: role === "tutor" ? "Em vẽ hình rồi gửi cô nhé?" : "📷 Em gửi ảnh", buttons: [], images, cardRef: null });
 const thread = (photos: number, maxImages: number): Thread => ({
   problemId: "00000000-0000-4000-8000-000000000001", status: "in_progress", turnCount: 2, statementConfirmed: true, hasImages: photos > 0,
-  maxImages,
+  maxImages, planTicks: [],
   messages: [...Array.from({ length: photos }, (_, i) => msg(i, "child", [`https://x.test/${i}.jpg`])), msg(99, "tutor")],
 });
 const render = (t: Thread) => renderToStaticMarkup(createElement(Chat, { initial: t, rating: null }));

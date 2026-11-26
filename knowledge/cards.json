@@ -1,5 +1,5 @@
 {
-  "version": "2026-11-26.9354ae82",
+  "version": "2026-11-26.a1ca55ee",
   "cards": [
     {
       "code": "C6.1",
@@ -40,6 +40,12 @@
             "18 % 6 == 0"
           ]
         }
+      ],
+      "steps": [
+        "Liệt kê các ước của từng số (tìm theo cặp cho khỏi sót)",
+        "Gạch chân các số có mặt ở tất cả các tập ước: đó là ước chung",
+        "Chọn số lớn nhất trong các ước chung → ƯCLN",
+        "Kiểm lại: chia từng số cho ƯCLN, phải chia hết"
       ],
       "review": [
         {
@@ -100,6 +106,12 @@
             "20 % 4 == 0"
           ]
         }
+      ],
+      "steps": [
+        "Viết vài bội đầu tiên của từng số (bỏ số không)",
+        "Gạch chân các số có mặt ở tất cả các dãy bội: đó là bội chung",
+        "Chọn số nhỏ nhất trong các bội chung → BCNN",
+        "Kiểm lại: BCNN phải chia hết cho từng số"
       ],
       "review": [
         {
@@ -1196,6 +1208,13 @@
           ]
         }
       ],
+      "steps": [
+        "Phân tích từng số ra thừa số nguyên tố (viết dạng lũy thừa)",
+        "Khoanh các thừa số nguyên tố có ở tất cả các số",
+        "Mỗi thừa số chung lấy số mũ nhỏ nhất, rồi nhân lại → ƯCLN",
+        "Đề hỏi ước chung thì liệt kê các ước của ƯCLN",
+        "Kiểm lại: chia từng số cho ƯCLN, phải chia hết"
+      ],
       "review": [
         {
           "key": "why1",
@@ -1258,6 +1277,13 @@
             "24 % 6 == 0"
           ]
         }
+      ],
+      "steps": [
+        "Phân tích từng số ra thừa số nguyên tố (viết dạng lũy thừa)",
+        "Lấy tất cả các thừa số nguyên tố (chung và riêng)",
+        "Mỗi thừa số lấy số mũ lớn nhất, rồi nhân lại → BCNN",
+        "Đề hỏi bội chung trong một khoảng thì nhân BCNN lần lượt với các số tự nhiên, chọn số nằm trong khoảng",
+        "Kiểm lại: BCNN phải chia hết cho từng số"
       ],
       "review": [
         {
