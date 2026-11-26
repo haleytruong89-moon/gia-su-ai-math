@@ -279,7 +279,7 @@ describe("D38: 'Bài của em' — a list of jobs the child ticks", () => {
     const d2 = { ...a.d, client: client(out({ viec_can_lam_lai: [2], danh_gia_luot_em: "sai", message: "Việc 2 em xem lại nhé." })) as unknown as ModelClient };
     const r = await handleTurn(d2, { ...turn(2, "ƯCLN = 6"), kind: "submit" as const });
     expect((r.json as { planTicks: number[] }).planTicks).toEqual([1, 3]);
-    expect(a.repo.problems[0]!.planTicks ?? (await a.repo.getProblemForChild("p1", "c1"))!.planTicks).toEqual([1, 3]);
+    expect((await a.repo.getProblemForChild("p1", "c1"))!.planTicks).toEqual([1, 3]);
   });
   it("ticking the last job of a card's list queues the card's review questions (once)", async () => {
     const { d, repo } = deps(seed(UC2), out({ the_hien: "C6.1", ky_thuat: "bai_mau", message: "Cô làm mẫu:" }));
