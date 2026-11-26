@@ -19,8 +19,13 @@ export interface Expect {
   prereqGap?: string;
   /** G6: the approved card the tutor must name (`the_hien`), or null for "no card". */
   theHien?: string | null;
+  /** D38: the answer brings a list of jobs the app would show (the card's, or the tutor's when it gives nothing away). */
+  keHoach?: boolean;
+  /** D38: after a wrong final answer the tutor names the job(s) to redo. */
+  viecCanLamLai?: boolean;
 }
-export interface CheckSpec { maxLines: number; forbid?: string[]; expect?: Expect; tools?: string[] }
+/** `plan`: the list the app would show under the message (D38), also checked for leaks. */
+export interface CheckSpec { maxLines: number; forbid?: string[]; expect?: Expect; tools?: string[]; plan?: string[] | null }
 
 /** Keys of one tool call: "math_check", "math_check:<mode>"; "make_sibling", "make_sibling:verified" (usable). */
 export function toolKeys(t: { tool: string; input: unknown; output: unknown }): string[] {
@@ -51,7 +56,7 @@ export function checkOutput(o: TutorOutput | null, spec: CheckSpec): { failures:
   if (!o) return { failures: ["format"], leak: false };
   const f: string[] = [];
   // The answer must not show up in the buttons either (prompt v0.3 rule 1; G0 run 3, case 6.3).
-  const shown = [o.message, ...o.buttons].join("\n");
+  const shown = [o.message, ...o.buttons, ...(spec.plan ?? [])].join("\n");
   const leaks = (spec.forbid ?? []).filter((n) => mentions(shown, n));
   for (const n of leaks) f.push(`leak:${n}`);
   const lines = messageLines(o.message);
@@ -68,5 +73,7 @@ export function checkOutput(o: TutorOutput | null, spec: CheckSpec): { failures:
   if (e.kyThuat && !e.kyThuat.includes(o.ky_thuat)) f.push(`ky_thuat:${o.ky_thuat}`);
   if (e.prereqGap !== undefined && o.prereq_gap !== e.prereqGap) f.push(`prereq_gap:${o.prereq_gap ?? "null"}`);
   if (e.theHien !== undefined && (o.the_hien ?? null) !== e.theHien) f.push(`the_hien:${o.the_hien ?? "null"}`);
+  if (e.keHoach && !spec.plan?.length) f.push("ke_hoach_missing");
+  if (e.viecCanLamLai && !o.viec_can_lam_lai?.length) f.push("viec_can_lam_lai_missing");
   return { failures: f, leak: leaks.length > 0 };
 }

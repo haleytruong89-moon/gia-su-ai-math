@@ -16,6 +16,12 @@ import { RatingCard } from "./rating-card";
 import { ReferenceSolution } from "./reference-solution";
 import { CardView } from "./card-view";
 import { FlagMessage } from "./flag-form";
+import { PlanList } from "./plan-list";
+import { splitPlan, stuckText } from "@/lib/rules/plan";
+
+/** D38: the list under the newest plan message is the one the child works with. */
+export interface PlanProps { messageId: string | null; ticks: number[]; active: boolean; onTick: (step: number, done: boolean) => void;
+  onStuck: (step: number, text: string) => void }
 
 const CLOSED_TEXT: Partial<Record<ProblemStatus, string>> = {
   timed_out: "Bài này đã đủ 20 lượt. Em ghi lại chỗ đã làm được và để dành hỏi thầy nhé.",
@@ -25,8 +31,10 @@ const CLOSED_TEXT: Partial<Record<ProblemStatus, string>> = {
   self_solved: "Em đã tự làm xong bài này. Giỏi lắm!",
 };
 
-function Bubble({ m }: { m: ThreadMessage }) {
+function Bubble({ m, plan }: { m: ThreadMessage; plan: PlanProps }) {
   const tutor = m.role === "tutor";
+  const { text, steps } = tutor ? splitPlan(m.text) : { text: m.text, steps: null };
+  const current = steps !== null && plan.messageId === m.id;
   return (
     <li className={`flex ${tutor ? "flex-col items-start" : "justify-end"}`}>
       <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-base leading-relaxed ${tutor ? "bg-white" : "bg-accent text-white"}`}>
@@ -37,12 +45,16 @@ function Bubble({ m }: { m: ThreadMessage }) {
             <img src={src} alt="Ảnh em gửi" className="max-h-60 rounded-xl bg-white" />
           </a>
         ))}
-        {lines(m.text).map((runs, i) => (
+        {lines(text).map((runs, i) => (
           <p key={i} className="min-h-[1em]">
             {runs.map((r, j) => (r.bold ? <b key={j}>{r.text}</b> : <span key={j}>{r.text}</span>))}
           </p>
         ))}
         {m.cardRef && <CardView cardRef={m.cardRef} />}
+        {steps && (
+          <PlanList steps={steps} ticks={current ? plan.ticks : []} active={current && plan.active}
+            onTick={plan.onTick} onStuck={(n) => plan.onStuck(n, steps[n - 1]!)} />
+        )}
       </div>
       {tutor && <FlagMessage messageRef={m.id} />}
     </li>
@@ -71,6 +83,7 @@ export function Chat({ initial, rating }: { initial: Thread; rating: RatingInfo 
   const [sessionOpen, setSessionOpen] = useState(rating?.sessionStatus === "active");
   const router = useRouter();
   const [messages, setMessages] = useState(initial.messages);
+  const [planTicks, setPlanTicks] = useState<number[]>(initial.planTicks ?? []);
   const [status, setStatus] = useState(initial.status);
   const [confirmed, setConfirmed] = useState(initial.statementConfirmed);
   const [photo, setPhoto] = useState<{ blob: Blob; previewUrl: string } | null>(null);
@@ -114,6 +127,10 @@ export function Chat({ initial, rating }: { initial: Thread; rating: RatingInfo 
   }
   const last = messages.at(-1);
   const tutorTurn = open && !busy && last?.role === "tutor";
+  // D38: the newest tutor message with a list of jobs.
+  const planMsg = [...messages].reverse().find((m) => m.role === "tutor" && splitPlan(m.text).steps);
+  const planSteps = planMsg ? splitPlan(planMsg.text).steps! : [];
+  const allDone = planSteps.length > 0 && planTicks.length === planSteps.length;
   // "Chưa hiểu", "Em không hiểu đề" and "Để dành hỏi thầy" are in the fixed row below, so not repeated here.
   const buttons = tutorTurn
     ? last.buttons.filter((b) => b !== BTN_NOT_UNDERSTOOD && b !== BTN_SAVE && b !== BTN_NOT_UNDERSTAND_PROBLEM) : [];
@@ -155,6 +172,7 @@ export function Chat({ initial, rating }: { initial: Thread; rating: RatingInfo 
         cardRef: r.data.cardRef ?? null }]);
       setStatus(r.data.status);
       setConfirmed(r.data.statementConfirmed);
+      if (r.data.planTicks) setPlanTicks(r.data.planTicks);
       if (withPhoto) setPhoto(null); // the preview URL stays in use by the bubble
       if (kind !== "button") setText("");
       if (kind === "submit") setSubmit(false);
@@ -169,6 +187,26 @@ export function Chat({ initial, rating }: { initial: Thread; rating: RatingInfo 
     }
     setBusy(false);
   }
+
+  /** D38: tick / untick a job (no model call). Shown at once; put back if the server did not take it. */
+  async function tickJob(step: number, done: boolean) {
+    if (!open) return;
+    const before = planTicks;
+    const optimistic = done ? [...new Set([...before, step])].sort((a, b) => a - b) : before.filter((n) => n !== step);
+    setPlanTicks(optimistic);
+    setError(null);
+    const r = await postWithRetry<{ planTicks: number[]; allDone: boolean }>("/api/plan",
+      { problemId: initial.problemId, clientMsgId: newClientMsgId(), step, done });
+    if (r.ok) {
+      setPlanTicks(r.data.planTicks);
+      if (r.data.allDone) setSubmit(true); // every job done: the next message is the final answer
+    } else {
+      setPlanTicks(before);
+      setError(r.message);
+    }
+  }
+  const plan: PlanProps = { messageId: planMsg?.id ?? null, ticks: planTicks, active: open && !busy,
+    onTick: (s, d) => void tickJob(s, d), onStuck: (n, s) => void send(stuckText(n, s), "button") };
 
   /** "Để dành hỏi thầy" (DOMAIN §3.2): the same client id on every retry of this press. */
   async function saveForLater() {
@@ -192,7 +230,7 @@ export function Chat({ initial, rating }: { initial: Thread; rating: RatingInfo 
     <>
       <ol aria-live="polite" className="flex flex-col gap-3">
         {messages.map((m) => (
-          <Bubble key={m.id} m={m} />
+          <Bubble key={m.id} m={m} plan={plan} />
         ))}
         {busy && (
           <li className="text-sm text-ink/60" aria-label="Cô đang trả lời">
@@ -283,6 +321,11 @@ export function Chat({ initial, rating }: { initial: Thread; rating: RatingInfo 
                 <button type="button" onClick={() => { URL.revokeObjectURL(photo.previewUrl); setPhoto(null); }}
                   className="btn border-[1.5px] border-ink/15 bg-white">{PHOTO_COPY.remove}</button>
               </div>
+            )}
+            {allDone && (
+              <p className="rounded-xl bg-[#EEF3F0] px-3 py-2 text-base">
+                ✅ Em làm xong hết các việc rồi! Gõ <b>kết quả cuối</b> (hoặc bấm 📷 Gửi ảnh vở), rồi bấm <b>Nộp</b>.
+              </p>
             )}
             {error && <p role="alert" className="text-sm font-semibold text-[#A33A2B]">{error}</p>}
             {!canAddPhoto && !photo && <p className="text-sm text-ink/70">{PHOTO_COPY.tooMany}</p>}

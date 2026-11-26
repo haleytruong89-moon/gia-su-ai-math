@@ -11,6 +11,8 @@ import { loadLayers, promptVersion } from "@/lib/tutor/layers";
 import { type Effort, type ModelClient } from "@/lib/tutor/turn";
 import { runToolLoop } from "@/lib/tutor/toolLoop";
 import { linesAllowed, sampleChecked } from "@/lib/tutor/lines";
+import { formatPlan } from "@/lib/rules/plan";
+import { validPlan } from "@/lib/tutor/planCheck";
 import { localCas } from "@/lib/tools/localCas";
 import { runGuard } from "@/lib/tutor/guard";
 import { toolSummary } from "@/lib/tutor/handlers";
@@ -169,10 +171,15 @@ async function runCase(model: string, c: EvalCase) {
     const ms = Date.now() - started;
     const toolsRun = loop.tools.flatMap(toolKeys);
     const maxLines = r.output ? linesAllowed(r.output, sampleChecked(loop.tools), profile.maxLines) : profile.maxLines; // D37
-    const auto = checkOutput(r.output, { maxLines, forbid: c.forbid, expect: c.expect, tools: toolsRun });
+    // D38: the list the app would show under the message (the card's own, else the tutor's when it gives nothing away).
+    const statementText = c.history.find((m) => m.role === "user")?.content ?? c.childText;
+    const named = r.output?.the_hien ? card(r.output.the_hien) : null;
+    const plan = !r.output ? null : named?.steps && (named.kind === "cach_lam" || r.output.ky_thuat === "bai_mau") ? named.steps
+      : validPlan(r.output.ke_hoach, statementText);
+    const auto = checkOutput(r.output, { maxLines, forbid: c.forbid, expect: c.expect, tools: toolsRun, plan });
     const sc = r.output ? shownCard(c, r.output.the_hien) : null;
     const j = r.output
-      ? await judge(c, r.output.message, sc ? sc.buttons : r.output.buttons, loop.tools, sc ? { code: r.output.the_hien!, text: sc.text } : null)
+      ? await judge(c, plan ? `${r.output.message}\n${formatPlan(plan)}` : r.output.message, sc ? sc.buttons : r.output.buttons, loop.tools, sc ? { code: r.output.the_hien!, text: sc.text } : null)
       : { verdict: null, costUsd: 0 };
     // G8-fix2 (D35): the answer also goes through the checker, as in the app — this measures wrong blocks, which
     // the suite never did (real use 24–25/11: 14 of 16 blocks were wrong and no test saw it).
@@ -180,7 +187,8 @@ async function runCase(model: string, c: EvalCase) {
     const said = [...c.history.filter((m) => m.role === "user").slice(1).map((m) => m.content), ...(c.history.length ? [c.childText] : [])];
     const g = r.output && !process.env.EVAL_FAKE
       ? await runGuard(client, GUARD_MODEL, loadLayers().guard, { statement, hintLevel: (c.state?.hintLevel ?? 0) as never,
-        submitted: c.state?.submitted ?? false, maxLines, output: r.output, toolsCalled: loop.tools.map(toolSummary),
+        submitted: c.state?.submitted ?? false, maxLines: maxLines + (r.output.ke_hoach?.length ? r.output.ke_hoach.length + 1 : 0),
+        output: r.output.ke_hoach?.length ? { ...r.output, message: `${r.output.message}\n${formatPlan(r.output.ke_hoach)}` } : r.output, toolsCalled: loop.tools.map(toolSummary),
         childText: said.slice(-6).map((t) => `- ${t.slice(0, 300)}`).join("\n"), card: sc ? r.output.the_hien ?? null : null })
       : null;
     const failures = [...auto.failures];

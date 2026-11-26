@@ -77,6 +77,8 @@ export interface StoredReply {
   status: ProblemStatus;
   turnCount: number;
   statementConfirmed: boolean;
+  /** D38: jobs ticked on the newest list after this turn (added by the handler; [] when a new list came). */
+  planTicks?: number[];
   /** G6: the approved card shown under the message ("T6.12#1"), or null. */
   cardRef: string | null;
 }
